@@ -295,17 +295,17 @@
 **Duration:** ~0.5–1 day | **Priority:** 🟡
 
 ### 8.1 Backend Unit Tests
-- [ ] 🛠️ Install Jest + Supertest
-- [ ] Matching Engine: hard filter combinations (gender, service type, availability)
-- [ ] Pricing Engine: formula correctness with known inputs
-- [ ] Dispute Engine: recommendation logic
-- [ ] Haversine: distance calculation accuracy
+- [x] 🛠️ Install Jest + Supertest
+- [x] Matching Engine: hard filter combinations (gender, service type, availability)
+- [x] Pricing Engine: formula correctness with known inputs
+- [x] Dispute Engine: recommendation logic
+- [x] Haversine: distance calculation accuracy
 
 ### 8.2 Frontend Component Tests
-- [ ] 📱 Install `@testing-library/react-native`
-- [ ] `HomeScreen` — input, category selection, submit
-- [ ] `MatchResultsScreen` — recommended + alternatives render correctly
-- [ ] `QuoteScreen` — correct total from itemized breakdown
+- [x] 📱 Install `@testing-library/react-native`
+- [x] `HomeScreen` — input, category selection, submit
+- [x] `MatchResultsScreen` — recommended + alternatives render correctly
+- [x] `QuoteScreen` — correct total from itemized breakdown
 
 ### 8.3 Manual E2E QA
 - [ ] Walk through all 5 demo scenarios (A–E) end-to-end
