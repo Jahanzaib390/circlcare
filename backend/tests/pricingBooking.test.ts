@@ -1,4 +1,4 @@
-import { createBooking, simulateNextStep } from '../src/services/bookingSimulator';
+import { createBooking, simulateNextStep, cancelBooking } from '../src/services/bookingSimulator';
 import { calculateQuote } from '../src/services/pricingEngine';
 import type { ParsedRequest } from '../src/types/parsedRequest';
 import type { Provider } from '../src/types/provider';
@@ -133,5 +133,23 @@ describe('pricing and booking simulator', () => {
     expect(cancelled.status).toBe('cancelled');
     expect(cancelled.cancellation_reason).toContain('mid-transit');
     expect(cancelled.compensation_discount).toBe(500);
+  });
+
+  it('returns a family notification and compensation credit when a provider cancels', () => {
+    const quote = calculateQuote(provider, request);
+    const { booking } = createBooking(request, provider, quote, 'user-test-3');
+    const cancelled = cancelBooking(booking.booking_id, 'Provider cancelled before pickup');
+
+    expect(cancelled.booking.status).toBe('cancelled');
+    expect(cancelled.booking.original_request).toEqual(request);
+    expect(cancelled.booking.compensation_discount).toBe(500);
+    expect(cancelled.family_notification).toEqual(
+      expect.objectContaining({
+        type: 'provider_cancelled',
+        recipient: 'family_group',
+        booking_id: booking.booking_id,
+        provider_id: provider.id,
+      })
+    );
   });
 });

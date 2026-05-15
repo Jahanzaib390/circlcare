@@ -35,5 +35,12 @@ export interface MatchResult {
 export interface MatchResponse {
   request: ParsedRequest;
   top_matches: MatchResult[];
-  filtered_out: Array<{ provider: Provider; reason: string }>;
+  filtered_out: Array<{
+    provider: Provider;
+    reason: string;
+    failed_filter?: string;
+    suggested_next_slot?: string;
+  }>;
+  is_offline_fallback?: boolean;
+  fallback_message?: string;
 }

@@ -257,9 +257,9 @@
 | 8 | API failure | Offline banner; cached provider list fallback |
 
 ### 6.1 Cancellation & Fallback Engine
-- [ ] 🛠️ `POST /api/bookings/:id/cancel` — triggers re-ranking excluding cancelled provider
-- [ ] 🛠️ Apply `compensation_discount` to replacement quote
-- [ ] 🛠️ Family notification payload for cancellation
+- [x] 🛠️ `POST /api/bookings/:id/cancel` — triggers re-ranking excluding cancelled provider
+- [x] 🛠️ Apply `compensation_discount` to replacement quote
+- [x] 🛠️ Family notification payload for cancellation
 
 ---
 

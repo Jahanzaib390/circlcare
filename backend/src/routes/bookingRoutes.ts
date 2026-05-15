@@ -9,8 +9,29 @@ import {
 import type { ParsedRequest } from '../types/parsedRequest';
 import type { Provider } from '../types/provider';
 import type { PricingBreakdown } from '../types/pricing';
+import { getProviders } from '../services/providerData';
+import { matchProviders } from '../services/matchingEngine';
+import { calculateQuote } from '../services/pricingEngine';
+import type { MatchResult } from '../types/match';
 
 export const bookingRoutes = Router();
+
+function buildCancellationFallback(booking: ReturnType<typeof cancelBooking>['booking']):
+  | Array<{ match: MatchResult; quote: PricingBreakdown }>
+  | undefined {
+  if (!booking.original_request) return undefined;
+
+  const allProviders = getProviders();
+  const availableProviders = allProviders.filter((provider) => provider.id !== booking.provider_id);
+  const matchResult = matchProviders(booking.original_request, availableProviders);
+
+  return matchResult.top_matches.map((match) => ({
+    match,
+    quote: calculateQuote(match.provider, booking.original_request!, {
+      compensationDiscount: booking.compensation_discount,
+    }),
+  }));
+}
 
 bookingRoutes.post('/bookings', async (req, res, next) => {
   try {
@@ -67,7 +88,8 @@ bookingRoutes.post('/bookings/:id/simulate', async (req, res, next) => {
   try {
     const { mode = 'advance' } = req.body as { mode?: 'advance' | 'delay' | 'cancel' };
     const booking = simulateNextStep(req.params.id, mode);
-    success(res, { booking });
+    const replacements = mode === 'cancel' ? buildCancellationFallback(booking) : undefined;
+    success(res, { booking, replacements });
   } catch (e) {
     if (e instanceof Error && e.message === 'Booking not found') {
       return error(res, 'Booking not found', 404);
@@ -85,8 +107,10 @@ bookingRoutes.post('/bookings/:id/simulate', async (req, res, next) => {
 bookingRoutes.post('/bookings/:id/cancel', async (req, res, next) => {
   try {
     const { reason } = req.body;
-    const booking = cancelBooking(req.params.id, reason);
-    success(res, { booking });
+    const { booking, family_notification } = cancelBooking(req.params.id, reason);
+    const replacements = buildCancellationFallback(booking);
+
+    success(res, { booking, family_notification, replacements });
   } catch (e) {
     if (e instanceof Error && e.message === 'Booking not found') {
       return error(res, 'Booking not found', 404);

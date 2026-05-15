@@ -598,6 +598,16 @@ export default function UnderstandScreen() {
                 returnKeyType="send"
                 onSubmitEditing={handleAnswerClarification}
               />
+              {pr.location_from === 'not specified' && (
+                <Button
+                  label="Choose Location"
+                  variant="secondary"
+                  size="sm"
+                  fullWidth
+                  onPress={() => router.push('/modals/location-picker')}
+                  style={{ marginTop: 8 }}
+                />
+              )}
               <Button
                 label={isAnswering ? 'Sending…' : 'Re-analyse with answer'}
                 variant="primary"

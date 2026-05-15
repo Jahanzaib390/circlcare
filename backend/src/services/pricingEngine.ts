@@ -105,9 +105,17 @@ function getCheaperSlotSuggestion(
 export function calculateQuote(
   provider: Provider,
   request: ParsedRequest,
-  pastBookingCount = 0
+  options:
+    | {
+        pastBookingCount?: number;
+        compensationDiscount?: number;
+      }
+    | number = {}
 ): PricingBreakdown {
   const lineItems: QuoteLineItem[] = [];
+  const normalizedOptions = typeof options === 'number' ? { pastBookingCount: options } : options;
+  const pastBookingCount = normalizedOptions.pastBookingCount ?? 0;
+  const compensationDiscount = normalizedOptions.compensationDiscount ?? 0;
 
   // 1. Base Rate
   lineItems.push({ label: 'Base Visit Fee', amount: provider.base_rate, type: 'base' });
@@ -151,6 +159,12 @@ export function calculateQuote(
   if (pastBookingCount >= LOYALTY_THRESHOLD) {
     discountAmount = Math.round(subtotalWithUrgency * LOYALTY_DISCOUNT_PCT);
     lineItems.push({ label: 'CirclCare Loyalty Discount', amount: -discountAmount, type: 'discount' });
+  }
+
+  // 7. Cancellation Compensation
+  if (compensationDiscount > 0) {
+    lineItems.push({ label: 'Cancellation Compensation', amount: -compensationDiscount, type: 'discount' });
+    discountAmount += compensationDiscount;
   }
 
   // Final Total

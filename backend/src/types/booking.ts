@@ -1,6 +1,6 @@
 import type { BookingStatus } from '../constants/bookingStatuses';
 import type { PricingBreakdown } from './pricing';
-import type { ServiceCategory } from './parsedRequest';
+import type { ServiceCategory, ParsedRequest } from './parsedRequest';
 
 export interface RecurringSchedule {
   frequency: 'daily' | 'weekly' | 'monthly';
@@ -43,4 +43,5 @@ export interface Booking {
   provider_eta_minutes?: number;
   location_from: string;
   location_to?: string;
+  original_request?: ParsedRequest;
 }

@@ -13,7 +13,7 @@ quoteRoutes.post('/quote', async (req, res, next) => {
       return error(res, 'Missing parsedRequest or provider in body', 400);
     }
 
-    const quote = calculateQuote(provider, parsedRequest, past_booking_count);
+    const quote = calculateQuote(provider, parsedRequest, { pastBookingCount: past_booking_count });
     
     success(res, quote);
   } catch (e) {

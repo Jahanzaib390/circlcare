@@ -136,6 +136,7 @@ interface HardFilterOutcome {
   passed: boolean;
   failedFilter?: string;
   reason?: string;
+  suggestedNextSlot?: string;
 }
 
 const HIGH_RISK_SERVICES: ServiceCategory[] = ['home_nurse', 'physiotherapy', 'lab_sample'];
@@ -270,6 +271,41 @@ function hasBookingConflict(
   });
 }
 
+function nextSlotSuggestion(provider: Provider, request: ParsedRequest): string | undefined {
+  const requestedStart = request.scheduled_datetime
+    ? new Date(request.scheduled_datetime)
+    : new Date();
+  if (Number.isNaN(requestedStart.getTime())) return undefined;
+
+  const orderedDays: Provider['availability'][number]['day'][] = [
+    'sun',
+    'mon',
+    'tue',
+    'wed',
+    'thu',
+    'fri',
+    'sat',
+  ];
+  const requestedDayIndex = requestedStart.getDay();
+
+  for (let offset = 0; offset < 14; offset += 1) {
+    const date = new Date(requestedStart);
+    date.setDate(requestedStart.getDate() + offset);
+    const day = orderedDays[(requestedDayIndex + offset) % 7];
+    const slots = provider.availability.filter((slot) => slot.day === day);
+    if (slots.length === 0) continue;
+
+    const slot = slots[0];
+    const [hour, minute] = slot.start_time.split(':').map(Number);
+    date.setHours(hour, minute, 0, 0);
+    if (date.getTime() > requestedStart.getTime()) {
+      return date.toISOString();
+    }
+  }
+
+  return undefined;
+}
+
 function applyHardFilters(
   provider: Provider,
   request: ParsedRequest,
@@ -326,10 +362,14 @@ function applyHardFilters(
     };
   }
   if (hasBookingConflict(provider, request, existingBookings)) {
+    const suggestedNextSlot = nextSlotSuggestion(provider, request);
     return {
       passed: false,
       failedFilter: 'slot_conflict',
-      reason: `Already booked around ${request.time_preference}`,
+      reason: suggestedNextSlot
+        ? `Already booked around ${request.time_preference}. Next available slot: ${new Date(suggestedNextSlot).toLocaleString('en-PK', { timeZone: 'Asia/Karachi' })}`
+        : `Already booked around ${request.time_preference}`,
+      suggestedNextSlot,
     };
   }
 
@@ -539,7 +579,12 @@ export function matchProviders(
   const weights = resolveWeights(request);
   const patientGeo = resolvePatientLocation(request.location_from);
 
-  const filtered_out: Array<{ provider: Provider; reason: string }> = [];
+  const filtered_out: Array<{
+    provider: Provider;
+    reason: string;
+    failed_filter?: string;
+    suggested_next_slot?: string;
+  }> = [];
   const passed: Array<{
     provider: Provider;
     score: MatchScore;
@@ -554,6 +599,8 @@ export function matchProviders(
       filtered_out.push({
         provider,
         reason: filterResult.reason ?? 'Did not meet requirements',
+        failed_filter: filterResult.failedFilter,
+        suggested_next_slot: filterResult.suggestedNextSlot,
       });
       continue;
     }

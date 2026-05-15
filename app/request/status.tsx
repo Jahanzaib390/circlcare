@@ -19,6 +19,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '@/hooks/useTheme';
 import { useBookingStore } from '@/hooks/useBookingStore';
 import { useBookingStatus } from '@/hooks/useBookingStatus';
+import { useBooking } from '@/hooks/useBooking';
 import { Button } from '@/components/ui/Button';
 import { Colors, Shadows, Radius, FontSize, Spacing } from '@/constants/theme';
 import {
@@ -337,6 +338,7 @@ export default function StatusScreen() {
   const theme = useTheme();
   const router = useRouter();
   const { booking } = useBookingStore();
+  const { mutate: createBooking, isPending: isBookingReplacement } = useBooking();
 
   const bookingId = booking?.booking_id ?? null;
 
@@ -348,6 +350,7 @@ export default function StatusScreen() {
     delay_reason,
     cancellation_reason,
     compensation_discount,
+    replacements,
     isLoading,
     error,
     isSimulating,
@@ -389,6 +392,25 @@ export default function StatusScreen() {
   const isEnRoute = status === 'en_route';
   const isTerminal = status ? TERMINAL_STATUSES.includes(status) : false;
   const canRunTransitEdgeCases = isEnRoute && !isTerminal;
+
+  const handleBookReplacement = useCallback(
+    (replacementIndex: number) => {
+      const replacement = replacements?.[replacementIndex];
+      if (!booking?.original_request || !replacement) return;
+
+      createBooking(
+        {
+          request: booking.original_request,
+          provider: replacement.match.provider,
+          pricing: replacement.quote,
+        },
+        {
+          onSuccess: () => router.replace('/request/confirm'),
+        }
+      );
+    },
+    [booking?.original_request, createBooking, replacements, router]
+  );
 
   const formattedDate = booking?.scheduled_start
     ? new Date(booking.scheduled_start).toLocaleDateString(undefined, {
@@ -542,6 +564,59 @@ export default function StatusScreen() {
                 </Text>
               )}
             </View>
+          </View>
+        )}
+
+        {isCancelled && replacements && replacements.length > 0 && (
+          <View
+            style={[
+              styles.replacementCard,
+              { backgroundColor: theme.colors.surface, borderColor: theme.colors.border },
+            ]}
+          >
+            <View style={styles.demoHeader}>
+              <Ionicons name="refresh-circle-outline" size={18} color={Colors.primary} />
+              <Text
+                style={[
+                  styles.demoLabel,
+                  { color: Colors.primary, fontFamily: theme.fontFamily.semiBold },
+                ]}
+              >
+                Replacement Options
+              </Text>
+            </View>
+            <Text style={[styles.demoDesc, { color: theme.colors.textSecondary }]}>
+              Family has been notified. These providers exclude the cancelled provider and include
+              the compensation credit in the quote.
+            </Text>
+            {replacements.slice(0, 2).map((replacement, index) => (
+              <View
+                key={replacement.match.provider.id}
+                style={[styles.replacementRow, { borderColor: theme.colors.border }]}
+              >
+                <View style={{ flex: 1 }}>
+                  <Text
+                    style={[
+                      styles.replacementName,
+                      { color: theme.colors.textPrimary, fontFamily: theme.fontFamily.semiBold },
+                    ]}
+                  >
+                    {replacement.match.provider.name}
+                  </Text>
+                  <Text style={[styles.replacementMeta, { color: theme.colors.textSecondary }]}>
+                    {Math.round(replacement.match.score.total * 100)}% match ·{' '}
+                    {replacement.quote.total.toLocaleString()} PKR after credit
+                  </Text>
+                </View>
+                <TouchableOpacity
+                  style={[styles.replacementBtn, { backgroundColor: Colors.primary }]}
+                  onPress={() => handleBookReplacement(index)}
+                  disabled={isBookingReplacement}
+                >
+                  <Text style={styles.replacementBtnText}>Book</Text>
+                </TouchableOpacity>
+              </View>
+            ))}
           </View>
         )}
 
@@ -826,6 +901,27 @@ const styles = StyleSheet.create({
   },
   cancelTitle: { fontSize: FontSize.sm, marginBottom: 3 },
   cancelReason: { fontSize: FontSize.sm },
+  replacementCard: {
+    borderRadius: Radius.lg,
+    borderWidth: 1,
+    padding: Spacing.md,
+    gap: 10,
+  },
+  replacementRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    borderTopWidth: StyleSheet.hairlineWidth,
+    paddingTop: 10,
+  },
+  replacementName: { fontSize: FontSize.sm },
+  replacementMeta: { fontSize: FontSize.xs, marginTop: 2 },
+  replacementBtn: {
+    borderRadius: Radius.md,
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+  },
+  replacementBtnText: { color: '#fff', fontSize: FontSize.xs, fontWeight: '700' },
 
   // Timeline card
   timelineCard: {

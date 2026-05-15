@@ -66,6 +66,7 @@ export function createBooking(
     timeline,
     location_from: request.location_from,
     location_to: request.location_to,
+    original_request: request,
   };
 
   bookings.set(booking_id, booking);
@@ -121,7 +122,8 @@ export function simulateNextStep(id: string, mode: BookingSimulationMode = 'adva
       throw new Error('Mid-transit cancellation can only be simulated while provider is en route');
     }
 
-    return cancelBooking(id, 'Provider cancelled mid-transit. Replacement flow will be offered.');
+    const { booking: cancelledBooking } = cancelBooking(id, 'Provider cancelled mid-transit. Replacement flow will be offered.');
+    return cancelledBooking;
   }
 
   const currentIndex = BOOKING_TIMELINE_STEPS.indexOf(booking.status);
@@ -155,7 +157,10 @@ export function simulateNextStep(id: string, mode: BookingSimulationMode = 'adva
   return booking;
 }
 
-export function cancelBooking(id: string, reason?: string): Booking {
+export function cancelBooking(
+  id: string,
+  reason?: string
+): { booking: Booking; family_notification: BookingNotificationPayload } {
   const booking = bookings.get(id);
   if (!booking) throw new Error('Booking not found');
 
@@ -171,5 +176,15 @@ export function cancelBooking(id: string, reason?: string): Booking {
   });
 
   bookings.set(id, booking);
-  return booking;
+
+  const family_notification: BookingNotificationPayload = {
+    type: 'provider_cancelled',
+    recipient: 'family_group',
+    title: 'Provider Cancellation Notice',
+    message: `The provider for booking ${id} has cancelled. We are searching for a replacement.`,
+    booking_id: id,
+    provider_id: booking.provider_id,
+  };
+
+  return { booking, family_notification };
 }

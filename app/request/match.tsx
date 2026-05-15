@@ -425,7 +425,7 @@ export default function MatchScreen() {
   }
 
   // ── Error ──
-  if (isError) {
+  if (isError && !matchResponse) {
     return (
       <SafeAreaView style={[s.root, { backgroundColor: theme.colors.background }]}>
         <View style={[s.topBar, { borderBottomColor: theme.colors.border }]}>
@@ -474,6 +474,14 @@ export default function MatchScreen() {
 
   const topMatches = matchResponse?.top_matches ?? [];
   const filteredOut = matchResponse?.filtered_out ?? [];
+  const noFemaleProvider =
+    parsedRequest?.provider_preferences.gender === 'female_required' &&
+    topMatches.length === 0 &&
+    filteredOut.some((item) => item.failed_filter === 'gender' || item.reason.includes('Female provider required'));
+  const slotConflict =
+    topMatches.length === 0
+      ? filteredOut.find((item) => item.suggested_next_slot)
+      : undefined;
 
   // ── No results ──
   if (topMatches.length === 0) {
@@ -494,14 +502,22 @@ export default function MatchScreen() {
           <View style={{ width: 40 }} />
         </View>
         <View style={s.centered}>
-          <Ionicons name="search-outline" size={48} color={theme.colors.textMuted} />
+          <Ionicons
+            name={noFemaleProvider ? 'woman-outline' : slotConflict ? 'calendar-outline' : 'search-outline'}
+            size={48}
+            color={noFemaleProvider ? Colors.danger : theme.colors.textMuted}
+          />
           <Text
             style={[
               s.emptyTitle,
               { color: theme.colors.textPrimary, fontFamily: theme.fontFamily.bold },
             ]}
           >
-            No Providers Found
+            {noFemaleProvider
+              ? 'No Female Provider Available'
+              : slotConflict
+                ? 'Time Slot Is Booked'
+                : 'No Providers Found'}
           </Text>
           <Text
             style={[
@@ -509,11 +525,14 @@ export default function MatchScreen() {
               { color: theme.colors.textSecondary, fontFamily: theme.fontFamily.regular },
             ]}
           >
-            No available providers match your current requirements. Try relaxing some preferences or
-            selecting a different area.
+            {noFemaleProvider
+              ? 'No female provider is currently available in this area. Try a nearby area, switch to female preferred, or ask CirclCare to arrange a callback.'
+              : slotConflict?.suggested_next_slot
+                ? `The requested time overlaps an existing booking. Try the suggested next slot: ${new Date(slotConflict.suggested_next_slot).toLocaleString()}.`
+                : 'No available providers match your current requirements. Try relaxing some preferences or selecting a different area.'}
           </Text>
           <Button
-            label="Edit Request"
+            label={slotConflict?.suggested_next_slot ? 'Change Time' : 'Edit Request'}
             variant="primary"
             size="md"
             onPress={() => router.back()}
@@ -561,6 +580,25 @@ export default function MatchScreen() {
       </View>
 
       <ScrollView contentContainerStyle={s.content} showsVerticalScrollIndicator={false}>
+        {matchResponse?.is_offline_fallback && (
+          <View
+            style={[
+              s.offlineBanner,
+              { backgroundColor: Colors.warning + '12', borderColor: Colors.warning + '35' },
+            ]}
+          >
+            <Ionicons name="cloud-offline-outline" size={16} color={Colors.warning} />
+            <Text
+              style={[
+                s.offlineText,
+                { color: Colors.warning, fontFamily: theme.fontFamily.medium },
+              ]}
+            >
+              {matchResponse.fallback_message}
+            </Text>
+          </View>
+        )}
+
         {/* ── Section header ── */}
         <View style={s.sectionHeader}>
           <View style={[s.sectionDot, { backgroundColor: Colors.accent }]} />
@@ -763,4 +801,14 @@ const s = StyleSheet.create({
   },
   rejectedName: { fontSize: 13, marginBottom: 2 },
   rejectedReason: { fontSize: 12, lineHeight: 17 },
+  offlineBanner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    borderWidth: 1,
+    borderRadius: 10,
+    padding: 12,
+    marginBottom: 14,
+  },
+  offlineText: { flex: 1, fontSize: 12, lineHeight: 17 },
 });

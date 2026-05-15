@@ -1,21 +1,115 @@
-import { StyleSheet, Text, View } from 'react-native';
+import { useState } from 'react';
+import { Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { Ionicons } from '@expo/vector-icons';
+import { useRouter } from 'expo-router';
+import { Button } from '@/components/ui/Button';
+import { Colors, Radius, Spacing } from '@/constants/theme';
+import { useRequestStore } from '@/hooks/useRequestStore';
 import { useTheme } from '@/hooks/useTheme';
 
-/** Location Picker Modal — built in Phase 1 */
+const SAVED_LOCATIONS = ['DHA Phase 5', 'Model Town', 'Gulberg III'];
+
 export default function LocationPickerModal() {
   const theme = useTheme();
+  const router = useRouter();
+  const { parsedRequest, setParsedRequest } = useRequestStore();
+  const [manualLocation, setManualLocation] = useState('');
+
+  const applyLocation = (location: string) => {
+    if (!parsedRequest || !location.trim()) return;
+    setParsedRequest({
+      ...parsedRequest,
+      location_from: location.trim(),
+      clarification_needed:
+        parsedRequest.service_bundle.length === 0 || parsedRequest.confidence < 0.7,
+      clarification_question:
+        parsedRequest.service_bundle.length === 0 ? 'Which care service should we arrange?' : undefined,
+      confidence: Math.max(parsedRequest.confidence, 0.72),
+    });
+    router.back();
+  };
+
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: theme.colors.background }]}>
-      <View style={styles.inner}>
+      <View style={[styles.header, { borderBottomColor: theme.colors.border }]}>
         <Text
           style={[
             styles.title,
             { color: theme.colors.textPrimary, fontFamily: theme.fontFamily.bold },
           ]}
         >
-          Select Location
+          Service Location
         </Text>
+        <Pressable onPress={() => router.back()} style={styles.closeBtn}>
+          <Ionicons name="close" size={22} color={theme.colors.textPrimary} />
+        </Pressable>
+      </View>
+
+      <View style={styles.content}>
+        <View
+          style={[
+            styles.alert,
+            { backgroundColor: Colors.warning + '12', borderColor: Colors.warning + '35' },
+          ]}
+        >
+          <Ionicons name="location-outline" size={18} color={Colors.warning} />
+          <Text
+            style={[
+              styles.alertText,
+              { color: theme.colors.textSecondary, fontFamily: theme.fontFamily.regular },
+            ]}
+          >
+            Choose a saved area or enter the address where care is needed.
+          </Text>
+        </View>
+
+        <View style={styles.savedList}>
+          {SAVED_LOCATIONS.map((location) => (
+            <Pressable
+              key={location}
+              style={[
+                styles.locationRow,
+                { backgroundColor: theme.colors.surface, borderColor: theme.colors.border },
+              ]}
+              onPress={() => applyLocation(location)}
+            >
+              <Ionicons name="home-outline" size={18} color={theme.colors.primary} />
+              <Text
+                style={[
+                  styles.locationText,
+                  { color: theme.colors.textPrimary, fontFamily: theme.fontFamily.semiBold },
+                ]}
+              >
+                {location}
+              </Text>
+              <Ionicons name="chevron-forward" size={16} color={theme.colors.textMuted} />
+            </Pressable>
+          ))}
+        </View>
+
+        <TextInput
+          value={manualLocation}
+          onChangeText={setManualLocation}
+          placeholder="Enter another Lahore area"
+          placeholderTextColor={theme.colors.textMuted}
+          style={[
+            styles.input,
+            {
+              color: theme.colors.textPrimary,
+              borderColor: theme.colors.border,
+              backgroundColor: theme.colors.surface,
+              fontFamily: theme.fontFamily.regular,
+            },
+          ]}
+        />
+        <Button
+          label="Use This Location"
+          variant="primary"
+          fullWidth
+          onPress={() => applyLocation(manualLocation)}
+          disabled={!manualLocation.trim()}
+        />
       </View>
     </SafeAreaView>
   );
@@ -23,6 +117,40 @@ export default function LocationPickerModal() {
 
 const styles = StyleSheet.create({
   container: { flex: 1 },
-  inner: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: 24 },
-  title: { fontSize: 24, textAlign: 'center' },
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: Spacing.md,
+    paddingVertical: 12,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+  },
+  title: { flex: 1, fontSize: 20 },
+  closeBtn: { width: 40, height: 40, alignItems: 'center', justifyContent: 'center' },
+  content: { padding: Spacing.md, gap: 14 },
+  alert: {
+    flexDirection: 'row',
+    gap: 10,
+    borderRadius: Radius.lg,
+    borderWidth: 1,
+    padding: Spacing.md,
+  },
+  alertText: { flex: 1, fontSize: 14, lineHeight: 20 },
+  savedList: { gap: 10 },
+  locationRow: {
+    minHeight: 52,
+    borderRadius: Radius.md,
+    borderWidth: 1,
+    paddingHorizontal: 14,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+  },
+  locationText: { flex: 1, fontSize: 15 },
+  input: {
+    minHeight: 50,
+    borderRadius: Radius.md,
+    borderWidth: 1,
+    paddingHorizontal: 14,
+    fontSize: 15,
+  },
 });

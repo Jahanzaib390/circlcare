@@ -10,6 +10,13 @@ import { apiClient } from '@/services/apiClient';
 import { useBookingStore } from '@/hooks/useBookingStore';
 import type { BookingStatus } from '@/constants/BookingStatuses';
 import type { Booking, BookingTimelineEvent } from '@/types/booking';
+import type { MatchResult } from '@/types/match';
+import type { PricingBreakdown } from '@/types/pricing';
+
+export interface ReplacementOption {
+  match: MatchResult;
+  quote: PricingBreakdown;
+}
 
 export interface BookingStatusState {
   status: BookingStatus | null;
@@ -19,6 +26,7 @@ export interface BookingStatusState {
   delay_reason?: string;
   cancellation_reason?: string;
   compensation_discount?: number;
+  replacements?: ReplacementOption[];
   isLoading: boolean;
   error: string | null;
 }
@@ -128,10 +136,11 @@ export function useBookingStatus(
       if (!bookingId || isSimulating) return;
       setIsSimulating(true);
       try {
-        const { booking } = await apiClient.post<{ booking: Booking }>(
-          `/api/bookings/${bookingId}/simulate`,
-          { mode }
-        );
+        const response = await apiClient.post<{
+          booking: Booking;
+          replacements?: ReplacementOption[];
+        }>(`/api/bookings/${bookingId}/simulate`, { mode });
+        const { booking, replacements } = response;
         if (!isMounted.current) return;
 
         setBooking(booking);
@@ -144,6 +153,7 @@ export function useBookingStatus(
           delay_reason: booking.delay_reason,
           cancellation_reason: booking.cancellation_reason,
           compensation_discount: booking.compensation_discount,
+          replacements: replacements ?? prev.replacements,
           error: null,
         }));
       } catch (e) {

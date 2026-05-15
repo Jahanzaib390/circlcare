@@ -139,5 +139,7 @@ describe('matchProviders hard filters', () => {
 
     expect(result.top_matches).toHaveLength(0);
     expect(result.filtered_out[0].reason).toContain('Already booked');
+    expect(result.filtered_out[0].failed_filter).toBe('slot_conflict');
+    expect(result.filtered_out[0].suggested_next_slot).toBeTruthy();
   });
 });
