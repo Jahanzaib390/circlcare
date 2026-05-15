@@ -14,6 +14,9 @@ interface ExistingBooking {
   status: string;
 }
 
+import { getProviders } from '../services/providerData';
+import { getLLM } from '../llm/llmFactory';
+
 // ─── Load provider data ───────────────────────────────────────────────────────
 // We load from the shared /data directory at the root of the project.
 // Resolve path relative to this file's location (backend/src/routes/).
@@ -29,18 +32,7 @@ function resolveDataPath(fileName: string): string {
   return found ?? candidates[0];
 }
 
-const PROVIDERS_PATH = resolveDataPath('providers.json');
 const BOOKINGS_PATH = resolveDataPath('bookings.json');
-
-function loadProviders(): Provider[] {
-  try {
-    const raw = fs.readFileSync(PROVIDERS_PATH, 'utf-8');
-    return JSON.parse(raw) as Provider[];
-  } catch (err) {
-    console.error('[matchRoutes] Failed to load providers.json:', err);
-    return [];
-  }
-}
 
 function loadBookings(): ExistingBooking[] {
   try {
@@ -50,17 +42,6 @@ function loadBookings(): ExistingBooking[] {
     console.warn('[matchRoutes] Failed to load bookings.json; continuing without conflicts:', err);
     return [];
   }
-}
-
-// ─── LLM provider (lazy-loaded to match parseRoutes pattern) ─────────────────
-function getLLM() {
-  const apiKey = process.env.GEMINI_API_KEY;
-  if (apiKey) {
-    const { GeminiProvider } = require('../llm/geminiProvider');
-    return new GeminiProvider(apiKey) as import('../llm/llmProvider').LLMProvider;
-  }
-  const { MockProvider } = require('../llm/mockProvider');
-  return new MockProvider() as import('../llm/llmProvider').LLMProvider;
 }
 
 // ─── Router ───────────────────────────────────────────────────────────────────
@@ -87,8 +68,8 @@ matchRoutes.post('/match', async (req, res, next) => {
       return error(res, 'parsedRequest with at least one service is required', 400);
     }
 
-    // Load providers from JSON
-    const providers = loadProviders();
+    // Load providers from memory/JSON
+    const providers = getProviders();
     if (providers.length === 0) {
       return error(res, 'Provider data unavailable — cannot perform matching', 503);
     }

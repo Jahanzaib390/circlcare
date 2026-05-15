@@ -214,28 +214,28 @@
 **Dependencies:** Phase 4
 
 ### 5.1 Feedback Screen
-- [ ] 📱 5-star rating component
-- [ ] 📱 Service confirmation checklist (per service type)
-- [ ] 📱 Photo/receipt upload placeholder
-- [ ] 📱 Complaint reason multi-select chips
-- [ ] 📱 Submit → reputation update trigger
+- [x] 📱 5-star rating component
+- [x] 📱 Service confirmation checklist (per service type)
+- [x] 📱 Photo/receipt upload placeholder
+- [x] 📱 Complaint reason multi-select chips
+- [x] 📱 Submit → reputation update trigger
 
 ### 5.2 Dispute Engine
-- [ ] 🛠️ Create `services/disputeEngine.ts`
-- [ ] Handle types: no-show, late arrival, extra charge, incomplete, safety concern
-- [ ] Recommendation logic: refund / revisit / human escalation
-- [ ] `POST /api/disputes` endpoint
-- [ ] 🤖 `LLMProvider.summarizeDispute(dispute): string` — human-readable summary
+- [x] 🛠️ Create `services/disputeEngine.ts`
+- [x] Handle types: no-show, late arrival, extra charge, incomplete, safety concern
+- [x] Recommendation logic: refund / revisit / human escalation
+- [x] `POST /api/disputes` endpoint
+- [x] 🤖 `LLMProvider.summarizeDispute(dispute): string` — human-readable summary
 
 ### 5.3 Dispute Screen
-- [ ] 📱 Dispute type selection
-- [ ] 📱 Gemini dispute summary display
-- [ ] 📱 Resolution recommendation card
-- [ ] 📱 "Human agent notified" escalation simulation
+- [x] 📱 Dispute type selection
+- [x] 📱 Gemini dispute summary display
+- [x] 📱 Resolution recommendation card
+- [x] 📱 "Human agent notified" escalation simulation
 
 ### 5.4 Reputation Update
-- [ ] 🛠️ `POST /api/providers/:id/reputation` — update rating, on-time score, cancellation rate in memory
-- [ ] 🛠️ Updated reputation feeds into next match cycle
+- [x] 🛠️ `POST /api/providers/:id/reputation` — update rating, on-time score, cancellation rate in memory
+- [x] 🛠️ Updated reputation feeds into next match cycle
 
 ---
 

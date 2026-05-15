@@ -168,7 +168,7 @@ export class MockProvider implements LLMProvider {
       no_show: 'The provider did not show up for the scheduled visit.',
       late_arrival: 'The provider arrived significantly later than the scheduled time.',
       extra_charge: 'An unexpected additional charge was applied beyond the agreed quote.',
-      incomplete: 'The service was not completed as described in the booking.',
+      incomplete_service: 'The service was not completed as described in the booking.',
       safety_concern: 'A safety concern was raised during the provider visit.',
     };
     return (
