@@ -1,0 +1,31 @@
+[
+  {
+    "id": "user_001", "name": "Kamran Ahmed",
+    "phone": "+92-300-1234567",
+    "saved_locations": [
+      {"id": "loc_001", "label": "Home", "area": "DHA Phase 5", "city": "Lahore", "lat": 31.4697, "lng": 74.4007, "address": "12-B, Street 9, DHA Phase 5"},
+      {"id": "loc_002", "label": "Parents' House", "area": "Model Town", "city": "Lahore", "lat": 31.5170, "lng": 74.3450, "address": "45-C, Block L, Model Town"}
+    ],
+    "preferences": {"preferred_language": "Urdu", "preferred_provider_gender": "female", "notifications_enabled": true, "demo_mode": false},
+    "created_at": "2025-11-01T00:00:00Z"
+  },
+  {
+    "id": "user_002", "name": "Ayesha Raza",
+    "phone": "+92-321-9876543",
+    "saved_locations": [
+      {"id": "loc_003", "label": "Home", "area": "Gulberg III", "city": "Lahore", "lat": 31.5300, "lng": 74.3700, "address": "7, Main Boulevard, Gulberg III"}
+    ],
+    "preferences": {"preferred_language": "Urdu", "preferred_provider_gender": "any", "notifications_enabled": true, "demo_mode": false},
+    "created_at": "2026-01-15T00:00:00Z"
+  },
+  {
+    "id": "user_003", "name": "Tariq Mahmood",
+    "phone": "+92-311-5554444",
+    "saved_locations": [
+      {"id": "loc_004", "label": "Home", "area": "Cantt", "city": "Lahore", "lat": 31.5560, "lng": 74.3320, "address": "30, Sarwar Road, Cantt"},
+      {"id": "loc_005", "label": "Office", "area": "Gulberg", "city": "Lahore", "lat": 31.5204, "lng": 74.3587}
+    ],
+    "preferences": {"preferred_language": "English", "preferred_provider_gender": "any", "notifications_enabled": false, "demo_mode": true},
+    "created_at": "2026-03-10T00:00:00Z"
+  }
+]

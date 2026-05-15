@@ -1,0 +1,78 @@
+[
+  {
+    "booking_id": "BK-001", "user_id": "user_001", "provider_id": "prov_003",
+    "service_bundle": ["home_nurse"], "scheduled_start": "2026-05-15T10:00:00+05:00",
+    "status": "en_route", "quoted_price": 3500, "risk_level": "medium",
+    "family_notified": true, "location_from": "DHA Phase 5", "provider_eta_minutes": 24,
+    "pricing_breakdown": [
+      {"line_items": [{"label": "Home Nurse Base Rate", "amount": 3000, "type": "base"}, {"label": "Distance Fee (8km)", "amount": 600, "type": "fee"}, {"label": "Loyalty Discount", "amount": -100, "type": "discount"}], "subtotal": 3500, "total": 3500, "currency": "PKR"}
+    ],
+    "timeline": [
+      {"status": "confirmed", "timestamp": "2026-05-15T08:30:00+05:00"},
+      {"status": "provider_assigned", "timestamp": "2026-05-15T08:32:00+05:00"},
+      {"status": "family_notified", "timestamp": "2026-05-15T08:33:00+05:00"},
+      {"status": "en_route", "timestamp": "2026-05-15T09:36:00+05:00"}
+    ]
+  },
+  {
+    "booking_id": "BK-002", "user_id": "user_001", "provider_id": "prov_001",
+    "service_bundle": ["caregiver","elder_companion"], "scheduled_start": "2026-05-14T09:00:00+05:00",
+    "status": "completed", "quoted_price": 5200, "risk_level": "low",
+    "family_notified": true, "location_from": "Model Town",
+    "pricing_breakdown": [
+      {"line_items": [{"label": "Caregiver (4h)", "amount": 4800, "type": "base"}, {"label": "Elder Companion Add-on", "amount": 500, "type": "fee"}, {"label": "Distance Fee", "amount": 0, "type": "fee"}, {"label": "Loyalty Discount", "amount": -100, "type": "discount"}], "subtotal": 5200, "total": 5200, "currency": "PKR"}
+    ],
+    "timeline": [
+      {"status": "confirmed", "timestamp": "2026-05-13T20:00:00+05:00"},
+      {"status": "provider_assigned", "timestamp": "2026-05-13T20:01:00+05:00"},
+      {"status": "family_notified", "timestamp": "2026-05-13T20:02:00+05:00"},
+      {"status": "en_route", "timestamp": "2026-05-14T08:40:00+05:00"},
+      {"status": "arrived", "timestamp": "2026-05-14T08:58:00+05:00"},
+      {"status": "in_progress", "timestamp": "2026-05-14T09:05:00+05:00"},
+      {"status": "completed", "timestamp": "2026-05-14T13:10:00+05:00"},
+      {"status": "proof_uploaded", "timestamp": "2026-05-14T13:15:00+05:00"}
+    ]
+  },
+  {
+    "booking_id": "BK-003", "user_id": "user_002", "provider_id": "prov_006",
+    "service_bundle": ["lab_sample"], "scheduled_start": "2026-05-16T07:00:00+05:00",
+    "status": "confirmed", "quoted_price": 600, "risk_level": "low",
+    "family_notified": false, "location_from": "Gulberg III",
+    "pricing_breakdown": [
+      {"line_items": [{"label": "Lab Sample Collection", "amount": 400, "type": "base"}, {"label": "Early Morning Slot", "amount": 200, "type": "fee"}], "subtotal": 600, "total": 600, "currency": "PKR"}
+    ],
+    "timeline": [
+      {"status": "confirmed", "timestamp": "2026-05-15T18:00:00+05:00"}
+    ]
+  },
+  {
+    "booking_id": "BK-004", "user_id": "user_001", "provider_id": "prov_008",
+    "service_bundle": ["clinic_visit"], "scheduled_start": "2026-05-12T10:30:00+05:00",
+    "status": "cancelled", "quoted_price": 1800, "risk_level": "low",
+    "family_notified": true, "location_from": "DHA Phase 6",
+    "cancellation_reason": "Provider had a vehicle breakdown",
+    "compensation_discount": 300,
+    "pricing_breakdown": [
+      {"line_items": [{"label": "Clinic Escort", "amount": 1200, "type": "base"}, {"label": "Distance Fee", "amount": 600, "type": "fee"}], "subtotal": 1800, "total": 1800, "currency": "PKR"}
+    ],
+    "timeline": [
+      {"status": "confirmed", "timestamp": "2026-05-12T08:00:00+05:00"},
+      {"status": "provider_assigned", "timestamp": "2026-05-12T08:01:00+05:00"},
+      {"status": "cancelled", "timestamp": "2026-05-12T10:00:00+05:00", "note": "Provider vehicle breakdown"}
+    ]
+  },
+  {
+    "booking_id": "BK-005", "user_id": "user_003", "provider_id": "prov_017",
+    "service_bundle": ["home_nurse","caregiver"], "scheduled_start": "2026-05-15T14:00:00+05:00",
+    "status": "provider_assigned", "quoted_price": 8500, "risk_level": "high",
+    "family_notified": true, "location_from": "Cantt", "provider_eta_minutes": null,
+    "pricing_breakdown": [
+      {"line_items": [{"label": "Home Nurse Base (ICU-trained)", "amount": 4500, "type": "base"}, {"label": "Caregiver Add-on (4h)", "amount": 3200, "type": "fee"}, {"label": "High-Risk Complexity Fee", "amount": 800, "type": "fee"}], "subtotal": 8500, "total": 8500, "currency": "PKR"}
+    ],
+    "timeline": [
+      {"status": "confirmed", "timestamp": "2026-05-15T11:00:00+05:00"},
+      {"status": "provider_assigned", "timestamp": "2026-05-15T11:05:00+05:00"},
+      {"status": "family_notified", "timestamp": "2026-05-15T11:06:00+05:00"}
+    ]
+  }
+]

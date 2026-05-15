@@ -2,7 +2,8 @@ import { StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTheme } from '@/hooks/useTheme';
 
-export default function HomeScreen() {
+/** Feedback + Rating Screen — built in Phase 5.1 */
+export default function FeedbackScreen() {
   const theme = useTheme();
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: theme.colors.background }]}>
@@ -13,15 +14,7 @@ export default function HomeScreen() {
             { color: theme.colors.textPrimary, fontFamily: theme.fontFamily.bold },
           ]}
         >
-          CirclCare
-        </Text>
-        <Text
-          style={[
-            styles.subtitle,
-            { color: theme.colors.textSecondary, fontFamily: theme.fontFamily.regular },
-          ]}
-        >
-          What do you need handled?
+          Rate Your Experience
         </Text>
       </View>
     </SafeAreaView>
@@ -31,6 +24,5 @@ export default function HomeScreen() {
 const styles = StyleSheet.create({
   container: { flex: 1 },
   inner: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: 24 },
-  title: { fontSize: 32, marginBottom: 8 },
-  subtitle: { fontSize: 16 },
+  title: { fontSize: 24, textAlign: 'center' },
 });

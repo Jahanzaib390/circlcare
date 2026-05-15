@@ -1,0 +1,89 @@
+[
+  {
+    "category": "clinic_visit", "display_name": "Clinic Visit",
+    "base_rate_pkr": 1200, "hourly_rate_pkr": 400,
+    "requires_verification": false, "typical_duration_minutes": 120,
+    "pricing_factors": [
+      {"id": "distance", "label": "Distance Fee", "multiplier": 1.0, "applies_when": "distance > 5km"},
+      {"id": "urgency", "label": "Urgency Surcharge", "multiplier": 1.3, "applies_when": "urgency = high or emergency"},
+      {"id": "wheelchair", "label": "Wheelchair Vehicle", "multiplier": 1.2, "applies_when": "wheelchair_support = true"}
+    ]
+  },
+  {
+    "category": "home_nurse", "display_name": "Home Nurse",
+    "base_rate_pkr": 3000, "hourly_rate_pkr": 1000,
+    "requires_verification": true, "typical_duration_minutes": 90,
+    "pricing_factors": [
+      {"id": "distance", "label": "Travel Fee", "multiplier": 1.0, "applies_when": "distance > 5km"},
+      {"id": "complexity", "label": "Complexity Fee", "multiplier": 1.25, "applies_when": "specialization match is advanced"},
+      {"id": "urgency", "label": "Urgency Surcharge", "multiplier": 1.5, "applies_when": "urgency = high or emergency"}
+    ]
+  },
+  {
+    "category": "caregiver", "display_name": "Caregiver",
+    "base_rate_pkr": 2500, "hourly_rate_pkr": 800,
+    "requires_verification": false, "typical_duration_minutes": 240,
+    "pricing_factors": [
+      {"id": "distance", "label": "Travel Fee", "multiplier": 1.0, "applies_when": "distance > 5km"},
+      {"id": "overnight", "label": "Overnight Stay", "multiplier": 2.0, "applies_when": "duration > 12 hours"},
+      {"id": "urgency", "label": "Urgency Surcharge", "multiplier": 1.3, "applies_when": "urgency = high"}
+    ]
+  },
+  {
+    "category": "physiotherapy", "display_name": "Physiotherapy",
+    "base_rate_pkr": 2800, "hourly_rate_pkr": 950,
+    "requires_verification": true, "typical_duration_minutes": 60,
+    "pricing_factors": [
+      {"id": "distance", "label": "Travel Fee", "multiplier": 1.0, "applies_when": "distance > 5km"},
+      {"id": "equipment", "label": "Equipment Charge", "multiplier": 1.15, "applies_when": "uses specialized equipment"},
+      {"id": "urgency", "label": "Urgency Surcharge", "multiplier": 1.3, "applies_when": "urgency = high"}
+    ]
+  },
+  {
+    "category": "medicine_pickup", "display_name": "Medicine Pickup",
+    "base_rate_pkr": 300, "hourly_rate_pkr": 0,
+    "requires_verification": false, "typical_duration_minutes": 45,
+    "pricing_factors": [
+      {"id": "distance", "label": "Delivery Fee", "multiplier": 1.0, "applies_when": "pharmacy > 5km away"},
+      {"id": "cold_chain", "label": "Cold-Chain Handling", "multiplier": 1.5, "applies_when": "cold-chain medicine"},
+      {"id": "urgency", "label": "Urgency Surcharge", "multiplier": 2.0, "applies_when": "urgency = emergency"}
+    ]
+  },
+  {
+    "category": "lab_sample", "display_name": "Lab Sample Collection",
+    "base_rate_pkr": 400, "hourly_rate_pkr": 0,
+    "requires_verification": true, "typical_duration_minutes": 30,
+    "pricing_factors": [
+      {"id": "distance", "label": "Collection Fee", "multiplier": 1.0, "applies_when": "distance > 5km"},
+      {"id": "early_morning", "label": "Early Morning Slot", "multiplier": 1.2, "applies_when": "time < 07:00"},
+      {"id": "multi_test", "label": "Multi-Test Package", "multiplier": 0.85, "applies_when": "3+ tests"}
+    ]
+  },
+  {
+    "category": "meal_plan", "display_name": "Meal Plan",
+    "base_rate_pkr": 1500, "hourly_rate_pkr": 600,
+    "requires_verification": false, "typical_duration_minutes": 120,
+    "pricing_factors": [
+      {"id": "dietary_complexity", "label": "Dietary Complexity", "multiplier": 1.2, "applies_when": "special diet (diabetic/cardiac)"},
+      {"id": "distance", "label": "Delivery Fee", "multiplier": 1.0, "applies_when": "distance > 5km"}
+    ]
+  },
+  {
+    "category": "daily_support", "display_name": "Daily Support",
+    "base_rate_pkr": 2000, "hourly_rate_pkr": 700,
+    "requires_verification": false, "typical_duration_minutes": 180,
+    "pricing_factors": [
+      {"id": "distance", "label": "Travel Fee", "multiplier": 1.0, "applies_when": "distance > 5km"},
+      {"id": "overnight", "label": "Overnight Stay", "multiplier": 2.0, "applies_when": "duration > 12 hours"}
+    ]
+  },
+  {
+    "category": "elder_companion", "display_name": "Elder Companion",
+    "base_rate_pkr": 1800, "hourly_rate_pkr": 650,
+    "requires_verification": false, "typical_duration_minutes": 120,
+    "pricing_factors": [
+      {"id": "distance", "label": "Travel Fee", "multiplier": 1.0, "applies_when": "distance > 5km"},
+      {"id": "activity", "label": "Activity Planning", "multiplier": 1.1, "applies_when": "includes outing or activity"}
+    ]
+  }
+]
