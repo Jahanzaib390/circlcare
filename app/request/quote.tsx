@@ -8,6 +8,7 @@ import {
   Pressable,
   ActivityIndicator,
 } from 'react-native';
+import * as Haptics from 'expo-haptics';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
@@ -160,6 +161,7 @@ export default function QuoteScreen() {
       },
       {
         onSuccess: () => {
+          Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
           router.replace('/request/confirm');
         },
       }

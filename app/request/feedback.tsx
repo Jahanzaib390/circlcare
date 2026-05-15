@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { Alert, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import * as Haptics from 'expo-haptics';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Feather, Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
@@ -140,6 +141,7 @@ export default function FeedbackScreen() {
         return;
       }
 
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
       Alert.alert('Thank you', 'Your feedback helps keep CirclCare safe and reliable.', [
         { text: 'Done', onPress: () => router.navigate('/(tabs)') },
       ]);

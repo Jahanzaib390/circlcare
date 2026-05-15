@@ -2,7 +2,6 @@ import React, { useEffect, useRef, useState } from 'react';
 import {
   ActivityIndicator,
   Animated,
-  DimensionValue,
   LayoutAnimation,
   Platform,
   Pressable,
@@ -20,6 +19,9 @@ import { useRequestStore } from '@/hooks/useRequestStore';
 import { useMatchResults } from '@/hooks/useMatchResults';
 import { useMatchStore } from '@/hooks/useMatchStore';
 import { Button } from '@/components/ui/Button';
+import { Skeleton } from '@/components/ui/Skeleton';
+import { EmptyState } from '@/components/ui/EmptyState';
+import { ErrorState } from '@/components/ui/ErrorState';
 import type { MatchResult } from '@/types/match';
 import { Colors } from '@/constants/theme';
 
@@ -293,39 +295,21 @@ function RejectedRow({
 
 // ── Skeleton card ──────────────────────────────────────────────────────────────
 function SkeletonCard({ theme }: { theme: ReturnType<typeof useTheme> }) {
-  const opacity = useRef(new Animated.Value(0.3)).current;
-  useEffect(() => {
-    Animated.loop(
-      Animated.sequence([
-        Animated.timing(opacity, { toValue: 0.8, duration: 700, useNativeDriver: true }),
-        Animated.timing(opacity, { toValue: 0.3, duration: 700, useNativeDriver: true }),
-      ])
-    ).start();
-  }, [opacity]);
-  const block = (w: number | string, h = 14) => (
-    <Animated.View
-      style={{
-        width: w as DimensionValue,
-        height: h,
-        borderRadius: 6,
-        backgroundColor: '#9CA3AF',
-        opacity,
-        marginVertical: 4,
-      }}
-    />
-  );
   return (
     <View
       style={[s.card, { backgroundColor: theme.colors.surface, borderColor: theme.colors.border }]}
     >
-      <View style={[s.cardHeader, { backgroundColor: theme.colors.border + '30' }]}>
-        {block('60%', 18)}
-        {block('40%', 12)}
+      <View style={[s.cardHeader, { backgroundColor: theme.colors.border + '30', gap: 12 }]}>
+        <Skeleton width={32} height={32} borderRadius={16} />
+        <View style={{ flex: 1, gap: 4 }}>
+          <Skeleton width="60%" height={18} />
+          <Skeleton width="40%" height={12} />
+        </View>
       </View>
-      <View style={{ padding: 12 }}>
-        {block('80%', 12)}
-        {block('60%', 12)}
-        {block('90%', 12)}
+      <View style={{ padding: 12, gap: 8 }}>
+        <Skeleton width="80%" height={12} />
+        <Skeleton width="60%" height={12} />
+        <Skeleton width="90%" height={12} />
       </View>
     </View>
   );
@@ -442,32 +426,10 @@ export default function MatchScreen() {
           </Text>
           <View style={{ width: 40 }} />
         </View>
-        <View style={s.centered}>
-          <Ionicons name="cloud-offline-outline" size={48} color={Colors.danger} />
-          <Text
-            style={[
-              s.emptyTitle,
-              { color: theme.colors.textPrimary, fontFamily: theme.fontFamily.bold },
-            ]}
-          >
-            Connection Error
-          </Text>
-          <Text
-            style={[
-              s.emptyBody,
-              { color: theme.colors.textSecondary, fontFamily: theme.fontFamily.regular },
-            ]}
-          >
-            Could not reach the server. Please check your connection and try again.
-          </Text>
-          <Button
-            label="Retry"
-            variant="primary"
-            size="md"
-            onPress={() => parsedRequest && runMatch({ parsedRequest })}
-            style={{ marginTop: 16 }}
-          />
-        </View>
+        <ErrorState
+          message="Could not reach the server. Please check your connection and try again."
+          onRetry={() => parsedRequest && runMatch({ parsedRequest })}
+        />
       </SafeAreaView>
     );
   }
@@ -477,11 +439,11 @@ export default function MatchScreen() {
   const noFemaleProvider =
     parsedRequest?.provider_preferences.gender === 'female_required' &&
     topMatches.length === 0 &&
-    filteredOut.some((item) => item.failed_filter === 'gender' || item.reason.includes('Female provider required'));
+    filteredOut.some(
+      (item) => item.failed_filter === 'gender' || item.reason.includes('Female provider required')
+    );
   const slotConflict =
-    topMatches.length === 0
-      ? filteredOut.find((item) => item.suggested_next_slot)
-      : undefined;
+    topMatches.length === 0 ? filteredOut.find((item) => item.suggested_next_slot) : undefined;
 
   // ── No results ──
   if (topMatches.length === 0) {
@@ -501,44 +463,31 @@ export default function MatchScreen() {
           </Text>
           <View style={{ width: 40 }} />
         </View>
-        <View style={s.centered}>
-          <Ionicons
-            name={noFemaleProvider ? 'woman-outline' : slotConflict ? 'calendar-outline' : 'search-outline'}
-            size={48}
-            color={noFemaleProvider ? Colors.danger : theme.colors.textMuted}
-          />
-          <Text
-            style={[
-              s.emptyTitle,
-              { color: theme.colors.textPrimary, fontFamily: theme.fontFamily.bold },
-            ]}
-          >
-            {noFemaleProvider
+        <EmptyState
+          icon={
+            noFemaleProvider
+              ? 'woman-outline'
+              : slotConflict
+                ? 'calendar-outline'
+                : 'search-outline'
+          }
+          title={
+            noFemaleProvider
               ? 'No Female Provider Available'
               : slotConflict
                 ? 'Time Slot Is Booked'
-                : 'No Providers Found'}
-          </Text>
-          <Text
-            style={[
-              s.emptyBody,
-              { color: theme.colors.textSecondary, fontFamily: theme.fontFamily.regular },
-            ]}
-          >
-            {noFemaleProvider
+                : 'No Providers Found'
+          }
+          message={
+            noFemaleProvider
               ? 'No female provider is currently available in this area. Try a nearby area, switch to female preferred, or ask CirclCare to arrange a callback.'
               : slotConflict?.suggested_next_slot
                 ? `The requested time overlaps an existing booking. Try the suggested next slot: ${new Date(slotConflict.suggested_next_slot).toLocaleString()}.`
-                : 'No available providers match your current requirements. Try relaxing some preferences or selecting a different area.'}
-          </Text>
-          <Button
-            label={slotConflict?.suggested_next_slot ? 'Change Time' : 'Edit Request'}
-            variant="primary"
-            size="md"
-            onPress={() => router.back()}
-            style={{ marginTop: 16 }}
-          />
-        </View>
+                : 'No available providers match your current requirements. Try relaxing some preferences or selecting a different area.'
+          }
+          actionLabel={slotConflict?.suggested_next_slot ? 'Change Time' : 'Edit Request'}
+          onAction={() => router.back()}
+        />
         {filteredOut.length > 0 && (
           <View style={{ paddingHorizontal: 16, paddingBottom: 24 }}>
             <Text

@@ -12,6 +12,8 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useFocusEffect } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '@/hooks/useTheme';
@@ -20,6 +22,10 @@ import { useParseRequest } from '@/hooks/useParseRequest';
 import { VoiceInputButton } from '@/components/ui/VoiceInputButton';
 import { ServiceCategory, ServiceDisplayNames, ServiceIcons } from '@/constants/ServiceCategories';
 import { Colors } from '@/constants/theme';
+import { apiClient } from '@/services/apiClient';
+import demoScenariosJson from '@/data/demo-scenarios.json';
+import type { ParsedRequest } from '@/types/request';
+import { DEMO_MODE_KEY } from '@/constants/StorageKeys';
 
 // ── Category data ──────────────────────────────────────────────────────────────
 const QUICK_CATEGORIES: { category: ServiceCategory; color: string; bg: string }[] = [
@@ -36,6 +42,29 @@ const QUICK_CATEGORIES: { category: ServiceCategory; color: string; bg: string }
 // ── Stagger animation delay per tile ──────────────────────────────────────────
 const STAGGER_DELAY = 60;
 
+interface DemoScenario {
+  id: string;
+  title: string;
+  request_text: string;
+  expected_action: string;
+  expected_outputs?: {
+    parsed_request?: ParsedRequest;
+    demo_notes?: string[];
+    demo_seed?: {
+      booking_id?: string;
+      simulation?: string;
+      replacement_discount?: number;
+    };
+  };
+}
+
+interface DemoScenariosResponse {
+  scenarios: DemoScenario[];
+  active_scenario_id: string | null;
+}
+
+const BUNDLED_DEMO_SCENARIOS = demoScenariosJson as DemoScenario[];
+
 export default function HomeScreen() {
   const theme = useTheme();
   const {
@@ -49,6 +78,27 @@ export default function HomeScreen() {
   const { mutate: parseRequest, isPending, isError, reset: resetMutation } = useParseRequest();
 
   const [inputHeight, setInputHeight] = useState(52);
+  const [isDemoMode, setIsDemoMode] = useState(false);
+  const [demoScenarios, setDemoScenarios] = useState<DemoScenario[]>(BUNDLED_DEMO_SCENARIOS);
+
+  useFocusEffect(
+    useCallback(() => {
+      AsyncStorage.getItem(DEMO_MODE_KEY).then((val) => {
+        if (val === 'true') {
+          setIsDemoMode(true);
+          apiClient
+            .get<DemoScenariosResponse>('/api/demo/scenarios')
+            .then((data) => {
+              setDemoScenarios(data.scenarios.length > 0 ? data.scenarios : BUNDLED_DEMO_SCENARIOS);
+            })
+            .catch(() => setDemoScenarios(BUNDLED_DEMO_SCENARIOS));
+        } else {
+          setIsDemoMode(false);
+          setDemoScenarios(BUNDLED_DEMO_SCENARIOS);
+        }
+      });
+    }, [])
+  );
 
   // Staggered fade-in for category tiles
   const tileAnims = useRef(QUICK_CATEGORIES.map(() => new Animated.Value(0))).current;
@@ -109,6 +159,14 @@ export default function HomeScreen() {
 
   const handleRecentTap = (item: RecentRequest) => {
     setRawRequest(item.text);
+  };
+
+  const handleDemoTap = (scenario: DemoScenario) => {
+    setRawRequest(scenario.request_text);
+    setParsedRequest(null);
+    apiClient.post(`/api/demo/scenario/${scenario.id}`, {}).catch(() => {
+      // Bundled scenario data still lets judge demos work without a backend.
+    });
   };
 
   const emergencyBorderColor = emergencyPulse.interpolate({
@@ -297,6 +355,48 @@ export default function HomeScreen() {
               color={isEmergency ? Colors.danger : theme.colors.textMuted}
             />
           </Pressable>
+
+          {/* ── Demo Scenarios ───────────────────────────────────── */}
+          {isDemoMode && demoScenarios.length > 0 && (
+            <View style={{ marginBottom: 20 }}>
+              <Text
+                style={[
+                  s.sectionTitle,
+                  { color: theme.colors.textSecondary, fontFamily: theme.fontFamily.semiBold },
+                ]}
+              >
+                Demo Scenarios
+              </Text>
+              <ScrollView
+                horizontal
+                showsHorizontalScrollIndicator={false}
+                contentContainerStyle={{ gap: 10 }}
+              >
+                {demoScenarios.map((scenario) => (
+                  <TouchableOpacity
+                    key={scenario.id}
+                    style={[
+                      s.demoTile,
+                      {
+                        backgroundColor: theme.colors.primary + '15',
+                        borderColor: theme.colors.primary,
+                      },
+                    ]}
+                    onPress={() => handleDemoTap(scenario)}
+                  >
+                    <Text
+                      style={[
+                        s.demoTitle,
+                        { color: theme.colors.primary, fontFamily: theme.fontFamily.bold },
+                      ]}
+                    >
+                      {scenario.id}: {scenario.title}
+                    </Text>
+                  </TouchableOpacity>
+                ))}
+              </ScrollView>
+            </View>
+          )}
 
           {/* ── Quick Categories ───────────────────────────────────── */}
           <Text
@@ -522,4 +622,14 @@ const s = StyleSheet.create({
   },
   recentText: { fontSize: 14 },
   recentTag: { fontSize: 12, marginTop: 2, textTransform: 'capitalize' },
+
+  demoTile: {
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    borderRadius: 8,
+    borderWidth: 1,
+  },
+  demoTitle: {
+    fontSize: 13,
+  },
 });

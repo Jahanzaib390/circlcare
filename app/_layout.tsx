@@ -5,15 +5,17 @@ import {
   useFonts,
 } from '@expo-google-fonts/inter';
 import { Nunito_700Bold, Nunito_800ExtraBold } from '@expo-google-fonts/nunito';
-import { Stack } from 'expo-router';
+import { Stack, useRouter } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import 'react-native-reanimated';
 import { ThemeProvider } from '@/contexts/ThemeContext';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { ONBOARDING_KEY } from '@/constants/StorageKeys';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -55,6 +57,7 @@ function RootLayoutNav() {
         name="modals/ProviderDashboard"
         options={{ presentation: 'modal', headerShown: false }}
       />
+      <Stack.Screen name="onboarding" options={{ headerShown: false }} />
     </Stack>
   );
 }
@@ -68,13 +71,35 @@ export default function RootLayout() {
     Nunito_800ExtraBold,
   });
 
-  useEffect(() => {
-    if (fontsLoaded) {
-      SplashScreen.hideAsync();
-    }
-  }, [fontsLoaded]);
+  const [isReady, setIsReady] = useState(false);
+  const [hasOnboarded, setHasOnboarded] = useState<boolean | null>(null);
+  const router = useRouter();
 
-  if (!fontsLoaded) return null;
+  useEffect(() => {
+    async function checkOnboarding() {
+      try {
+        const value = await AsyncStorage.getItem(ONBOARDING_KEY);
+        setHasOnboarded(value === 'true');
+      } catch {
+        setHasOnboarded(false);
+      } finally {
+        setIsReady(true);
+      }
+    }
+    checkOnboarding();
+  }, []);
+
+  useEffect(() => {
+    if (fontsLoaded && isReady) {
+      SplashScreen.hideAsync();
+      if (hasOnboarded === false) {
+        // Use a small timeout to allow layout to mount, avoiding router warnings
+        setTimeout(() => router.replace('/onboarding'), 0);
+      }
+    }
+  }, [fontsLoaded, isReady, hasOnboarded, router]);
+
+  if (!fontsLoaded || !isReady) return null;
 
   return (
     <QueryClientProvider client={queryClient}>

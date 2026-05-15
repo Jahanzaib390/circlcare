@@ -4,6 +4,7 @@ import { GeminiProvider } from '../llm/geminiProvider';
 import { MockProvider } from '../llm/mockProvider';
 import type { LLMProvider } from '../llm/llmProvider';
 import { success, error } from '../utils/responseHelpers';
+import { getScenarioForRequestText } from '../services/demoScenarioState';
 
 export const parseRoutes = Router();
 
@@ -35,6 +36,17 @@ parseRoutes.post('/parse-request', async (req, res, next) => {
     }
 
     const { text, isEmergency } = validation.data;
+    const demoScenario = getScenarioForRequestText(text);
+    if (demoScenario?.expected_outputs?.parsed_request) {
+      const parsed = { ...demoScenario.expected_outputs.parsed_request };
+      if (isEmergency) {
+        parsed.urgency = 'emergency';
+        parsed.risk_level = 'high';
+        parsed.confidence = Math.max(parsed.confidence, 0.85);
+      }
+      return success(res, parsed);
+    }
+
     const parsed = await llmProvider.parseRequest(text);
     if (isEmergency) {
       parsed.urgency = 'emergency';

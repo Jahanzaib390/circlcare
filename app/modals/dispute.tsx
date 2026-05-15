@@ -8,6 +8,7 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
+import * as Haptics from 'expo-haptics';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Feather } from '@expo/vector-icons';
 import { useLocalSearchParams, useRouter } from 'expo-router';
@@ -100,6 +101,7 @@ export default function DisputeModal() {
       setSummary(response.summary);
       setRecommendation(response.recommendation);
       setEscalated(response.human_agent_notified);
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
     } catch (error) {
       console.warn('[DisputeModal] Falling back after API error:', error);
       setSummary('Dispute filed. Our team will review this shortly.');

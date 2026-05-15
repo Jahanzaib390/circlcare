@@ -24,7 +24,9 @@ export default function LocationPickerModal() {
       clarification_needed:
         parsedRequest.service_bundle.length === 0 || parsedRequest.confidence < 0.7,
       clarification_question:
-        parsedRequest.service_bundle.length === 0 ? 'Which care service should we arrange?' : undefined,
+        parsedRequest.service_bundle.length === 0
+          ? 'Which care service should we arrange?'
+          : undefined,
       confidence: Math.max(parsedRequest.confidence, 0.72),
     });
     router.back();

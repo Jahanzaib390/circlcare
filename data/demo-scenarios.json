@@ -1,0 +1,168 @@
+[
+  {
+    "id": "A",
+    "title": "Clinic Visit Bundle",
+    "request_text": "Ammi ko kal 11 baje clinic le jana hai, wheelchair friendly car chahiye aur wapis medicine bhi pick karni hai.",
+    "expected_action": "bundle_match",
+    "expected_outputs": {
+      "parsed_request": {
+        "service_bundle": ["clinic_visit", "medicine_pickup"],
+        "patient": "Patient (Mother)",
+        "location_from": "Gulshan",
+        "location_to": "Clinic",
+        "time_preference": "tomorrow 11:00",
+        "scheduled_datetime": "2026-05-16T11:00:00+05:00",
+        "mobility_needs": ["wheelchair"],
+        "provider_preferences": {
+          "gender": "any",
+          "language": ["Urdu"],
+          "language_required": false,
+          "verified_only": false,
+          "elder_care_experience": true
+        },
+        "urgency": "medium",
+        "risk_level": "medium",
+        "clarification_needed": false,
+        "confidence": 0.91
+      },
+      "demo_notes": [
+        "Shows multi-service bundle extraction",
+        "Wheelchair need should influence matching",
+        "Quote should include clinic escort and medicine pickup"
+      ]
+    }
+  },
+  {
+    "id": "B",
+    "title": "Recurring Caregiver",
+    "request_text": "Meri nani ke liye roz 2 ghantay female caregiver chahiye, Punjabi bolti ho, Model Town mein.",
+    "expected_action": "recurring_match",
+    "expected_outputs": {
+      "parsed_request": {
+        "service_bundle": ["caregiver"],
+        "patient": "Patient (Grandmother)",
+        "location_from": "Model Town",
+        "time_preference": "daily 2 hours",
+        "mobility_needs": [],
+        "provider_preferences": {
+          "gender": "female_required",
+          "language": ["Punjabi"],
+          "language_required": true,
+          "verified_only": false,
+          "elder_care_experience": true
+        },
+        "urgency": "medium",
+        "risk_level": "low",
+        "recurring": {
+          "frequency": "daily"
+        },
+        "clarification_needed": false,
+        "confidence": 0.9
+      },
+      "demo_notes": [
+        "Female provider is a hard filter",
+        "Punjabi language is marked required",
+        "Recurring daily schedule should remain visible"
+      ]
+    }
+  },
+  {
+    "id": "C",
+    "title": "Home Physiotherapy",
+    "request_text": "Abu ki knee surgery ke baad ghar pe physio chahiye, evening mein, Urdu speaking ho.",
+    "expected_action": "specialization_match",
+    "expected_outputs": {
+      "parsed_request": {
+        "service_bundle": ["physiotherapy"],
+        "patient": "Patient (Father)",
+        "location_from": "Gulberg",
+        "time_preference": "evening",
+        "mobility_needs": ["post-surgery support"],
+        "provider_preferences": {
+          "gender": "any",
+          "language": ["Urdu"],
+          "language_required": false,
+          "verified_only": true,
+          "elder_care_experience": true
+        },
+        "urgency": "medium",
+        "risk_level": "medium",
+        "clarification_needed": false,
+        "confidence": 0.88
+      },
+      "demo_notes": [
+        "Verified provider required for physiotherapy",
+        "Specialization should drive match explanation"
+      ]
+    }
+  },
+  {
+    "id": "D",
+    "title": "Food & Medicine",
+    "request_text": "Diabetic patient ke liye low sugar ghar ka khana chahiye aur weekly medicine refill bhi.",
+    "expected_action": "split_service_match",
+    "expected_outputs": {
+      "parsed_request": {
+        "service_bundle": ["meal_plan", "medicine_pickup"],
+        "patient": "Diabetic Patient",
+        "location_from": "DHA",
+        "time_preference": "weekly",
+        "mobility_needs": [],
+        "provider_preferences": {
+          "gender": "any",
+          "language": ["Urdu"],
+          "language_required": false,
+          "verified_only": false,
+          "elder_care_experience": true
+        },
+        "urgency": "low",
+        "risk_level": "low",
+        "recurring": {
+          "frequency": "weekly"
+        },
+        "clarification_needed": false,
+        "confidence": 0.86
+      },
+      "demo_notes": [
+        "Shows split service bundle",
+        "Recurring weekly medicine refill should be preserved"
+      ]
+    }
+  },
+  {
+    "id": "E",
+    "title": "Failure & Fallback",
+    "request_text": "Demo provider cancellation risk and fallback flow.",
+    "expected_action": "force_cancellation",
+    "expected_outputs": {
+      "parsed_request": {
+        "service_bundle": ["home_nurse"],
+        "patient": "Patient (Mother)",
+        "location_from": "DHA",
+        "time_preference": "today",
+        "mobility_needs": [],
+        "provider_preferences": {
+          "gender": "female_required",
+          "language": ["Urdu"],
+          "language_required": false,
+          "verified_only": true,
+          "elder_care_experience": true
+        },
+        "urgency": "high",
+        "risk_level": "high",
+        "clarification_needed": false,
+        "confidence": 0.84
+      },
+      "demo_seed": {
+        "booking_id": "BK-001",
+        "simulation": "provider_cancellation",
+        "replacement_discount": 500
+      },
+      "demo_notes": [
+        "Use the booking cancellation flow",
+        "Replacement quote should include compensation discount",
+        "Family notification payload should be shown"
+      ]
+    }
+  }
+]

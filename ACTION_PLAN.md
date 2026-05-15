@@ -270,22 +270,22 @@
 **Dependencies:** Phases 1–6
 
 ### 7.1 Demo Mode
-- [ ] 📱 "Demo Mode" toggle in Settings (seeds specific scenario data)
-- [ ] 📱 Pre-filled example requests per scenario (tap to auto-fill)
-- [ ] 🗄️ `data/demo-scenarios.json` with 5 scripted inputs + expected outputs
-- [ ] 🛠️ `POST /api/demo/scenario/:id` — load a specific scenario state
+- [x] 📱 "Demo Mode" toggle in Settings (seeds specific scenario data)
+- [x] 📱 Pre-filled example requests per scenario (tap to auto-fill)
+- [x] 🗄️ `data/demo-scenarios.json` with 5 scripted inputs + expected outputs
+- [x] 🛠️ `POST /api/demo/scenario/:id` — load a specific scenario state
 
 ### 7.2 UI Polish
-- [ ] 📱 Loading skeletons on all data-fetching screens
-- [ ] 📱 Empty states with helpful prompts
-- [ ] 📱 Error states with retry buttons
-- [ ] 📱 Safe-area awareness on all screens (notch, home indicator)
-- [ ] 📱 Haptic feedback: booking confirm, rating, dispute submit
-- [ ] 📱 Verify Urdu/Arabic-script text renders correctly; add RTL support if needed
+- [x] 📱 Loading skeletons on all data-fetching screens
+- [x] 📱 Empty states with helpful prompts
+- [x] 📱 Error states with retry buttons
+- [x] 📱 Safe-area awareness on all screens (notch, home indicator)
+- [x] 📱 Haptic feedback: booking confirm, rating, dispute submit
+- [x] 📱 Verify Urdu/Arabic-script text renders correctly; add RTL support if needed
 
 ### 7.3 Onboarding (🟢 LOW)
-- [ ] 📱 3-slide onboarding (first-launch only, store flag in `AsyncStorage`)
-- [ ] 📱 Profile setup: name, saved home address, language preference
+- [x] 📱 3-slide onboarding (first-launch only, store flag in `AsyncStorage`)
+- [x] 📱 Profile setup: name, saved home address, language preference
 
 ---
 
