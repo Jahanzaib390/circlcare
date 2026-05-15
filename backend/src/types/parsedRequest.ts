@@ -22,6 +22,7 @@ export interface RecurringSchedule {
 export interface ProviderPreferences {
   gender?: 'female_required' | 'male_required' | 'female_preferred' | 'any';
   language?: Language[];
+  language_required?: boolean;
   verified_only: boolean;
   elder_care_experience?: boolean;
 }

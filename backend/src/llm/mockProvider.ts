@@ -35,15 +35,48 @@ export class MockProvider implements LLMProvider {
     const urgency: ParsedRequest['urgency'] = isEmergency ? 'emergency' : 'medium';
 
     // ── Gender preference detection ────────────────────────────────────────────
-    const genderRequired = lower.includes('female') ? 'female_required'
-      : lower.includes('male') ? 'male_required'
-      : 'any';
+    const genderRequired = lower.includes('female')
+      ? 'female_required'
+      : lower.includes('male')
+        ? 'male_required'
+        : 'any';
+
+    const languagePrefs: string[] = [];
+    if (lower.includes('urdu')) languagePrefs.push('Urdu');
+    if (lower.includes('english')) languagePrefs.push('English');
+    if (lower.includes('punjabi')) languagePrefs.push('Punjabi');
+    if (lower.includes('sindhi')) languagePrefs.push('Sindhi');
+    if (lower.includes('pashto')) languagePrefs.push('Pashto');
+    if (lower.includes('saraiki')) languagePrefs.push('Saraiki');
+    const languageRequired =
+      languagePrefs.length > 0 &&
+      (lower.includes('must speak') ||
+        lower.includes('required language') ||
+        lower.includes('only speaks') ||
+        lower.includes('cannot speak'));
 
     // ── Location extraction ────────────────────────────────────────────────────
-    const locationKeywords = ['gulshan', 'dha', 'clifton', 'nazimabad', 'north nazimabad',
-      'johar', 'f-7', 'f-8', 'g-9', 'blue area', 'bahria', 'model town',
-      'johar town', 'gulberg', 'lahore', 'karachi', 'islamabad', 'rawalpindi'];
-    const foundLocation = locationKeywords.find(k => lower.includes(k));
+    const locationKeywords = [
+      'gulshan',
+      'dha',
+      'clifton',
+      'nazimabad',
+      'north nazimabad',
+      'johar',
+      'f-7',
+      'f-8',
+      'g-9',
+      'blue area',
+      'bahria',
+      'model town',
+      'johar town',
+      'gulberg',
+      'lahore',
+      'karachi',
+      'islamabad',
+      'rawalpindi',
+    ];
+    const foundLocation = locationKeywords.find((k) => lower.includes(k));
     const locationFrom = foundLocation
       ? foundLocation.charAt(0).toUpperCase() + foundLocation.slice(1)
       : 'not specified';
@@ -85,7 +118,8 @@ export class MockProvider implements LLMProvider {
     // ── Mobility needs ────────────────────────────────────────────────────────
     const mobilityNeeds: string[] = [];
     if (lower.includes('wheelchair')) mobilityNeeds.push('wheelchair');
-    if (lower.includes('stretcher') || lower.includes('bed-ridden')) mobilityNeeds.push('stretcher');
+    if (lower.includes('stretcher') || lower.includes('bed-ridden'))
+      mobilityNeeds.push('stretcher');
     if (lower.includes('oxygen')) mobilityNeeds.push('oxygen support');
 
     // ── Confidence ────────────────────────────────────────────────────────────
@@ -100,7 +134,9 @@ export class MockProvider implements LLMProvider {
       mobility_needs: mobilityNeeds,
       provider_preferences: {
         gender: genderRequired as ParsedRequest['provider_preferences']['gender'],
-        verified_only: ['home_nurse', 'physiotherapy', 'lab_sample'].some(s =>
+        language: languagePrefs.length > 0 ? languagePrefs : undefined,
+        language_required: languageRequired,
+        verified_only: ['home_nurse', 'physiotherapy', 'lab_sample'].some((s) =>
           services.includes(s as ServiceCategory)
         ),
         elder_care_experience: true,

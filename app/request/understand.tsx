@@ -402,6 +402,16 @@ export default function UnderstandScreen() {
     });
   };
 
+  const setLanguageRequired = (language_required: boolean) => {
+    if (!parsedRequest) return;
+    updateParsed({
+      provider_preferences: {
+        ...parsedRequest.provider_preferences,
+        language_required,
+      },
+    });
+  };
+
   const urgencyColor = (u: ParsedRequest['urgency']) => {
     switch (u) {
       case 'emergency':
@@ -807,6 +817,24 @@ export default function UnderstandScreen() {
                   </Text>
                 </View>
               ))}
+              {pr.provider_preferences.language_required && (
+                <View
+                  style={[
+                    sc.chip,
+                    { backgroundColor: Colors.warning + '15', borderColor: Colors.warning + '30' },
+                  ]}
+                >
+                  <Ionicons name="alert-circle" size={11} color={Colors.warning} />
+                  <Text
+                    style={[
+                      sc.chipText,
+                      { color: Colors.warning, fontFamily: theme.fontFamily.medium },
+                    ]}
+                  >
+                    Language required
+                  </Text>
+                </View>
+              )}
               {!pr.provider_preferences.gender && !pr.provider_preferences.verified_only && (
                 <Text
                   style={[
@@ -872,6 +900,15 @@ export default function UnderstandScreen() {
                   selected={pr.provider_preferences.verified_only}
                   onPress={() => setVerifiedOnly(!pr.provider_preferences.verified_only)}
                   icon="shield-checkmark"
+                  theme={theme}
+                />
+                <ToggleChip
+                  label="Language is required"
+                  selected={Boolean(pr.provider_preferences.language_required)}
+                  onPress={() =>
+                    setLanguageRequired(!Boolean(pr.provider_preferences.language_required))
+                  }
+                  icon="alert-circle"
                   theme={theme}
                 />
               </View>

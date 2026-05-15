@@ -13,17 +13,40 @@ const PARSE_REQUEST_SCHEMA = {
       description:
         'List of service categories needed. Values: clinic_visit, home_nurse, caregiver, physiotherapy, medicine_pickup, lab_sample, meal_plan, daily_support, elder_companion',
     },
-    patient: { type: SchemaType.STRING, description: 'Patient name or relationship, e.g. "my mother"' },
+    patient: {
+      type: SchemaType.STRING,
+      description: 'Patient name or relationship, e.g. "my mother"',
+    },
     location_from: { type: SchemaType.STRING, description: 'Start/home location' },
-    location_to: { type: SchemaType.STRING, description: 'Destination location if applicable', nullable: true },
-    time_preference: { type: SchemaType.STRING, description: 'Human-readable time preference e.g. "tomorrow morning"' },
-    scheduled_datetime: { type: SchemaType.STRING, description: 'ISO 8601 datetime if determinable', nullable: true },
-    mobility_needs: { type: SchemaType.ARRAY, items: { type: SchemaType.STRING }, description: 'e.g. wheelchair, stretcher' },
+    location_to: {
+      type: SchemaType.STRING,
+      description: 'Destination location if applicable',
+      nullable: true,
+    },
+    time_preference: {
+      type: SchemaType.STRING,
+      description: 'Human-readable time preference e.g. "tomorrow morning"',
+    },
+    scheduled_datetime: {
+      type: SchemaType.STRING,
+      description: 'ISO 8601 datetime if determinable',
+      nullable: true,
+    },
+    mobility_needs: {
+      type: SchemaType.ARRAY,
+      items: { type: SchemaType.STRING },
+      description: 'e.g. wheelchair, stretcher',
+    },
     provider_preferences: {
       type: SchemaType.OBJECT,
       properties: {
-        gender: { type: SchemaType.STRING, description: 'female_required | male_required | female_preferred | any', nullable: true },
+        gender: {
+          type: SchemaType.STRING,
+          description: 'female_required | male_required | female_preferred | any',
+          nullable: true,
+        },
         language: { type: SchemaType.ARRAY, items: { type: SchemaType.STRING }, nullable: true },
+        language_required: { type: SchemaType.BOOLEAN, nullable: true },
         verified_only: { type: SchemaType.BOOLEAN },
         elder_care_experience: { type: SchemaType.BOOLEAN, nullable: true },
       },
@@ -59,6 +82,7 @@ Rules:
 - If the request is ambiguous (missing service type, location, or time), set clarification_needed: true, confidence < 0.7, and provide a concise clarification_question.
 - verified_only defaults to true for clinical services (home_nurse, lab_sample, physiotherapy).
 - If a female provider is explicitly requested, set gender to "female_required" (hard constraint, not a preference).
+- If the family says a provider must speak a language or cannot proceed without it, set language_required: true. Otherwise language is a preference for scoring.
 - Extract patient as the person receiving care, not the caller.
 - If location is not specified, set location_from to "not specified" and clarification_needed: true.
 - Return only the JSON object, no prose.`;

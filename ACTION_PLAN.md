@@ -99,17 +99,17 @@
 **Dependencies:** Phase 1 + mock data
 
 ### 2.1 Matching Engine Core
-- [ ] 🛠️ Create `services/matchingEngine.ts`
-- [ ] **Stage 1 — Hard Filters:**
-  - [ ] Service type must match
-  - [ ] Provider must serve requested area/city
-  - [ ] Provider must be available (no slot conflict)
-  - [ ] Home visit supported if requested
-  - [ ] Female/Male provider filter — HARD REJECT if explicitly required
-  - [ ] Language filter — hard if marked critical
-  - [ ] Verified provider required for high-risk services
-  - [ ] Wheelchair support required if requested
-- [ ] **Stage 2 — Weighted Scoring:**
+- [x] 🛠️ Create `services/matchingEngine.ts`
+- [x] **Stage 1 — Hard Filters:**
+  - [x] Service type must match
+  - [x] Provider must serve requested area/city
+  - [x] Provider must be available (no slot conflict)
+  - [x] Home visit supported if requested
+  - [x] Female/Male provider filter — HARD REJECT if explicitly required
+  - [x] Language filter — hard if marked critical
+  - [x] Verified provider required for high-risk services
+  - [x] Wheelchair support required if requested
+- [x] **Stage 2 — Weighted Scoring:**
 
   | Factor | Default Weight |
   |--------|---------------|
@@ -123,28 +123,28 @@
   | Distance / travel time | 5% |
   | Price fit | 5% |
 
-- [ ] 🛠️ Make weights configurable by service category (nursing → gender/verification weighted higher)
-- [ ] 🛠️ Return top 3 matches + rejection reasons for filtered providers
-- [ ] 🛠️ `POST /api/match` endpoint
+- [x] 🛠️ Make weights configurable by service category (nursing → gender/verification weighted higher)
+- [x] 🛠️ Return top 3 matches + rejection reasons for filtered providers
+- [x] 🛠️ `POST /api/match` endpoint
 
 ### 2.2 Distance & Travel Time Utilities
-- [ ] 🛠️ Implement `utils/haversine.ts` for straight-line distance
-- [ ] 🛠️ `estimateTravelTime(km): minutes` = `km * 3.5 + traffic_buffer`
-- [ ] 🛠️ Add 15-minute elder-care buffer to all estimates
-- [ ] 🛠️ Return `{ distance_km, travel_time_minutes, elder_buffer, suggested_arrival_buffer }` per provider
+- [x] 🛠️ Implement `utils/haversine.ts` for straight-line distance
+- [x] 🛠️ `estimateTravelTime(km): minutes` = `km * 3.5 + traffic_buffer`
+- [x] 🛠️ Add 15-minute elder-care buffer to all estimates
+- [x] 🛠️ Return `{ distance_km, travel_time_minutes, elder_buffer, suggested_arrival_buffer }` per provider
 
 ### 2.3 Gemini Match Explanation
-- [ ] 🤖 Implement `LLMProvider.explainMatch(request, provider, score): string` — 2–3 sentence natural explanation
-- [ ] 🤖 Generate human-readable rejection reasons for filtered providers
-- [ ] 🛠️ Cache explanations by `hash(request + providerId)` to avoid redundant API calls
+- [x] 🤖 Implement `LLMProvider.explainMatch(request, provider, score): string` — 2–3 sentence natural explanation
+- [x] 🤖 Generate human-readable rejection reasons for filtered providers
+- [x] 🛠️ Cache explanations by `hash(request + providerId)` to avoid redundant API calls
 
 ### 2.4 Match Results Screen
-- [ ] 📱 Build `MatchResultsScreen` — top recommended card (full-width) + 2 alternative cards
-- [ ] 📱 Trust badges: Verified ✓, Gender icon, Languages, On-time %, Star rating
-- [ ] 📱 Expandable "Why selected" with Gemini explanation
-- [ ] 📱 Collapsible "Why others weren't recommended" section
-- [ ] 📱 Provider profile detail modal on tap
-- [ ] 📱 Slide-up card entrance animation
+- [x] 📱 Build `MatchResultsScreen` — top recommended card (full-width) + 2 alternative cards
+- [x] 📱 Trust badges: Verified ✓, Gender icon, Languages, On-time %, Star rating
+- [x] 📱 Expandable "Why selected" with Gemini explanation
+- [x] 📱 Collapsible "Why others weren't recommended" section
+- [x] 📱 Provider profile detail modal on tap
+- [x] 📱 Slide-up card entrance animation
 
 > ⚠️ **RISK:** Gender filter must be a hard reject, not a soft preference. Incorrect behavior is a product safety issue. Unit test this exhaustively.
 
