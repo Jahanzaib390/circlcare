@@ -1,0 +1,163 @@
+/**
+ * useBookingStatus.ts — Phase 4.1b
+ * Polls GET /api/bookings/:id/status every 5 seconds.
+ * Exposes simulateNextStep() → POST /api/bookings/:id/simulate for demo mode.
+ */
+
+import { useState, useEffect, useCallback, useRef } from 'react';
+import Config from '@/constants/Config';
+import { apiClient } from '@/services/apiClient';
+import { useBookingStore } from '@/hooks/useBookingStore';
+import type { BookingStatus } from '@/constants/BookingStatuses';
+import type { Booking, BookingTimelineEvent } from '@/types/booking';
+
+export interface BookingStatusState {
+  status: BookingStatus | null;
+  timeline: BookingTimelineEvent[];
+  provider_eta_minutes?: number;
+  family_notified: boolean;
+  delay_reason?: string;
+  cancellation_reason?: string;
+  compensation_discount?: number;
+  isLoading: boolean;
+  error: string | null;
+}
+
+type StatusResponse = Pick<
+  Booking,
+  | 'status'
+  | 'timeline'
+  | 'provider_eta_minutes'
+  | 'family_notified'
+  | 'delay_reason'
+  | 'cancellation_reason'
+  | 'compensation_discount'
+>;
+
+interface UseBookingStatusOptions {
+  /** Set to false to stop polling (e.g. when booking is completed/cancelled) */
+  enablePolling?: boolean;
+}
+
+export function useBookingStatus(
+  bookingId: string | null | undefined,
+  options: UseBookingStatusOptions = {}
+) {
+  const { enablePolling = true } = options;
+  const setBooking = useBookingStore((s) => s.setBooking);
+
+  const [state, setState] = useState<BookingStatusState>({
+    status: null,
+    timeline: [],
+    family_notified: false,
+    isLoading: false,
+    error: null,
+  });
+
+  const [isSimulating, setIsSimulating] = useState(false);
+  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const isMounted = useRef(true);
+
+  const fetchStatus = useCallback(async () => {
+    if (!bookingId) return;
+
+    try {
+      const data = await apiClient.get<StatusResponse>(`/api/bookings/${bookingId}/status`);
+      if (!isMounted.current) return;
+
+      setState((prev) => ({
+        ...prev,
+        status: data.status,
+        timeline: data.timeline ?? [],
+        provider_eta_minutes: data.provider_eta_minutes,
+        family_notified: data.family_notified ?? false,
+        delay_reason: data.delay_reason,
+        cancellation_reason: data.cancellation_reason,
+        compensation_discount: data.compensation_discount,
+        isLoading: false,
+        error: null,
+      }));
+    } catch (e) {
+      if (!isMounted.current) return;
+      setState((prev) => ({
+        ...prev,
+        isLoading: false,
+        error: e instanceof Error ? e.message : 'Failed to fetch status',
+      }));
+    }
+  }, [bookingId]);
+
+  // Initial load
+  useEffect(() => {
+    if (!bookingId) return;
+    setState((prev) => ({ ...prev, isLoading: true }));
+    fetchStatus();
+  }, [bookingId, fetchStatus]);
+
+  // Polling — stop when completed/cancelled
+  const TERMINAL_STATUSES: BookingStatus[] = [
+    'completed',
+    'proof_uploaded',
+    'feedback_collected',
+    'cancelled',
+    'disputed',
+  ];
+
+  useEffect(() => {
+    if (!bookingId || !enablePolling) return;
+    if (state.status && TERMINAL_STATUSES.includes(state.status)) return;
+
+    intervalRef.current = setInterval(fetchStatus, Config.bookingStatusPollIntervalMs);
+    return () => {
+      if (intervalRef.current) clearInterval(intervalRef.current);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [bookingId, enablePolling, state.status, fetchStatus]);
+
+  // Cleanup on unmount
+  useEffect(() => {
+    isMounted.current = true;
+    return () => {
+      isMounted.current = false;
+      if (intervalRef.current) clearInterval(intervalRef.current);
+    };
+  }, []);
+
+  const simulateNextStep = useCallback(
+    async (mode: 'advance' | 'delay' | 'cancel' = 'advance') => {
+      if (!bookingId || isSimulating) return;
+      setIsSimulating(true);
+      try {
+        const { booking } = await apiClient.post<{ booking: Booking }>(
+          `/api/bookings/${bookingId}/simulate`,
+          { mode }
+        );
+        if (!isMounted.current) return;
+
+        setBooking(booking);
+        setState((prev) => ({
+          ...prev,
+          status: booking.status,
+          timeline: booking.timeline ?? [],
+          provider_eta_minutes: booking.provider_eta_minutes,
+          family_notified: booking.family_notified ?? false,
+          delay_reason: booking.delay_reason,
+          cancellation_reason: booking.cancellation_reason,
+          compensation_discount: booking.compensation_discount,
+          error: null,
+        }));
+      } catch (e) {
+        if (!isMounted.current) return;
+        setState((prev) => ({
+          ...prev,
+          error: e instanceof Error ? e.message : 'Simulate failed',
+        }));
+      } finally {
+        if (isMounted.current) setIsSimulating(false);
+      }
+    },
+    [bookingId, isSimulating, setBooking]
+  );
+
+  return { ...state, isSimulating, simulateNextStep, refetch: fetchStatus };
+}

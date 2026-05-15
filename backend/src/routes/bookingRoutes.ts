@@ -54,6 +54,9 @@ bookingRoutes.get('/bookings/:id/status', async (req, res, next) => {
       timeline: booking.timeline,
       provider_eta_minutes: booking.provider_eta_minutes,
       family_notified: booking.family_notified,
+      delay_reason: booking.delay_reason,
+      cancellation_reason: booking.cancellation_reason,
+      compensation_discount: booking.compensation_discount,
     });
   } catch (e) {
     next(e);
@@ -62,11 +65,18 @@ bookingRoutes.get('/bookings/:id/status', async (req, res, next) => {
 
 bookingRoutes.post('/bookings/:id/simulate', async (req, res, next) => {
   try {
-    const booking = simulateNextStep(req.params.id);
+    const { mode = 'advance' } = req.body as { mode?: 'advance' | 'delay' | 'cancel' };
+    const booking = simulateNextStep(req.params.id, mode);
     success(res, { booking });
   } catch (e) {
     if (e instanceof Error && e.message === 'Booking not found') {
       return error(res, 'Booking not found', 404);
+    }
+    if (
+      e instanceof Error &&
+      (e.message.includes('Delay can only') || e.message.includes('Mid-transit cancellation'))
+    ) {
+      return error(res, e.message, 409);
     }
     next(e);
   }

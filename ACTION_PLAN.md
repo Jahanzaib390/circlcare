@@ -190,20 +190,20 @@
 **Dependencies:** Phase 3
 
 ### 4.1 Booking Timeline Screen
-- [ ] 📱 Vertical step timeline: Request Confirmed → Provider Assigned → Family Notified → En Route → Visit Started → Completed → Proof Uploaded → Feedback
-- [ ] 📱 Each step shows timestamp + status icon (pending / active / done)
-- [ ] 📱 Animate step completion with checkmark transition
+- [x] 📱 Vertical step timeline: Request Confirmed → Provider Assigned → Family Notified → En Route → Visit Started → Completed → Proof Uploaded → Feedback
+- [x] 📱 Each step shows timestamp + status icon (pending / active / done)
+- [x] 📱 Animate step completion with checkmark transition
 
 ### 4.2 Live Status Simulation
-- [ ] 🛠️ `POST /api/bookings/:id/simulate` — advance status by one step
-- [ ] 📱 Frontend polls `GET /api/bookings/:id/status` every 5 seconds
-- [ ] 📱 Display current status banner: "Provider en route · 24 min away"
-- [ ] 📱 Static map placeholder with mock provider dot
-- [ ] 📱 Handle edge: provider delayed, provider cancelled mid-transit
+- [x] 🛠️ `POST /api/bookings/:id/simulate` — advance status by one step
+- [x] 📱 Frontend polls `GET /api/bookings/:id/status` every 5 seconds
+- [x] 📱 Display current status banner: "Provider en route · 24 min away"
+- [x] 📱 Static map placeholder with mock provider dot
+- [x] 📱 Handle edge: provider delayed, provider cancelled mid-transit
 
 ### 4.3 Provider Dashboard Screen
-- [ ] 📱 `ProviderDashboardScreen` — today's jobs list, earnings estimate, cancellation warning, recommended slots
-- [ ] 📱 Accessible via Profile tab or demo toggle
+- [x] 📱 `ProviderDashboardScreen` — today's jobs list, earnings estimate, cancellation warning, recommended slots
+- [x] 📱 Accessible via Profile tab or demo toggle
 
 ---
 

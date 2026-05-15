@@ -14,6 +14,16 @@ import { BOOKING_TIMELINE_STEPS } from '../constants/bookingStatuses';
 // In-memory "database"
 const bookings = new Map<string, Booking>();
 
+const STEP_NOTES: Partial<Record<Booking['status'], string>> = {
+  provider_assigned: 'Provider accepted the visit and confirmed availability',
+  family_notified: 'Family group received the care visit details',
+  en_route: 'Provider is on the way to the pickup location',
+  in_progress: 'Visit has started and care is in progress',
+  completed: 'Visit completed successfully',
+  proof_uploaded: 'Provider uploaded proof of service',
+  feedback_collected: 'Feedback requested from the family',
+};
+
 export function getBooking(id: string): Booking | undefined {
   return bookings.get(id);
 }
@@ -83,9 +93,36 @@ export function createBooking(
   return { booking, family_notification, reminder_event };
 }
 
-export function simulateNextStep(id: string): Booking {
+export type BookingSimulationMode = 'advance' | 'delay' | 'cancel';
+
+export function simulateNextStep(id: string, mode: BookingSimulationMode = 'advance'): Booking {
   const booking = bookings.get(id);
   if (!booking) throw new Error('Booking not found');
+
+  if (mode === 'delay') {
+    if (booking.status !== 'en_route') {
+      throw new Error('Delay can only be simulated while provider is en route');
+    }
+
+    booking.provider_eta_minutes = (booking.provider_eta_minutes ?? 24) + 15;
+    booking.delay_reason = 'Traffic delay near the service area';
+    booking.timeline.push({
+      status: 'en_route',
+      timestamp: new Date().toISOString(),
+      note: `Provider delayed: ${booking.delay_reason}`,
+    });
+
+    bookings.set(id, booking);
+    return booking;
+  }
+
+  if (mode === 'cancel') {
+    if (booking.status !== 'en_route') {
+      throw new Error('Mid-transit cancellation can only be simulated while provider is en route');
+    }
+
+    return cancelBooking(id, 'Provider cancelled mid-transit. Replacement flow will be offered.');
+  }
 
   const currentIndex = BOOKING_TIMELINE_STEPS.indexOf(booking.status);
 
@@ -101,6 +138,7 @@ export function simulateNextStep(id: string): Booking {
   booking.timeline.push({
     status: nextStatus,
     timestamp: new Date().toISOString(),
+    note: STEP_NOTES[nextStatus],
   });
 
   // Handle specific side effects
@@ -108,8 +146,9 @@ export function simulateNextStep(id: string): Booking {
     booking.family_notified = true;
   } else if (nextStatus === 'en_route') {
     booking.provider_eta_minutes = 24; // Mock ETA
-  } else if (nextStatus === 'arrived' || nextStatus === 'completed') {
+  } else if (nextStatus === 'in_progress' || nextStatus === 'completed') {
     booking.provider_eta_minutes = undefined;
+    booking.delay_reason = undefined;
   }
 
   bookings.set(id, booking);
@@ -122,6 +161,8 @@ export function cancelBooking(id: string, reason?: string): Booking {
 
   booking.status = 'cancelled';
   booking.cancellation_reason = reason;
+  booking.provider_eta_minutes = undefined;
+  booking.compensation_discount = booking.compensation_discount ?? 500;
 
   booking.timeline.push({
     status: 'cancelled',

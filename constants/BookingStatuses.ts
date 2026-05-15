@@ -18,15 +18,15 @@ export type BookingStatus =
 
 export const BookingStatusLabels: Record<BookingStatus, string> = {
   pending: 'Pending',
-  confirmed: 'Confirmed',
+  confirmed: 'Request Confirmed',
   provider_assigned: 'Provider Assigned',
   family_notified: 'Family Notified',
   en_route: 'En Route',
   arrived: 'Arrived',
-  in_progress: 'In Progress',
+  in_progress: 'Visit Started',
   completed: 'Completed',
   proof_uploaded: 'Proof Uploaded',
-  feedback_collected: 'Feedback Collected',
+  feedback_collected: 'Feedback',
   cancelled: 'Cancelled',
   disputed: 'Disputed',
 };
@@ -52,7 +52,6 @@ export const BOOKING_TIMELINE_STEPS: BookingStatus[] = [
   'provider_assigned',
   'family_notified',
   'en_route',
-  'arrived',
   'in_progress',
   'completed',
   'proof_uploaded',

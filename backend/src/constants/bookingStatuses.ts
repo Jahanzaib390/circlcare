@@ -17,7 +17,6 @@ export const BOOKING_TIMELINE_STEPS: BookingStatus[] = [
   'provider_assigned',
   'family_notified',
   'en_route',
-  'arrived',
   'in_progress',
   'completed',
   'proof_uploaded',

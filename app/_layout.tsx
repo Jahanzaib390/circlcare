@@ -51,6 +51,10 @@ function RootLayoutNav() {
         name="modals/settings"
         options={{ presentation: 'modal', headerShown: false }}
       />
+      <Stack.Screen
+        name="modals/ProviderDashboard"
+        options={{ presentation: 'modal', headerShown: false }}
+      />
     </Stack>
   );
 }

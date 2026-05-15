@@ -15,7 +15,7 @@ export interface BookingTimelineEvent {
 }
 
 export interface BookingNotificationPayload {
-  type: 'booking_created' | 'booking_reminder';
+  type: 'booking_created' | 'booking_reminder' | 'provider_delayed' | 'provider_cancelled';
   recipient: 'family_group' | 'primary_contact' | 'user';
   title: string;
   message: string;
@@ -39,6 +39,7 @@ export interface Booking {
   timeline: BookingTimelineEvent[];
   cancellation_reason?: string;
   compensation_discount?: number; // PKR
+  delay_reason?: string;
   provider_eta_minutes?: number;
   location_from: string;
   location_to?: string;

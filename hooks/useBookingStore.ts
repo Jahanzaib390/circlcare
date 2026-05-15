@@ -17,7 +17,12 @@ export const useBookingStore = create<BookingState>()((set) => ({
   booking: null,
   familyNotification: null,
   reminderEvent: null,
-  setBooking: (booking, familyNotification = null, reminderEvent = null) =>
-    set({ booking, familyNotification, reminderEvent }),
+  setBooking: (booking, familyNotification, reminderEvent) =>
+    set((state) => ({
+      booking,
+      familyNotification:
+        familyNotification === undefined ? state.familyNotification : familyNotification,
+      reminderEvent: reminderEvent === undefined ? state.reminderEvent : reminderEvent,
+    })),
   clearBooking: () => set({ booking: null, familyNotification: null, reminderEvent: null }),
 }));

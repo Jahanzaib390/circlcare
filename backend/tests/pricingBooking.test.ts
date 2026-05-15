@@ -1,4 +1,4 @@
-import { createBooking } from '../src/services/bookingSimulator';
+import { createBooking, simulateNextStep } from '../src/services/bookingSimulator';
 import { calculateQuote } from '../src/services/pricingEngine';
 import type { ParsedRequest } from '../src/types/parsedRequest';
 import type { Provider } from '../src/types/provider';
@@ -111,5 +111,27 @@ describe('pricing and booking simulator', () => {
         booking_id: booking.booking_id,
       })
     );
+  });
+
+  it('advances the live lifecycle and handles transit delay/cancellation simulations', () => {
+    const quote = calculateQuote(provider, request);
+    const { booking } = createBooking(request, provider, quote, 'user-test-2');
+
+    expect(simulateNextStep(booking.booking_id).status).toBe('provider_assigned');
+    expect(simulateNextStep(booking.booking_id).status).toBe('family_notified');
+
+    const enRoute = simulateNextStep(booking.booking_id);
+    expect(enRoute.status).toBe('en_route');
+    expect(enRoute.provider_eta_minutes).toBe(24);
+
+    const delayed = simulateNextStep(booking.booking_id, 'delay');
+    expect(delayed.status).toBe('en_route');
+    expect(delayed.provider_eta_minutes).toBe(39);
+    expect(delayed.delay_reason).toContain('Traffic');
+
+    const cancelled = simulateNextStep(booking.booking_id, 'cancel');
+    expect(cancelled.status).toBe('cancelled');
+    expect(cancelled.cancellation_reason).toContain('mid-transit');
+    expect(cancelled.compensation_discount).toBe(500);
   });
 });
