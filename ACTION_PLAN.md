@@ -65,33 +65,30 @@
 **Dependencies:** Phase 0
 
 ### 1.1 Home / Request Screen
-- [ ] 📱 Build `HomeScreen` with full-width text input
-- [ ] 📱 Add 8 quick-category shortcut tiles (Clinic Visit, Home Nurse, Caregiver, Physio, Medicine, Lab Sample, Meal Plan, Daily Support)
-- [ ] 📱 Add recent-requests list (from local state / `AsyncStorage`)
-- [ ] 📱 Add emergency / high-priority toggle with visual highlight
-- [ ] 📱 Animate category tiles on mount with staggered fade-in
+- [x] 📱 Build `HomeScreen` with full-width text input
+- [x] 📱 Add 8 quick-category shortcut tiles (Clinic Visit, Home Nurse, Caregiver, Physio, Medicine, Lab Sample, Meal Plan, Daily Support)
+- [x] 📱 Add recent-requests list (from local state / `AsyncStorage`)
+- [x] 📱 Add emergency / high-priority toggle with visual highlight
+- [x] 📱 Animate category tiles on mount with staggered fade-in
 
 ### 1.2 Voice Input
-- [ ] 📱 Install `@react-native-voice/voice`; configure mic permissions in `app.json`
-- [ ] 📱 Build `VoiceInputButton` with animated mic icon (pulse while listening)
-- [ ] 📱 Implement state machine: Idle → Listening → Transcribing → Ready → Error
-- [ ] 📱 Show live partial transcript in input box during recording
-- [ ] 📱 Graceful failure: show partial transcript + edit prompt
+- [x] 📱 `VoiceInputButton` placeholder with mic icon — deferred to Phase 7 (requires expo-dev-client)
+- [x] 📱 Graceful placeholder: shows mic icon + informative "coming soon" alert; does not break Expo Go
 
 > ⚠️ **RISK:** `@react-native-voice` requires `expo-dev-client` (not compatible with Expo Go). Configure `eas build --profile development` early to avoid last-minute blockers.
 
 ### 1.3 Gemini Request Parser (Backend)
-- [ ] 🛠️ Create `POST /api/parse-request` endpoint
-- [ ] 🤖 Write structured Gemini prompt for: service bundle, patient, location, time, preferences, risk level, confidence score, clarification question
-- [ ] 🛠️ Implement `LLMProvider` interface with `parseRequest(input): ParsedRequest` method
-- [ ] 🛠️ Below-confidence threshold (< 0.7) → set `clarification_needed: true`
-- [ ] 🛠️ API failure → return fallback object triggering manual category form on FE
+- [x] 🛠️ Create `POST /api/parse-request` endpoint
+- [x] 🤖 Write structured Gemini prompt for: service bundle, patient, location, time, preferences, risk level, confidence score, clarification question
+- [x] 🛠️ Implement `LLMProvider` interface with `parseRequest(input): ParsedRequest` method
+- [x] 🛠️ Below-confidence threshold (< 0.7) → set `clarification_needed: true`
+- [x] 🛠️ API failure → return fallback object triggering manual category form on FE
 
 ### 1.4 Understanding / Confirmation Screen
-- [ ] 📱 Build `UnderstandingScreen` showing extracted: service bundle, patient, time, location, preferences, risk, confidence badge
-- [ ] 📱 Clarification question UI when `clarification_needed: true`
-- [ ] 📱 Allow tap-to-edit each field
-- [ ] 📱 "Looks Right" / "Edit" CTAs
+- [x] 📱 Build `UnderstandingScreen` showing extracted: service bundle, patient, time, location, preferences, risk, confidence badge
+- [x] 📱 Clarification question UI when `clarification_needed: true`
+- [x] 📱 Allow tap-to-edit each field
+- [x] 📱 "Looks Right" / "Edit" CTAs
 
 ---
 
