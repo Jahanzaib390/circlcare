@@ -1,7 +1,7 @@
 # CirclCare AI — Granular Phase-wise Action Plan
 
 > **Project:** CirclCare AI — Multilingual Elder-Care Coordination Platform  
-> **Stack:** Expo / React Native (TypeScript), Node.js/Express backend, Gemini API  
+> **Stack:** Expo / React Native (TypeScript), Node.js/Express backend, OpenAI API  
 > **Goal:** Hackathon-ready, polished, judge-facing product
 
 ---
@@ -16,7 +16,7 @@
 | ⚠️ RISK | Elevated complexity or integration risk |
 | 📱 FE | Frontend (React Native / Expo) |
 | 🛠️ BE | Backend (Node.js / Express) |
-| 🤖 AI | Gemini API / LLM Integration |
+| 🤖 AI | OpenAI API / LLM Integration |
 | 🗄️ DATA | Mock data / schema work |
 
 ---
@@ -33,7 +33,7 @@
 - [x] 📱 Set up ESLint + Prettier with Expo rules
 - [x] 🛠️ Initialize `/backend` with Express + TypeScript + nodemon + `ts-node`
 - [x] 🛠️ Add `.env` handling via `dotenv`; add `.env.example` with all keys listed
-- [x] 📱 Create `.env.local` with `EXPO_PUBLIC_API_URL` and `EXPO_PUBLIC_GEMINI_KEY`
+- [x] 📱 Create `.env.local` with `EXPO_PUBLIC_API_URL`
 
 ### 0.2 Design System Bootstrap
 - [x] 📱 Define `constants/Theme.ts` — colors, spacing scale, border radii, shadows, typography
@@ -60,7 +60,7 @@
 
 ## Phase 1 — Core Request Capture Flow
 
-**Milestone:** User types or speaks a request → Gemini parses it → confirmation screen shown  
+**Milestone:** User types or speaks a request → OpenAI parses it → confirmation screen shown  
 **Duration:** ~1.5 days | **Priority:** 🔴  
 **Dependencies:** Phase 0
 
@@ -77,9 +77,9 @@
 
 > ⚠️ **RISK:** `@react-native-voice` requires `expo-dev-client` (not compatible with Expo Go). Configure `eas build --profile development` early to avoid last-minute blockers.
 
-### 1.3 Gemini Request Parser (Backend)
+### 1.3 OpenAI Request Parser (Backend)
 - [x] 🛠️ Create `POST /api/parse-request` endpoint
-- [x] 🤖 Write structured Gemini prompt for: service bundle, patient, location, time, preferences, risk level, confidence score, clarification question
+- [x] 🤖 Write structured OpenAI prompt for: service bundle, patient, location, time, preferences, risk level, confidence score, clarification question
 - [x] 🛠️ Implement `LLMProvider` interface with `parseRequest(input): ParsedRequest` method
 - [x] 🛠️ Below-confidence threshold (< 0.7) → set `clarification_needed: true`
 - [x] 🛠️ API failure → return fallback object triggering manual category form on FE
@@ -94,7 +94,7 @@
 
 ## Phase 2 — Provider Matching Engine
 
-**Milestone:** Backend returns ranked provider list with scores and Gemini explanations  
+**Milestone:** Backend returns ranked provider list with scores and OpenAI explanations  
 **Duration:** ~1.5 days | **Priority:** 🔴  
 **Dependencies:** Phase 1 + mock data
 
@@ -133,7 +133,7 @@
 - [x] 🛠️ Add 15-minute elder-care buffer to all estimates
 - [x] 🛠️ Return `{ distance_km, travel_time_minutes, elder_buffer, suggested_arrival_buffer }` per provider
 
-### 2.3 Gemini Match Explanation
+### 2.3 OpenAI Match Explanation
 - [x] 🤖 Implement `LLMProvider.explainMatch(request, provider, score): string` — 2–3 sentence natural explanation
 - [x] 🤖 Generate human-readable rejection reasons for filtered providers
 - [x] 🛠️ Cache explanations by `hash(request + providerId)` to avoid redundant API calls
@@ -141,7 +141,7 @@
 ### 2.4 Match Results Screen
 - [x] 📱 Build `MatchResultsScreen` — top recommended card (full-width) + 2 alternative cards
 - [x] 📱 Trust badges: Verified ✓, Gender icon, Languages, On-time %, Star rating
-- [x] 📱 Expandable "Why selected" with Gemini explanation
+- [x] 📱 Expandable "Why selected" with OpenAI explanation
 - [x] 📱 Collapsible "Why others weren't recommended" section
 - [x] 📱 Provider profile detail modal on tap
 - [x] 📱 Slide-up card entrance animation
@@ -229,7 +229,7 @@
 
 ### 5.3 Dispute Screen
 - [x] 📱 Dispute type selection
-- [x] 📱 Gemini dispute summary display
+- [x] 📱 OpenAI dispute summary display
 - [x] 📱 Resolution recommendation card
 - [x] 📱 "Human agent notified" escalation simulation
 
@@ -253,7 +253,7 @@
 | 4 | Provider cancellation | Re-rank, notify family, offer replacement + compensation |
 | 5 | Overlapping booking | Detect conflict, suggest next slot |
 | 6 | Extra charge dispute | Route to dispute flow with refund recommendation |
-| 7 | Gemini confidence < threshold | Show manual category form fallback |
+| 7 | OpenAI confidence < threshold | Show manual category form fallback |
 | 8 | API failure | Offline banner; cached provider list fallback |
 
 ### 6.1 Cancellation & Fallback Engine
@@ -321,7 +321,7 @@
 ### 9.1 Judge-Friendly Runtime
 - [ ] 🛠️ Keep a fully scripted demo/mock mode bundled in the app so the Expo link/APK works for judges without external backend setup
 - [ ] 🛠️ Keep local backend support for development via `EXPO_PUBLIC_API_URL=http://localhost:3001`
-- [ ] 🛠️ If live Gemini is demoed, document the single environment setup path clearly; otherwise default judge builds to deterministic mock responses
+- [ ] 🛠️ If live OpenAI is demoed, document the single environment setup path clearly; otherwise default judge builds to deterministic mock responses
 - [ ] 🛠️ Smoke-test the app with airplane-mode/mock data assumptions before submission
 
 ### 9.2 Expo Preview / Mobile Build
@@ -341,10 +341,12 @@
 
 | Risk Area | Level | Mitigation |
 |-----------|-------|------------|
-| Gemini API latency / rate limits | 🔴 HIGH | Cache responses; loading states; fallback form |
+| OpenAI API latency / rate limits | 🔴 HIGH | Cache responses; loading states; fallback form |
 | `@react-native-voice` native module | 🟡 MEDIUM | Use `expo-dev-client`; test on device early |
 | Gender/preference hard filter correctness | 🔴 HIGH | Unit test all filter combinations |
 | Multilingual text rendering (Urdu) | 🟡 MEDIUM | Test Urdu chars early; check RTL |
 | Judge runtime reliability | 🟡 MEDIUM | Use bundled demo/mock mode for Expo link/APK; keep backend optional for judging |
 | Expo Go vs Dev Client | 🟡 MEDIUM | Decide early; go Dev Client if using native modules |
 | Real-time status without WebSockets | 🟢 LOW | 5s polling sufficient for demo |
+
+

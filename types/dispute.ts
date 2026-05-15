@@ -23,5 +23,6 @@ export interface Dispute {
   submitted_at: string; // ISO 8601
   status: 'open' | 'under_review' | 'resolved' | 'escalated';
   recommendation?: DisputeRecommendation;
-  summary?: string; // Gemini-generated summary
+  summary?: string; // OpenAI-generated summary
 }
+

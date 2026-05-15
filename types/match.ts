@@ -24,7 +24,7 @@ export interface MatchResult {
   provider: Provider;
   score: MatchScore;
   hardFilterResult: HardFilterResult;
-  explanation?: string; // Gemini-generated 2–3 sentence explanation
+  explanation?: string; // OpenAI-generated 2–3 sentence explanation
   distance_km: number;
   travel_time_minutes: number;
   elder_buffer_minutes: number;
@@ -44,3 +44,4 @@ export interface MatchResponse {
   is_offline_fallback?: boolean;
   fallback_message?: string;
 }
+

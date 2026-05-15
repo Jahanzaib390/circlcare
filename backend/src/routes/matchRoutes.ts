@@ -53,7 +53,7 @@ export const matchRoutes = Router();
  * Body: { parsedRequest: ParsedRequest }
  *
  * Returns MatchResponse:
- *   - top_matches: top 3 providers with scores + Gemini explanations
+ *   - top_matches: top 3 providers with scores + OpenAI explanations
  *   - filtered_out: providers that failed hard filters with reasons
  */
 matchRoutes.post('/match', async (req, res, next) => {
@@ -88,7 +88,7 @@ matchRoutes.post('/match', async (req, res, next) => {
       return success(res, response);
     }
 
-    // Stage 3: Gemini explanation for top matches (with caching)
+    // Stage 3: OpenAI explanation for top matches (with caching)
     const llm = getLLM();
     const topMatchesWithExplanations: MatchResult[] = await Promise.all(
       matchResult.top_matches.map(async (match) => {
@@ -129,3 +129,4 @@ matchRoutes.post('/match', async (req, res, next) => {
     next(e);
   }
 });
+

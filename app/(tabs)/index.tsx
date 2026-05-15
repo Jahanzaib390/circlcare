@@ -196,7 +196,7 @@ export default function HomeScreen() {
               <Text
                 style={[
                   s.greeting,
-                  { color: theme.colors.textSecondary, fontFamily: theme.fontFamily.regular },
+                  { color: theme.colors.textSecondary, fontFamily: theme.fontFamily.medium },
                 ]}
               >
                 Good morning 👋
@@ -204,14 +204,14 @@ export default function HomeScreen() {
               <Text
                 style={[
                   s.headline,
-                  { color: theme.colors.textPrimary, fontFamily: theme.fontFamily.extraBold },
+                  { color: theme.colors.textPrimary, fontFamily: theme.fontFamily.bold },
                 ]}
               >
                 What care is needed?
               </Text>
             </View>
-            <View style={[s.avatarPlaceholder, { backgroundColor: theme.colors.primary + '20' }]}>
-              <Ionicons name="person" size={22} color={theme.colors.primary} />
+            <View style={[s.avatarPlaceholder, { backgroundColor: theme.colors.primary + '15' }]}>
+              <Ionicons name="person" size={24} color={theme.colors.primary} />
             </View>
           </View>
 
@@ -224,7 +224,7 @@ export default function HomeScreen() {
                 { color: theme.colors.primary, fontFamily: theme.fontFamily.medium },
               ]}
             >
-              Powered by Gemini AI — describe in your own words
+              Powered by OpenAI — describe in your own words
             </Text>
           </View>
 
@@ -234,7 +234,11 @@ export default function HomeScreen() {
               s.inputCard,
               {
                 backgroundColor: theme.colors.surface,
-                ...theme.shadows.md,
+                shadowColor: isEmergency ? Colors.danger : theme.colors.primary,
+                shadowOffset: { width: 0, height: 8 },
+                shadowOpacity: isEmergency ? 0.15 : 0.08,
+                shadowRadius: 12,
+                elevation: 4,
                 borderWidth: isEmergency ? 2 : 1,
                 borderColor: isEmergency ? emergencyBorderColor : theme.colors.border,
               },
@@ -246,7 +250,7 @@ export default function HomeScreen() {
                 {
                   color: theme.colors.textPrimary,
                   fontFamily: theme.fontFamily.regular,
-                  height: Math.max(52, inputHeight),
+                  height: Math.max(64, inputHeight),
                 },
               ]}
               placeholder="e.g. I need a female nurse for my mother tomorrow morning in Gulshan…"
@@ -265,11 +269,13 @@ export default function HomeScreen() {
 
             {/* Input actions */}
             <View style={s.inputActions}>
-              <VoiceInputButton disabled={isPending} />
+              <View style={s.inputActionsLeft}>
+                <VoiceInputButton disabled={isPending} />
+              </View>
               <TouchableOpacity
                 style={[
                   s.sendButton,
-                  { backgroundColor: canSubmit ? theme.colors.primary : theme.colors.border },
+                  { backgroundColor: canSubmit ? theme.colors.primary : theme.colors.surfaceElevated },
                 ]}
                 onPress={handleSubmit}
                 disabled={!canSubmit || isPending}
@@ -277,9 +283,9 @@ export default function HomeScreen() {
                 accessibilityRole="button"
               >
                 {isPending ? (
-                  <Ionicons name="hourglass" size={20} color="#fff" />
+                  <Ionicons name="hourglass" size={22} color={canSubmit ? "#fff" : theme.colors.textMuted} />
                 ) : (
-                  <Ionicons name="arrow-forward" size={20} color="#fff" />
+                  <Ionicons name="arrow-forward" size={22} color={canSubmit ? "#fff" : theme.colors.textMuted} />
                 )}
               </TouchableOpacity>
             </View>
@@ -399,14 +405,16 @@ export default function HomeScreen() {
           )}
 
           {/* ── Quick Categories ───────────────────────────────────── */}
-          <Text
-            style={[
-              s.sectionTitle,
-              { color: theme.colors.textSecondary, fontFamily: theme.fontFamily.semiBold },
-            ]}
-          >
-            Quick Select
-          </Text>
+          <View style={s.sectionHeader}>
+            <Text
+              style={[
+                s.sectionTitle,
+                { color: theme.colors.textSecondary, fontFamily: theme.fontFamily.semiBold },
+              ]}
+            >
+              Quick Select
+            </Text>
+          </View>
           <View style={s.categoryGrid}>
             {QUICK_CATEGORIES.map((item, i) => (
               <Animated.View
@@ -421,25 +429,27 @@ export default function HomeScreen() {
                   style={[
                     s.categoryTile,
                     {
-                      backgroundColor: isDark ? item.color + '22' : item.bg,
-                      borderColor: isDark ? item.color + '44' : item.color + '30',
+                      backgroundColor: isDark ? item.color + '15' : item.bg,
+                      borderColor: isDark ? item.color + '30' : item.color + '20',
                     },
                   ]}
                   onPress={() => handleCategoryTap(item.category)}
-                  activeOpacity={0.75}
+                  activeOpacity={0.7}
                   accessibilityLabel={ServiceDisplayNames[item.category]}
                   accessibilityRole="button"
                 >
-                  <Ionicons
-                    name={ServiceIcons[item.category] as keyof typeof Ionicons.glyphMap}
-                    size={24}
-                    color={item.color}
-                  />
+                  <View style={[s.iconContainer, { backgroundColor: item.color + '10' }]}>
+                    <Ionicons
+                      name={ServiceIcons[item.category] as keyof typeof Ionicons.glyphMap}
+                      size={26}
+                      color={item.color}
+                    />
+                  </View>
                   <Text
                     style={[
                       s.tileLabel,
                       {
-                        color: isDark ? item.color : item.color,
+                        color: isDark ? theme.colors.textPrimary : theme.colors.textPrimary,
                         fontFamily: theme.fontFamily.medium,
                       },
                     ]}
@@ -518,20 +528,20 @@ export default function HomeScreen() {
 // ── Styles ────────────────────────────────────────────────────────────────────
 const s = StyleSheet.create({
   root: { flex: 1 },
-  scrollContent: { paddingHorizontal: 20, paddingTop: 12 },
+  scrollContent: { paddingHorizontal: 24, paddingTop: 16, paddingBottom: 40 },
 
   header: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    marginBottom: 14,
+    marginBottom: 20,
   },
-  greeting: { fontSize: 13, marginBottom: 2 },
-  headline: { fontSize: 26, lineHeight: 32 },
+  greeting: { fontSize: 14, marginBottom: 4, letterSpacing: 0.2 },
+  headline: { fontSize: 28, lineHeight: 34, letterSpacing: -0.5 },
   avatarPlaceholder: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
+    width: 48,
+    height: 48,
+    borderRadius: 24,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -540,96 +550,121 @@ const s = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
-    paddingVertical: 6,
-    paddingHorizontal: 12,
+    paddingVertical: 8,
+    paddingHorizontal: 14,
     borderRadius: 20,
     alignSelf: 'flex-start',
-    marginBottom: 14,
+    marginBottom: 16,
   },
-  aiTagText: { fontSize: 12 },
+  aiTagText: { fontSize: 12, letterSpacing: 0.2 },
 
   inputCard: {
-    borderRadius: 16,
-    padding: 14,
-    marginBottom: 12,
+    borderRadius: 20,
+    padding: 18,
+    marginBottom: 16,
   },
-  textInput: { fontSize: 15, lineHeight: 22, textAlignVertical: 'top' },
+  textInput: { fontSize: 16, lineHeight: 24, textAlignVertical: 'top' },
   inputActions: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'flex-end',
-    gap: 10,
-    marginTop: 10,
+    justifyContent: 'space-between',
+    marginTop: 12,
+  },
+  inputActionsLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
   },
   sendButton: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 6,
+    elevation: 3,
+  },
+  errorRow: { flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 12 },
+  errorText: { fontSize: 14 },
+
+  emergencyRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 14,
+    padding: 16,
+    borderRadius: 16,
+    borderWidth: 1,
+    marginBottom: 28,
+  },
+  emergencyIcon: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  emergencyLabel: { fontSize: 15, marginBottom: 2 },
+  emergencySubLabel: { fontSize: 13 },
+
+  sectionHeader: {
+    marginBottom: 16,
+    paddingHorizontal: 4,
+  },
+  sectionTitle: { fontSize: 13, letterSpacing: 1, textTransform: 'uppercase' },
+
+  categoryGrid: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between', rowGap: 16, marginBottom: 32 },
+  categoryTile: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: 14,
+    borderRadius: 18,
+    borderWidth: 1,
+    gap: 10,
+    height: 100,
+  },
+  iconContainer: {
     width: 44,
     height: 44,
     borderRadius: 22,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  errorRow: { flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 8 },
-  errorText: { fontSize: 13 },
+  tileLabel: { fontSize: 12, textAlign: 'center', lineHeight: 16 },
 
-  emergencyRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-    padding: 14,
-    borderRadius: 14,
-    borderWidth: 1,
-    marginBottom: 20,
-  },
-  emergencyIcon: {
-    width: 34,
-    height: 34,
-    borderRadius: 17,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  emergencyLabel: { fontSize: 14 },
-  emergencySubLabel: { fontSize: 12, marginTop: 1 },
-
-  sectionTitle: { fontSize: 13, letterSpacing: 0.5, textTransform: 'uppercase', marginBottom: 12 },
-
-  categoryGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 10, marginBottom: 24 },
-  categoryTile: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    padding: 12,
-    borderRadius: 14,
-    borderWidth: 1,
-    gap: 8,
-    minHeight: 88,
-  },
-  tileLabel: { fontSize: 11, textAlign: 'center', lineHeight: 14 },
-
-  recentList: { gap: 8, marginBottom: 8 },
+  recentList: { gap: 10, marginBottom: 12 },
   recentItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 12,
-    padding: 12,
-    borderRadius: 12,
+    gap: 14,
+    padding: 16,
+    borderRadius: 16,
     borderWidth: 1,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.03,
+    shadowRadius: 4,
+    elevation: 1,
   },
   recentIcon: {
-    width: 34,
-    height: 34,
-    borderRadius: 17,
+    width: 40,
+    height: 40,
+    borderRadius: 20,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  recentText: { fontSize: 14 },
-  recentTag: { fontSize: 12, marginTop: 2, textTransform: 'capitalize' },
+  recentText: { fontSize: 15 },
+  recentTag: { fontSize: 13, marginTop: 4, textTransform: 'capitalize' },
 
   demoTile: {
-    paddingVertical: 8,
-    paddingHorizontal: 12,
-    borderRadius: 8,
+    paddingVertical: 10,
+    paddingHorizontal: 16,
+    borderRadius: 12,
     borderWidth: 1,
   },
   demoTitle: {
-    fontSize: 13,
+    fontSize: 14,
   },
 });

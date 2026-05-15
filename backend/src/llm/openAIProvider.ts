@@ -1,0 +1,211 @@
+import OpenAI from 'openai';
+import type { LLMProvider } from './llmProvider';
+import type { ParsedRequest } from '../types/parsedRequest';
+import type { Provider } from '../types/provider';
+import type { Dispute } from '../types/dispute';
+
+const DEFAULT_OPENAI_MODEL = 'gpt-5.4-mini';
+
+const PARSE_REQUEST_SCHEMA = {
+  type: 'object',
+  additionalProperties: false,
+  properties: {
+    service_bundle: {
+      type: 'array',
+      items: {
+        type: 'string',
+        enum: [
+          'clinic_visit',
+          'home_nurse',
+          'caregiver',
+          'physiotherapy',
+          'medicine_pickup',
+          'lab_sample',
+          'meal_plan',
+          'daily_support',
+          'elder_companion',
+        ],
+      },
+    },
+    patient: { type: 'string' },
+    location_from: { type: 'string' },
+    location_to: { type: ['string', 'null'] },
+    time_preference: { type: 'string' },
+    scheduled_datetime: { type: ['string', 'null'] },
+    mobility_needs: { type: 'array', items: { type: 'string' } },
+    provider_preferences: {
+      type: 'object',
+      additionalProperties: false,
+      properties: {
+        gender: {
+          type: ['string', 'null'],
+          enum: ['female_required', 'male_required', 'female_preferred', 'any', null],
+        },
+        language: {
+          type: ['array', 'null'],
+          items: {
+            type: 'string',
+            enum: ['Urdu', 'English', 'Punjabi', 'Sindhi', 'Pashto', 'Balochi', 'Saraiki', 'Hindko'],
+          },
+        },
+        language_required: { type: ['boolean', 'null'] },
+        verified_only: { type: 'boolean' },
+        elder_care_experience: { type: ['boolean', 'null'] },
+      },
+      required: [
+        'gender',
+        'language',
+        'language_required',
+        'verified_only',
+        'elder_care_experience',
+      ],
+    },
+    urgency: { type: 'string', enum: ['low', 'medium', 'high', 'emergency'] },
+    risk_level: { type: 'string', enum: ['low', 'medium', 'high'] },
+    recurring: {
+      type: ['object', 'null'],
+      additionalProperties: false,
+      properties: {
+        frequency: { type: 'string', enum: ['daily', 'weekly', 'monthly'] },
+        days_of_week: { type: ['array', 'null'], items: { type: 'number' } },
+        end_date: { type: ['string', 'null'] },
+      },
+      required: ['frequency', 'days_of_week', 'end_date'],
+    },
+    clarification_needed: { type: 'boolean' },
+    clarification_question: { type: ['string', 'null'] },
+    confidence: { type: 'number' },
+  },
+  required: [
+    'service_bundle',
+    'patient',
+    'location_from',
+    'location_to',
+    'time_preference',
+    'scheduled_datetime',
+    'mobility_needs',
+    'provider_preferences',
+    'urgency',
+    'risk_level',
+    'recurring',
+    'clarification_needed',
+    'clarification_question',
+    'confidence',
+  ],
+};
+
+const SYSTEM_INSTRUCTION = `You are CirclCare AI, an elder-care coordination assistant operating in Pakistan.
+
+Parse a natural language care request from a family member into the requested JSON schema.
+
+Rules:
+- service_bundle must contain only valid category values.
+- If urgency is "emergency", set risk_level to "high" and confidence to 1.0.
+- If the request is ambiguous (missing service type, location, or time), set clarification_needed: true, confidence < 0.7, and provide a concise clarification_question.
+- verified_only defaults to true for clinical services: home_nurse, lab_sample, physiotherapy.
+- If a female provider is explicitly requested, set gender to "female_required" as a hard constraint.
+- If the family says a provider must speak a language or cannot proceed without it, set language_required: true. Otherwise language is a preference for scoring.
+- Extract patient as the person receiving care, not the caller.
+- If location is not specified, set location_from to "not specified" and clarification_needed: true.
+- Use null for unknown optional fields.`;
+
+function getResponseText(response: any): string {
+  if (typeof response.output_text === 'string' && response.output_text.trim()) {
+    return response.output_text;
+  }
+
+  for (const item of response.output ?? []) {
+    for (const content of item.content ?? []) {
+      if (content.type === 'output_text' && typeof content.text === 'string') {
+        return content.text;
+      }
+    }
+  }
+
+  throw new Error('OpenAI response did not include output text');
+}
+
+export class OpenAIProvider implements LLMProvider {
+  private client: OpenAI;
+  private modelName: string;
+
+  constructor(apiKey: string, modelName = DEFAULT_OPENAI_MODEL) {
+    this.client = new OpenAI({ apiKey });
+    this.modelName = modelName;
+  }
+
+  async parseRequest(input: string): Promise<ParsedRequest> {
+    const response = await this.client.responses.create({
+      model: this.modelName,
+      input: [
+        { role: 'system', content: SYSTEM_INSTRUCTION },
+        { role: 'user', content: input },
+      ],
+      text: {
+        format: {
+          type: 'json_schema',
+          name: 'parsed_care_request',
+          strict: true,
+          schema: PARSE_REQUEST_SCHEMA,
+        },
+      },
+    } as any);
+
+    const parsed = JSON.parse(getResponseText(response)) as ParsedRequest;
+
+    if (parsed.confidence < 0.7 && !parsed.clarification_needed) {
+      parsed.clarification_needed = true;
+      parsed.clarification_question ??=
+        'Could you clarify what type of care is needed and the preferred location?';
+    }
+
+    return parsed;
+  }
+
+  async explainMatch(request: ParsedRequest, provider: Provider, score: number): Promise<string> {
+    const response = await this.client.responses.create({
+      model: this.modelName,
+      input: [
+        {
+          role: 'system',
+          content:
+            'Write concise, reassuring elder-care marketplace copy. Do not mention internal scoring formulas.',
+        },
+        {
+          role: 'user',
+          content: `Write a 2-3 sentence explanation of why this provider is recommended.
+
+Request: ${JSON.stringify({ services: request.service_bundle, urgency: request.urgency, preferences: request.provider_preferences })}
+Provider: ${JSON.stringify({ name: provider.name, services: provider.services, rating: provider.rating, on_time_score: provider.on_time_score, verified: provider.verified, specializations: provider.specializations })}
+Match score: ${(score * 100).toFixed(0)}%
+
+Be specific and mention 2-3 concrete reasons. Do not start with "I".`,
+        },
+      ],
+      max_output_tokens: 180,
+    } as any);
+
+    return getResponseText(response).trim();
+  }
+
+  async summarizeDispute(dispute: Dispute): Promise<string> {
+    const response = await this.client.responses.create({
+      model: this.modelName,
+      input: [
+        {
+          role: 'system',
+          content: 'Summarize elder-care disputes empathetically and factually in plain language.',
+        },
+        {
+          role: 'user',
+          content: `Summarize this elder-care service dispute in 2 sentences for the family member.
+Dispute: ${JSON.stringify(dispute)}
+Do not use jargon.`,
+        },
+      ],
+      max_output_tokens: 140,
+    } as any);
+
+    return getResponseText(response).trim();
+  }
+}

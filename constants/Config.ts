@@ -2,7 +2,6 @@
 const Config = {
   // API
   apiBaseUrl: process.env.EXPO_PUBLIC_API_URL ?? 'http://localhost:3001',
-  geminiKey: process.env.EXPO_PUBLIC_GEMINI_KEY ?? '',
 
   // Polling
   bookingStatusPollIntervalMs: 5_000,

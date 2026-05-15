@@ -103,7 +103,14 @@ function variantContainer(
 ): ViewStyle {
   switch (variant) {
     case 'primary':
-      return { backgroundColor: colors.primary };
+      return { 
+        backgroundColor: colors.primary,
+        shadowColor: colors.primary,
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.15,
+        shadowRadius: 8,
+        elevation: 3,
+      };
     case 'secondary':
       return { backgroundColor: colors.surfaceElevated };
     case 'danger':

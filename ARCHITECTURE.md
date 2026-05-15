@@ -1,7 +1,7 @@
 # CirclCare AI — Technical Architecture Document
 
 > **Project:** CirclCare AI  
-> **Stack:** Expo 54 / React Native 0.81 / TypeScript, Node.js/Express backend, Google Gemini API  
+> **Stack:** Expo 54 / React Native 0.81 / TypeScript, Node.js/Express backend, OpenAI API  
 > **Pattern:** Client ↔ REST API ↔ Business Logic Engines ↔ LLM Provider Abstraction ↔ Mock Data Store
 
 ---
@@ -21,7 +21,7 @@ CirclCare AI is a two-tier mobile application:
 │                                          │
 │  ┌─────────────────────────────────┐    │
 │  │      LLM Provider Layer          │    │
-│  │  GeminiProvider implements       │    │
+│  │  OpenAIProvider implements       │    │
 │  │  LLMProvider interface           │    │
 │  └────────────────┬────────────────┘    │
 │                   │                      │
@@ -39,8 +39,8 @@ CirclCare AI is a two-tier mobile application:
 └─────────────────────────────────────────┘
                    │
 ┌──────────────────▼──────────────────────┐
-│         Google Gemini API                │
-│  AI Studio (prototype) → Vertex AI (prod)│
+│         OpenAI API                │
+│  OpenAI API (prototype) → production OpenAI project (prod)│
 └─────────────────────────────────────────┘
 ```
 
@@ -223,7 +223,7 @@ backend/
 │   │
 │   ├── llm/
 │   │   ├── LLMProvider.ts     ← Interface definition
-│   │   ├── GeminiProvider.ts  ← AI Studio implementation
+│   │   ├── OpenAIProvider.ts  ← OpenAI API implementation
 │   │   └── MockLLMProvider.ts ← Test/offline stub
 │   │
 │   ├── utils/
@@ -271,14 +271,14 @@ interface LLMProvider {
   generateNotification(event: BookingEvent): Promise<string>;
 }
 
-// llm/GeminiProvider.ts — current implementation
-class GeminiProvider implements LLMProvider { ... }
+// llm/OpenAIProvider.ts — current implementation
+class OpenAIProvider implements LLMProvider { ... }
 
 // llm/MockLLMProvider.ts — for tests and offline mode
 class MockLLMProvider implements LLMProvider { ... }
 ```
 
-**Swap path to production:** Change `GeminiProvider` constructor to use Vertex AI SDK instead of AI Studio SDK. All calling code remains identical.
+**Swap path to production:** Change `OPENAI_MODEL` or the `OpenAIProvider` implementation without changing route or matching code.
 
 ### 3.4 Matching Engine Design
 
@@ -327,7 +327,7 @@ All endpoints return:
 
 | Endpoint | Method | Description |
 |----------|--------|-------------|
-| `/api/parse-request` | POST | Parse natural language input via Gemini |
+| `/api/parse-request` | POST | Parse natural language input via OpenAI |
 | `/api/match` | POST | Run matching engine against parsed request |
 | `/api/quote` | POST | Generate itemized pricing quote |
 | `/api/bookings` | POST | Create booking |
@@ -378,7 +378,7 @@ interface Provider {
   past_disputes: number;
 }
 
-// ParsedRequest (from Gemini)
+// ParsedRequest (from OpenAI)
 interface ParsedRequest {
   service_bundle: ServiceCategory[];
   patient: string;
@@ -431,7 +431,7 @@ type BookingStatus =
 **Prototype (Hackathon):**
 - Providers have mock `lat/lng` coordinates in JSON
 - Users select area from dropdown or type neighborhood name
-- Gemini extracts area name from natural language
+- OpenAI extracts area name from natural language
 - Backend applies Haversine distance using mock coordinates
 
 **Production Path:**
@@ -475,7 +475,7 @@ i18n/
 └── index.ts      ← i18n hook (expo-localization)
 ```
 
-- **Input language:** Mixed (Roman Urdu, Urdu, English, code-switched) — handled by Gemini, no client-side NLP
+- **Input language:** Mixed (Roman Urdu, Urdu, English, code-switched) — handled by OpenAI, no client-side NLP
 - **UI language:** English for hackathon; Urdu strings added as `ur.json` keys
 - **RTL support:** `I18nManager.forceRTL(true)` for Urdu UI if needed
 - **Font:** `Nunito` supports Latin + Urdu-adjacent rendering; consider `Noto Nastaliq Urdu` for Urdu script display
@@ -488,7 +488,7 @@ i18n/
 ```
 Expo (managed workflow or dev client)
 Node.js + Express locally for development; bundled mock mode for judge-facing Expo/APK builds
-Gemini API from AI Studio
+OpenAI API
 JSON files as data store
 In-memory booking state
 ```
@@ -497,7 +497,7 @@ In-memory booking state
 ```
 React Native (bare workflow for custom native modules)
 Cloud Run (auto-scaling backend containers)
-Vertex AI Gemini API (production tier, audit trails)
+OpenAI production API (production tier, audit trails)
 Firestore (real-time document DB for bookings, providers)
   OR PostgreSQL (structured relational data)
 Cloud Tasks (scheduled reminders, T-60 min notifications)
@@ -521,7 +521,7 @@ Cloud Monitoring + Logging + Error Reporting
 - Gender and language preferences are implemented as HARD FILTERS (deterministic, not LLM-guided)
 - Caste, sect, ethnic, and religion-based matching is explicitly prohibited in engine config
 - Provider rejection reasons are auditable (logged per request)
-- Gemini explanations are framed in terms of comfort, safety, language, and care-context — not identity
+- OpenAI explanations are framed in terms of comfort, safety, language, and care-context — not identity
 - All matching weight configurations are code-reviewed, not AI-generated
 
 ---
@@ -533,9 +533,14 @@ Cloud Monitoring + Logging + Error Reporting
 | State management | Zustand | Minimal boilerplate; easy to test |
 | Server state | React Query | Automatic caching + retry + loading states |
 | Navigation | Expo Router | File-based; deep linking out of box |
-| LLM abstraction | Interface + DI | Swap AI Studio → Vertex AI without rewriting |
+| LLM abstraction | Interface + DI | Swap OpenAI API → production OpenAI project without rewriting |
 | Matching logic | Deterministic (not LLM) | Auditable, testable, safe, explainable |
 | Pricing logic | Deterministic formulas | Transparent, auditable, no hallucination risk |
 | Real-time updates | Polling (5s) | Sufficient for demo; avoids WebSocket complexity |
 | Data store | JSON files → Firestore | Fast to build; clear migration path |
 | Distance | Haversine → Routes API | Works now; production upgrade is isolated to one util |
+
+
+
+
+

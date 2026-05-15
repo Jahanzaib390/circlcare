@@ -3,7 +3,7 @@ import type { Provider } from '../types/provider';
 import type { Dispute } from '../types/dispute';
 
 /**
- * LLMProvider — abstraction over any LLM backend (Gemini, mock, etc.).
+ * LLMProvider - abstraction over any LLM backend (OpenAI, mock, etc.).
  * All methods return Promises so they are uniformly async.
  */
 export interface LLMProvider {
@@ -14,7 +14,7 @@ export interface LLMProvider {
   parseRequest(input: string): Promise<ParsedRequest>;
 
   /**
-   * Generate a 2–3 sentence human-readable explanation of why a specific
+   * Generate a 2-3 sentence human-readable explanation of why a specific
    * provider was selected for a given request.
    */
   explainMatch(request: ParsedRequest, provider: Provider, score: number): Promise<string>;

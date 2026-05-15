@@ -1,5 +1,5 @@
 /**
- * explanationCache.ts — In-memory cache for Gemini match explanations.
+ * explanationCache.ts — In-memory cache for OpenAI match explanations.
  * Avoids redundant API calls for the same (request + provider) pair.
  *
  * Key: SHA-256 hash of (serialized request subset + providerId)
@@ -60,3 +60,4 @@ export function clearExplanationCache(): void {
 export function getExplanationCacheSize(): number {
   return cache.size;
 }
+

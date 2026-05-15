@@ -157,7 +157,7 @@ Ammi ko kal clinic le jana hai, wheelchair car chahiye, female helper ho to acha
 
 ### 2. Intent and Entity Extraction
 
-Gemini extracts structured information:
+OpenAI extracts structured information:
 
 ```json
 {
@@ -208,7 +208,7 @@ Appointment time
 
 The backend performs deterministic filtering and ranking.
 
-Gemini is used for language understanding and human-readable explanations, while the app logic controls actual matching decisions.
+OpenAI is used for language understanding and human-readable explanations, while the app logic controls actual matching decisions.
 
 ### 5. Transparent Quote
 
@@ -423,9 +423,9 @@ The prototype will use realistic synthetic data.
 
 ## LLM Usage
 
-The prototype will use Gemini through the Google AI Studio Gemini API for rapid development.
+The prototype will use OpenAI through the OpenAI API for rapid development.
 
-Gemini will be used for:
+OpenAI will be used for:
 
 - Multilingual and Roman Urdu understanding
 - Noisy input cleanup
@@ -436,7 +436,7 @@ Gemini will be used for:
 - Dispute summarization
 - Notification text generation
 
-Gemini will not be the only decision-maker. The backend will enforce deterministic logic for:
+OpenAI will not be the only decision-maker. The backend will enforce deterministic logic for:
 
 - Hard filters
 - Provider scoring
@@ -463,13 +463,13 @@ LLMProvider
 Initial implementation:
 
 ```text
-Google AI Studio Gemini API
+OpenAI API
 ```
 
 Production migration:
 
 ```text
-Vertex AI Gemini API
+OpenAI production API
 ```
 
 ## Architecture
@@ -482,7 +482,7 @@ Backend API
   |
   +-- LLM Provider Layer
   |     |
-  |     +-- Gemini API
+  |     +-- OpenAI API
   |
   +-- Matching Engine
   |
@@ -511,7 +511,7 @@ Data:
 JSON files first, then Firebase / Supabase if time permits
 
 LLM:
-Gemini API from Google AI Studio
+OpenAI API
 ```
 
 ## Mobile App Screens
@@ -691,7 +691,7 @@ Text appears in request box
 User can edit or confirm
   |
   v
-Gemini parses the text into structured service request JSON
+OpenAI parses the text into structured service request JSON
 ```
 
 Example:
@@ -745,7 +745,7 @@ The app separates speech transcription from language understanding:
 Speech-to-text:
 Converts audio into text
 
-Gemini:
+OpenAI:
 Understands the transcribed Roman Urdu / Urdu / English text
 ```
 
@@ -753,14 +753,14 @@ For the hackathon prototype:
 
 ```text
 Device speech recognition is acceptable for voice-to-text.
-Gemini is then used to interpret the transcript.
+OpenAI is then used to interpret the transcript.
 ```
 
 For production or a stronger version:
 
 ```text
 Audio can be sent to a cloud transcription model or Google speech service.
-The transcribed text can still be passed to Gemini for structured extraction.
+The transcribed text can still be passed to OpenAI for structured extraction.
 ```
 
 Fallback behavior:
@@ -990,7 +990,7 @@ The app should demonstrate at least these edge cases:
 - Provider cancellation
 - Overlapping booking
 - User disputes extra charge
-- Gemini parse confidence below threshold
+- OpenAI parse confidence below threshold
 - API failure fallback to manual category form
 
 ## Safety and Fairness
@@ -1023,14 +1023,14 @@ The product should describe these as comfort, safety, language, and care-context
 
 ## Scalability Plan
 
-The prototype can be built quickly with AI Studio Gemini API and mock data, but the architecture should be production-ready in shape.
+The prototype can be built quickly with OpenAI API and mock data, but the architecture should be production-ready in shape.
 
 ### Prototype
 
 ```text
 Expo mobile app
 Backend API
-Gemini API from AI Studio
+OpenAI API
 Mock provider JSON
 In-memory booking simulation
 Local matching engine
@@ -1041,7 +1041,7 @@ Local matching engine
 ```text
 React Native production app
 Cloud Run backend
-Vertex AI Gemini API
+OpenAI production API
 Firestore or PostgreSQL
 Cloud Tasks for reminders
 Pub/Sub for booking events
@@ -1051,7 +1051,7 @@ Firebase Cloud Messaging
 Observability and audit logs
 ```
 
-The app should be designed so AI Studio can later be replaced with Vertex AI through the LLM provider abstraction.
+The app should be designed so OpenAI model/provider can later be replaced through the LLM provider abstraction.
 
 ## Build Ambition
 
@@ -1111,10 +1111,14 @@ Distinct elder-care service coordination domain instead of common repair-service
 
 ### Scalability
 
-Clear path from AI Studio prototype to Vertex AI, Cloud Run, Firestore/PostgreSQL, queues, and production observability.
+Clear path from OpenAI prototype to production OpenAI, Cloud Run, Firestore/PostgreSQL, queues, and production observability.
 
 ## Project Name
 
 ```text
 CirclCare AI
 ```
+
+
+
+

@@ -469,7 +469,7 @@ export default function UnderstandScreen() {
                 { color: theme.colors.textSecondary, fontFamily: theme.fontFamily.regular },
               ]}
             >
-              Gemini AI is analysing your request…
+              OpenAI is analysing your request…
             </Text>
           </View>
           {[1, 2, 3, 4, 5].map((k) => (

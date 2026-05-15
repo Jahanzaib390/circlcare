@@ -95,7 +95,7 @@ backend/
 │   │
 │   ├── llm/
 │   │   ├── LLMProvider.ts      ← Interface (parseRequest, explainMatch, summarizeDispute, etc.)
-│   │   ├── GeminiProvider.ts   ← Google AI Studio implementation
+│   │   ├── OpenAIProvider.ts   ← Google OpenAI API implementation
 │   │   └── MockLLMProvider.ts  ← Offline/test stub returning typed fixtures
 │   │
 │   ├── middleware/
@@ -164,7 +164,7 @@ components/
 ├── match/                      ← Match results components
 │   ├── ProviderCard.tsx        ← Provider summary card (recommended/alternative)
 │   ├── TrustBadges.tsx         ← Verified, gender, language, on-time badges
-│   ├── MatchExplanation.tsx    ← Gemini explanation expandable section
+│   ├── MatchExplanation.tsx    ← OpenAI explanation expandable section
 │   └── RejectionReasons.tsx    ← Why others were filtered out
 │
 ├── booking/                    ← Booking flow components
@@ -416,3 +416,5 @@ assets/
     └── circlcare-dev/
         └── SKILL.md            ← Agent skill for CirclCare development context
 ```
+
+

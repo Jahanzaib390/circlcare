@@ -7,6 +7,8 @@ import {
   Dimensions,
   TextInput,
   TouchableOpacity,
+  KeyboardAvoidingView,
+  Platform,
   type NativeScrollEvent,
   type NativeSyntheticEvent,
 } from 'react-native';
@@ -42,7 +44,7 @@ const SLIDES = [
   },
 ];
 
-const LANGUAGE_OPTIONS = [Language.Urdu, Language.English, Language.Punjabi];
+const LANGUAGE_OPTIONS = [Language.Urdu, Language.English];
 
 export default function OnboardingScreen() {
   const theme = useTheme();
@@ -90,14 +92,19 @@ export default function OnboardingScreen() {
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: theme.colors.background }]}>
-      <ScrollView
-        horizontal
-        pagingEnabled
-        showsHorizontalScrollIndicator={false}
-        onScroll={onScroll}
-        scrollEventThrottle={16}
+      <KeyboardAvoidingView
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        style={styles.keyboardAvoid}
       >
-        {SLIDES.map((slide, index) => (
+        <ScrollView
+          horizontal
+          pagingEnabled
+          showsHorizontalScrollIndicator={false}
+          onScroll={onScroll}
+          scrollEventThrottle={16}
+          contentContainerStyle={{ flexGrow: 1 }}
+        >
+          {SLIDES.map((slide, index) => (
           <View key={index} style={[styles.slide, { width }]}>
             <View style={[styles.iconBox, { backgroundColor: theme.colors.primary + '20' }]}>
               <Ionicons name={slide.icon} size={64} color={theme.colors.primary} />
@@ -144,6 +151,7 @@ export default function OnboardingScreen() {
               style={[
                 styles.input,
                 {
+                  backgroundColor: theme.colors.surface,
                   color: theme.colors.textPrimary,
                   borderColor: theme.colors.border,
                   fontFamily: theme.fontFamily.regular,
@@ -158,12 +166,13 @@ export default function OnboardingScreen() {
               style={[
                 styles.input,
                 {
+                  backgroundColor: theme.colors.surface,
                   color: theme.colors.textPrimary,
                   borderColor: theme.colors.border,
                   fontFamily: theme.fontFamily.regular,
                 },
               ]}
-              placeholder="Saved Home Address (Optional)"
+              placeholder="Home Address (Optional)"
               placeholderTextColor={theme.colors.textMuted}
               value={address}
               onChangeText={setAddress}
@@ -203,8 +212,8 @@ export default function OnboardingScreen() {
           </View>
         </View>
       </ScrollView>
-
-      <View style={styles.footer}>
+      
+      <View style={[styles.footer, { backgroundColor: theme.colors.background }]}>
         <View style={styles.dots}>
           {[...SLIDES, { title: 'Setup' }].map((_, index) => (
             <View
@@ -214,12 +223,13 @@ export default function OnboardingScreen() {
                 {
                   backgroundColor:
                     slideIndex === index ? theme.colors.primary : theme.colors.border,
+                  width: slideIndex === index ? 24 : 8,
                 },
               ]}
             />
           ))}
         </View>
-        <View style={{ paddingHorizontal: 24, paddingBottom: 16 }}>
+        <View style={{ paddingHorizontal: 32, paddingBottom: 16 }}>
           {slideIndex === SLIDES.length ? (
             <Button
               label="Get Started"
@@ -235,81 +245,95 @@ export default function OnboardingScreen() {
           )}
         </View>
       </View>
+      </KeyboardAvoidingView>
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
   container: { flex: 1 },
+  keyboardAvoid: { flex: 1 },
   slide: {
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
     paddingHorizontal: 32,
+    paddingBottom: 80, // Extra space to not collide with footer
   },
   iconBox: {
-    width: 120,
-    height: 120,
-    borderRadius: 60,
+    width: 100,
+    height: 100,
+    borderRadius: 50,
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: 40,
+    marginBottom: 32,
   },
   title: {
-    fontSize: 24,
+    fontSize: 28,
     textAlign: 'center',
-    marginBottom: 16,
+    marginBottom: 12,
+    letterSpacing: -0.5,
   },
   description: {
     fontSize: 16,
     textAlign: 'center',
     lineHeight: 24,
+    paddingHorizontal: 16,
   },
   inputContainer: {
     width: '100%',
     gap: 16,
-    marginTop: 24,
+    marginTop: 20,
   },
   input: {
     borderWidth: 1,
-    borderRadius: 12,
-    padding: 16,
+    borderRadius: 16,
+    paddingHorizontal: 16,
+    paddingVertical: 18,
     fontSize: 16,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.03,
+    shadowRadius: 4,
+    elevation: 2,
   },
   languageRow: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: 8,
+    gap: 12,
+    marginTop: 8,
+    justifyContent: 'center',
   },
   languageChip: {
     borderWidth: 1,
-    borderRadius: 999,
-    paddingHorizontal: 14,
-    paddingVertical: 10,
+    borderRadius: 12,
+    paddingHorizontal: 20,
+    paddingVertical: 12,
+    minWidth: 100,
+    alignItems: 'center',
   },
   languageText: {
-    fontSize: 14,
+    fontSize: 15,
   },
   footer: {
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 0,
+    paddingTop: 16,
+    paddingBottom: Platform.OS === 'ios' ? 0 : 16,
   },
   dots: {
     flexDirection: 'row',
     justifyContent: 'center',
+    alignItems: 'center',
     gap: 8,
-    marginBottom: 24,
+    marginBottom: 20,
   },
   dot: {
-    width: 8,
     height: 8,
     borderRadius: 4,
   },
   swipeHint: {
     textAlign: 'center',
-    fontSize: 14,
+    fontSize: 15,
     paddingVertical: 14,
+    letterSpacing: 0.5,
   },
 });
