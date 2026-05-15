@@ -157,29 +157,29 @@
 **Dependencies:** Phase 2
 
 ### 3.1 Pricing Engine
-- [ ] 🛠️ Create `services/pricingEngine.ts`
-- [ ] Implement formula: `base + distance_fee + waiting_time + complexity + urgency + add_ons - loyalty_discount`
-- [ ] Return itemized `PricingBreakdown[]` with label + amount per line
-- [ ] Add cheaper alternate slot suggestion when urgency fee applies
-- [ ] `POST /api/quote` endpoint
+- [x] 🛠️ Create `services/pricingEngine.ts`
+- [x] Implement formula: `base + distance_fee + waiting_time + complexity + urgency + add_ons - loyalty_discount`
+- [x] Return itemized `PricingBreakdown[]` with label + amount per line
+- [x] Add cheaper alternate slot suggestion when urgency fee applies
+- [x] `POST /api/quote` endpoint
 
 ### 3.2 Quote Screen
-- [ ] 📱 Build `QuoteScreen` — itemized line items with animated sequential reveal
-- [ ] 📱 Total prominently highlighted
-- [ ] 📱 "Alternate cheaper slot" secondary CTA
-- [ ] 📱 "Book Now" primary + "Change Provider" secondary
+- [x] 📱 Build `QuoteScreen` — itemized line items with animated sequential reveal
+- [x] 📱 Total prominently highlighted
+- [x] 📱 "Alternate cheaper slot" secondary CTA
+- [x] 📱 "Book Now" primary + "Change Provider" secondary
 
 ### 3.3 Booking Simulator
-- [ ] 🛠️ Create `services/bookingSimulator.ts`
-- [ ] `POST /api/bookings` → create booking record, assign provider, set `status: confirmed`
-- [ ] Simulate family notification event (return notification payload)
-- [ ] Simulate T-60 min reminder event
+- [x] 🛠️ Create `services/bookingSimulator.ts`
+- [x] `POST /api/bookings` → create booking record, assign provider, set `status: confirmed`
+- [x] Simulate family notification event (return notification payload)
+- [x] Simulate T-60 min reminder event
 
 ### 3.4 Booking Confirmation Screen
-- [ ] 📱 Build `BookingConfirmationScreen` with booking ID, provider, time, total
-- [ ] 📱 Animated success checkmark
-- [ ] 📱 "Family notified" status indicator
-- [ ] 📱 "Track Status" CTA
+- [x] 📱 Build `BookingConfirmationScreen` with booking ID, provider, time, total
+- [x] 📱 Animated success checkmark
+- [x] 📱 "Family notified" status indicator
+- [x] 📱 "Track Status" CTA
 
 ---
 

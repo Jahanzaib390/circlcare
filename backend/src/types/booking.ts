@@ -1,16 +1,16 @@
-import { BookingStatus } from '@/constants/BookingStatuses';
-import { ServiceCategory } from '@/constants/ServiceCategories';
-import { PricingBreakdown } from '@/types/pricing';
+import type { BookingStatus } from '../constants/bookingStatuses';
+import type { PricingBreakdown } from './pricing';
+import type { ServiceCategory } from './parsedRequest';
 
 export interface RecurringSchedule {
   frequency: 'daily' | 'weekly' | 'monthly';
-  days_of_week?: number[]; // 0=Sun … 6=Sat
-  end_date?: string; // ISO 8601
+  days_of_week?: number[];
+  end_date?: string;
 }
 
 export interface BookingTimelineEvent {
   status: BookingStatus;
-  timestamp: string; // ISO 8601
+  timestamp: string;
   note?: string;
 }
 
@@ -29,16 +29,16 @@ export interface Booking {
   user_id: string;
   provider_id: string;
   service_bundle: ServiceCategory[];
-  scheduled_start: string; // ISO 8601
+  scheduled_start: string;
   status: BookingStatus;
-  quoted_price: number; // PKR
+  quoted_price: number;
   pricing_breakdown: PricingBreakdown[];
   risk_level: 'low' | 'medium' | 'high';
   family_notified: boolean;
   recurring?: RecurringSchedule;
   timeline: BookingTimelineEvent[];
   cancellation_reason?: string;
-  compensation_discount?: number; // PKR
+  compensation_discount?: number;
   provider_eta_minutes?: number;
   location_from: string;
   location_to?: string;
