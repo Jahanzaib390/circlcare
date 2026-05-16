@@ -19,10 +19,12 @@ import { useRequestStore } from '@/hooks/useRequestStore';
 import { useMatchResults } from '@/hooks/useMatchResults';
 import { useMatchStore } from '@/hooks/useMatchStore';
 import { Button } from '@/components/ui/Button';
+import { CareAgentToast } from '@/components/ui/CareAgentToast';
 import { Skeleton } from '@/components/ui/Skeleton';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { ErrorState } from '@/components/ui/ErrorState';
 import type { MatchResult } from '@/types/match';
+import type { ParsedRequest } from '@/types/request';
 import { Colors } from '@/constants/theme';
 
 if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
@@ -83,6 +85,50 @@ function StarRating({ rating }: { rating: number }) {
   );
 }
 
+function getSmartBadges(match: MatchResult, request: ParsedRequest | null) {
+  const badges: { icon: keyof typeof Ionicons.glyphMap; label: string; color: string }[] = [];
+  const p = match.provider;
+
+  if (p.cancellation_rate <= 0.08) {
+    badges.push({
+      icon: 'checkmark-circle-outline',
+      label: 'Low cancellation risk',
+      color: Colors.accent,
+    });
+  }
+  if (p.verified) {
+    badges.push({
+      icon: 'shield-checkmark-outline',
+      label: 'Verified for elder care',
+      color: Colors.accent,
+    });
+  }
+  const requestedLanguages = request?.provider_preferences.language ?? [];
+  if (requestedLanguages.some((language) => p.languages.includes(language))) {
+    badges.push({
+      icon: 'chatbubbles-outline',
+      label: 'Language comfort match',
+      color: Colors.primary,
+    });
+  }
+  if (request?.provider_preferences.gender === 'female_required' && p.gender === 'female') {
+    badges.push({
+      icon: 'woman-outline',
+      label: 'Female required satisfied',
+      color: '#EC4899',
+    });
+  }
+  if (request?.provider_preferences.verified_only && p.verified) {
+    badges.push({
+      icon: 'medical-outline',
+      label: 'Clinical safety checked',
+      color: Colors.primary,
+    });
+  }
+
+  return badges.slice(0, 4);
+}
+
 // ── Provider card ──────────────────────────────────────────────────────────────
 function ProviderCard({
   match,
@@ -91,6 +137,7 @@ function ProviderCard({
   onBook,
   theme,
   animValue,
+  parsedRequest,
 }: {
   match: MatchResult;
   isHero: boolean;
@@ -98,6 +145,7 @@ function ProviderCard({
   onBook: () => void;
   theme: ReturnType<typeof useTheme>;
   animValue: Animated.Value;
+  parsedRequest: ParsedRequest | null;
 }) {
   const [expanded, setExpanded] = useState(false);
   const pct = Math.round(match.score.total * 100);
@@ -110,6 +158,7 @@ function ProviderCard({
 
   const rankColor =
     match.rank === 1 ? Colors.accent : match.rank === 2 ? Colors.primary : Colors.warning;
+  const smartBadges = getSmartBadges(match, parsedRequest);
 
   const slideStyle = {
     opacity: animValue,
@@ -184,6 +233,19 @@ function ProviderCard({
         </View>
 
         {/* ── Distance + travel ── */}
+        {smartBadges.length > 0 && (
+          <View style={s.smartBadgePanel}>
+            {smartBadges.map((badge) => (
+              <TrustBadge
+                key={badge.label}
+                icon={badge.icon}
+                label={badge.label}
+                color={badge.color}
+              />
+            ))}
+          </View>
+        )}
+
         <View style={[s.travelRow, { borderColor: theme.colors.border }]}>
           <View style={s.travelItem}>
             <Ionicons name="location-outline" size={13} color={theme.colors.textMuted} />
@@ -387,6 +449,13 @@ export default function MatchScreen() {
           <View style={{ width: 40 }} />
         </View>
         <ScrollView contentContainerStyle={s.loadingContent}>
+          <CareAgentToast
+            messages={[
+              'Checking provider safety and availability...',
+              'Comparing cancellation risk, language, and distance...',
+              'Preparing a backup option in case plans change...',
+            ]}
+          />
           <ActivityIndicator
             size="large"
             color={theme.colors.primary}
@@ -509,6 +578,7 @@ export default function MatchScreen() {
 
   const hero = topMatches[0];
   const alternatives = topMatches.slice(1);
+  const backup = alternatives[0];
 
   return (
     <SafeAreaView style={[s.root, { backgroundColor: theme.colors.background }]}>
@@ -569,7 +639,32 @@ export default function MatchScreen() {
           onBook={() => handleBook(hero)}
           theme={theme}
           animValue={cardAnims[0]}
+          parsedRequest={parsedRequest}
         />
+
+        {backup && (
+          <View
+            style={[
+              s.backupBanner,
+              { backgroundColor: Colors.accent + '12', borderColor: Colors.accent + '35' },
+            ]}
+          >
+            <Ionicons name="git-branch-outline" size={17} color={Colors.accent} />
+            <View style={{ flex: 1 }}>
+              <Text
+                style={[
+                  s.backupTitle,
+                  { color: Colors.accent, fontFamily: theme.fontFamily.semiBold },
+                ]}
+              >
+                Backup Provider Ready
+              </Text>
+              <Text style={[s.backupText, { color: theme.colors.textSecondary }]}>
+                {backup.provider.name} is available if the primary provider cancels.
+              </Text>
+            </View>
+          </View>
+        )}
 
         {/* ── Alternatives ── */}
         {alternatives.length > 0 && (
@@ -594,6 +689,7 @@ export default function MatchScreen() {
                 onBook={() => handleBook(match)}
                 theme={theme}
                 animValue={cardAnims[idx + 1]}
+                parsedRequest={parsedRequest}
               />
             ))}
           </>
@@ -700,6 +796,23 @@ const s = StyleSheet.create({
     paddingTop: 10,
     paddingBottom: 2,
   },
+  smartBadgePanel: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    paddingHorizontal: 14,
+    paddingBottom: 4,
+  },
+  backupBanner: {
+    flexDirection: 'row',
+    gap: 10,
+    borderRadius: 12,
+    borderWidth: 1,
+    padding: 12,
+    marginTop: -4,
+    marginBottom: 18,
+  },
+  backupTitle: { fontSize: 13, marginBottom: 2 },
+  backupText: { fontSize: 12, lineHeight: 17 },
 
   travelRow: {
     flexDirection: 'row',

@@ -18,9 +18,11 @@ import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '@/hooks/useTheme';
 import { useBookingStore } from '@/hooks/useBookingStore';
+import { useMatchStore } from '@/hooks/useMatchStore';
 import { useBookingStatus } from '@/hooks/useBookingStatus';
 import { useBooking } from '@/hooks/useBooking';
 import { Button } from '@/components/ui/Button';
+import { CareAgentToast } from '@/components/ui/CareAgentToast';
 import { Colors, Shadows, Radius, FontSize, Spacing } from '@/constants/theme';
 import {
   BOOKING_TIMELINE_STEPS,
@@ -338,6 +340,7 @@ export default function StatusScreen() {
   const theme = useTheme();
   const router = useRouter();
   const { booking } = useBookingStore();
+  const { selectedMatch, matchResponse } = useMatchStore();
   const { mutate: createBooking, isPending: isBookingReplacement } = useBooking();
 
   const bookingId = booking?.booking_id ?? null;
@@ -392,6 +395,9 @@ export default function StatusScreen() {
   const isEnRoute = status === 'en_route';
   const isTerminal = status ? TERMINAL_STATUSES.includes(status) : false;
   const canRunTransitEdgeCases = isEnRoute && !isTerminal;
+  const backupMatch = matchResponse?.top_matches.find(
+    (match) => match.provider.id !== selectedMatch?.provider.id
+  );
 
   const handleBookReplacement = useCallback(
     (replacementIndex: number) => {
@@ -490,6 +496,19 @@ export default function StatusScreen() {
         {status && <StatusBanner status={status} etaMinutes={provider_eta_minutes} theme={theme} />}
 
         {/* ── Map Placeholder (shown when en_route) ── */}
+        {isEnRoute && (
+          <CareAgentToast
+            messages={[
+              'ETA checked and family updates are active.',
+              backupMatch
+                ? `${backupMatch.provider.name} is held as a backup provider.`
+                : 'Backup plan is ready if the provider cancels.',
+              'Arrival buffer is active for elder-care support.',
+            ]}
+            tone="success"
+          />
+        )}
+
         {isEnRoute && <MapPlaceholder etaMinutes={provider_eta_minutes} theme={theme} />}
 
         {/* ── Family Notified pill ── */}
@@ -513,6 +532,30 @@ export default function StatusScreen() {
         )}
 
         {/* ── Delay card ── */}
+        {!isCancelled && backupMatch && (
+          <View
+            style={[
+              styles.backupCard,
+              { backgroundColor: Colors.accent + '10', borderColor: Colors.accent + '30' },
+            ]}
+          >
+            <Ionicons name="git-branch-outline" size={18} color={Colors.accent} />
+            <View style={{ flex: 1 }}>
+              <Text
+                style={[
+                  styles.backupTitle,
+                  { color: Colors.accent, fontFamily: theme.fontFamily.semiBold },
+                ]}
+              >
+                Backup Provider Ready
+              </Text>
+              <Text style={[styles.backupText, { color: theme.colors.textSecondary }]}>
+                {backupMatch.provider.name} can take over if the current provider cancels.
+              </Text>
+            </View>
+          </View>
+        )}
+
         {delay_reason && !isCancelled && (
           <View
             style={[
@@ -720,7 +763,7 @@ export default function StatusScreen() {
                 >
                   <Ionicons name="close-circle-outline" size={15} color={Colors.danger} />
                   <Text style={[styles.edgeBtnText, { color: Colors.danger }]}>
-                    Cancel Mid-Transit
+                    Run Recovery Demo
                   </Text>
                 </TouchableOpacity>
               </View>
@@ -881,6 +924,15 @@ const styles = StyleSheet.create({
     alignSelf: 'flex-start',
   },
   familyPillText: { fontSize: FontSize.sm },
+  backupCard: {
+    flexDirection: 'row',
+    gap: 10,
+    borderRadius: Radius.lg,
+    borderWidth: 1,
+    padding: Spacing.md,
+  },
+  backupTitle: { fontSize: FontSize.sm, marginBottom: 3 },
+  backupText: { fontSize: FontSize.sm, lineHeight: 18 },
 
   // Delay / cancellation cards
   delayCard: {

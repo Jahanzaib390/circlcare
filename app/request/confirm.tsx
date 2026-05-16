@@ -16,7 +16,7 @@ export default function ConfirmScreen() {
   const router = useRouter();
 
   const { booking } = useBookingStore();
-  const { selectedMatch } = useMatchStore();
+  const { selectedMatch, matchResponse } = useMatchStore();
   const { parsedRequest } = useRequestStore();
   const [showCelebration, setShowCelebration] = useState(true);
 
@@ -100,6 +100,9 @@ export default function ConfirmScreen() {
     hour: 'numeric',
     minute: '2-digit',
   });
+  const backupMatch = matchResponse?.top_matches.find(
+    (match) => match.provider.id !== selectedMatch.provider.id
+  );
 
   const orbY = orbFloat.interpolate({ inputRange: [0, 1], outputRange: [0, -20] });
 
@@ -226,6 +229,25 @@ export default function ConfirmScreen() {
               {selectedMatch.provider.name}
             </Text>
           </View>
+
+          {backupMatch && (
+            <View
+              style={[
+                styles.backupRow,
+                { backgroundColor: Colors.accent + '10', borderColor: Colors.accent + '30' },
+              ]}
+            >
+              <Ionicons name="git-branch-outline" size={16} color={Colors.accent} />
+              <Text
+                style={[
+                  styles.backupText,
+                  { color: theme.colors.textPrimary, fontFamily: theme.fontFamily.medium },
+                ]}
+              >
+                Backup ready: {backupMatch.provider.name} if plans change
+              </Text>
+            </View>
+          )}
 
           <View style={styles.detailRow}>
             <View style={[styles.detailIcon, { backgroundColor: '#EC4899' + '10' }]}>
@@ -466,6 +488,16 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   detailText: { fontSize: 15, flex: 1 },
+  backupRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    borderRadius: 12,
+    borderWidth: 1,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+  },
+  backupText: { flex: 1, fontSize: 13, lineHeight: 18 },
 
   divider: { height: StyleSheet.hairlineWidth, marginVertical: 2 },
 

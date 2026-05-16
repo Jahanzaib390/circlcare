@@ -17,6 +17,9 @@ let mockIsEmergency = false;
 
 jest.mock('expo-router', () => ({
   useFocusEffect: (cb: () => void) => cb(),
+  useRouter: () => ({
+    push: jest.fn(),
+  }),
 }));
 
 jest.mock('@/hooks/useTheme', () => ({

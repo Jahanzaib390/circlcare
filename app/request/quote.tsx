@@ -19,6 +19,7 @@ import { useQuote } from '@/hooks/useQuote';
 import { useQuoteStore } from '@/hooks/useQuoteStore';
 import { useBooking } from '@/hooks/useBooking';
 import { Button } from '@/components/ui/Button';
+import { CareAgentToast } from '@/components/ui/CareAgentToast';
 import { Colors } from '@/constants/theme';
 import type { PricingBreakdown, QuoteLineItem } from '@/types/pricing';
 
@@ -223,12 +224,21 @@ export default function QuoteScreen() {
 
         {/* ── Loading State ── */}
         {(isQuotePending || (!pricing && !isQuoteError)) && (
-          <View style={styles.loadingContainer}>
-            <ActivityIndicator size="large" color={theme.colors.primary} />
-            <Text style={[styles.loadingText, { color: theme.colors.textSecondary }]}>
-              Calculating transparent pricing...
-            </Text>
-          </View>
+          <>
+            <CareAgentToast
+              messages={[
+                'Reviewing quote for urgency and hidden charges...',
+                'Checking whether a cheaper safe slot exists...',
+                'Preparing a transparent care estimate...',
+              ]}
+            />
+            <View style={styles.loadingContainer}>
+              <ActivityIndicator size="large" color={theme.colors.primary} />
+              <Text style={[styles.loadingText, { color: theme.colors.textSecondary }]}>
+                Calculating transparent pricing...
+              </Text>
+            </View>
+          </>
         )}
 
         {/* ── Error State ── */}
@@ -262,6 +272,10 @@ export default function QuoteScreen() {
               >
                 Pricing Breakdown
               </Text>
+              <View style={styles.reviewBadge}>
+                <Ionicons name="sparkles" size={12} color={Colors.accent} />
+                <Text style={styles.reviewBadgeText}>Reviewed by care agent</Text>
+              </View>
             </View>
 
             <View style={styles.cardBody}>
@@ -420,6 +434,10 @@ const styles = StyleSheet.create({
     marginBottom: 24,
   },
   cardHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: 10,
     paddingHorizontal: 16,
     paddingVertical: 14,
     borderBottomWidth: StyleSheet.hairlineWidth,
@@ -427,6 +445,16 @@ const styles = StyleSheet.create({
     backgroundColor: '#00000005',
   },
   cardTitle: { fontSize: 16 },
+  reviewBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
+    borderRadius: 999,
+    backgroundColor: Colors.accent + '12',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+  },
+  reviewBadgeText: { color: Colors.accent, fontSize: 11, fontWeight: '700' },
   cardBody: { padding: 16 },
 
   lineItemRow: {
