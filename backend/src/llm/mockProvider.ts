@@ -2,6 +2,8 @@ import type { LLMProvider } from './llmProvider';
 import type { ParsedRequest, ServiceCategory } from '../types/parsedRequest';
 import type { Provider } from '../types/provider';
 import type { Dispute } from '../types/dispute';
+import type { MatchResult, MatchResponse } from '../types/match';
+import type { PricingBreakdown } from '../types/pricing';
 
 /**
  * MockProvider — deterministic LLM implementation for demos and testing.
@@ -58,7 +60,9 @@ export class MockProvider implements LLMProvider {
     // ── Location extraction ────────────────────────────────────────────────────
     const locationKeywords = [
       'gulshan',
+      'gulshan-e-iqbal',
       'dha',
+      'dha karachi',
       'clifton',
       'nazimabad',
       'north nazimabad',
@@ -71,6 +75,11 @@ export class MockProvider implements LLMProvider {
       'model town',
       'johar town',
       'gulberg',
+      'f-7 islamabad',
+      'f-8 islamabad',
+      'g-9 islamabad',
+      'clifton karachi',
+      'gulshan-e-iqbal karachi',
       'lahore',
       'karachi',
       'islamabad',
@@ -161,6 +170,110 @@ export class MockProvider implements LLMProvider {
       `They are ${provider.verified ? 'verified' : 'experienced'}, rated ${provider.rating.toFixed(1)}/5, ` +
       `and maintain a ${(provider.on_time_score * 100).toFixed(0)}% on-time arrival rate — ensuring reliable elder care.`
     );
+  }
+
+  async selectMatchesWithTools(
+    request: ParsedRequest,
+    candidates: MatchResult[],
+    filteredOut: MatchResponse['filtered_out'],
+    baselineProviderId?: string
+  ) {
+    const trace = [
+      {
+        tool: 'get_providers_in_area',
+        input: { area: request.location_from, services: request.service_bundle },
+        observation: candidates.map((match) => ({
+          id: match.provider.id,
+          name: match.provider.name,
+          gender: match.provider.gender,
+          verified: match.provider.verified,
+          distance_km: Number(match.distance_km.toFixed(1)),
+          cancellation_rate: match.provider.cancellation_rate,
+          score: Number(match.score.total.toFixed(3)),
+        })),
+      },
+      {
+        tool: 'inspect_rejected_providers',
+        input: { count: filteredOut.length },
+        observation: filteredOut.map((item) => ({
+          id: item.provider.id,
+          failed_filter: item.failed_filter,
+          reason: item.reason,
+        })),
+      },
+      {
+        tool: 'check_calendar_conflicts',
+        input: { scheduled_datetime: request.scheduled_datetime ?? request.time_preference },
+        observation: candidates.map((match) => ({
+          id: match.provider.id,
+          conflict: false,
+          suggested_arrival_buffer_minutes: match.suggested_arrival_buffer_minutes,
+        })),
+      },
+    ];
+
+    const highRisk = request.risk_level === 'high';
+    const selected = [...candidates].sort((a, b) => {
+      if (highRisk && a.provider.verified !== b.provider.verified) {
+        return a.provider.verified ? -1 : 1;
+      }
+      if (a.provider.cancellation_rate !== b.provider.cancellation_rate) {
+        return a.provider.cancellation_rate - b.provider.cancellation_rate;
+      }
+      return b.score.total - a.score.total;
+    });
+
+    const selectedIds = selected.slice(0, 3).map((match) => match.provider.id);
+    const top = selected[0];
+    return {
+      selected_provider_ids: selectedIds,
+      adapted_from_baseline: Boolean(top && baselineProviderId && top.provider.id !== baselineProviderId),
+      reasoning: top
+        ? `${top.provider.name} was selected after checking area coverage, schedule fit, verification, cancellation risk, and family preferences.`
+        : 'No eligible provider remained after tool checks.',
+      tool_trace: trace,
+    };
+  }
+
+  async reviewQuoteWithTools(
+    request: ParsedRequest,
+    provider: Provider,
+    quote: PricingBreakdown
+  ): Promise<PricingBreakdown['pricing_agent']> {
+    const trace = [
+      {
+        tool: 'inspect_quote_lines',
+        input: { provider_id: provider.id },
+        observation: quote.line_items,
+      },
+      {
+        tool: 'check_urgency_flexibility',
+        input: { urgency: request.urgency, time_preference: request.time_preference },
+        observation: {
+          cheaper_slot_available: Boolean(quote.cheaper_slot_suggestion),
+          cheaper_slot_suggestion: quote.cheaper_slot_suggestion,
+        },
+      },
+      {
+        tool: 'check_provider_quality_risk',
+        input: { provider_id: provider.id },
+        observation: {
+          cancellation_rate: provider.cancellation_rate,
+          on_time_score: provider.on_time_score,
+          past_disputes: provider.past_disputes,
+        },
+      },
+    ];
+
+    const decision = quote.cheaper_slot_suggestion ? 'suggest_cheaper_slot' : 'keep_quote';
+    return {
+      tool_trace: trace,
+      decision,
+      reasoning:
+        decision === 'suggest_cheaper_slot'
+          ? 'The pricing agent kept the transparent quote but surfaced a cheaper slot because urgency fees are avoidable if the family can wait.'
+          : 'The pricing agent checked line items and provider risk signals, then kept the quote unchanged.',
+    };
   }
 
   async summarizeDispute(dispute: Dispute): Promise<string> {

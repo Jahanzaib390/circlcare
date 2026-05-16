@@ -1,11 +1,19 @@
 import { Ionicons } from '@expo/vector-icons';
-import { useRouter } from 'expo-router';
+import { useLocalSearchParams, useRouter } from 'expo-router';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Button } from '@/components/ui/Button';
 import { Colors } from '@/constants/theme';
 import { useMatchStore } from '@/hooks/useMatchStore';
 import { useTheme } from '@/hooks/useTheme';
+import type { Provider } from '@/types/provider';
+import providersJson from '@/data/providers.json';
+
+const PROVIDERS = providersJson as Provider[];
+
+function firstParam(value: string | string[] | undefined): string | undefined {
+  return Array.isArray(value) ? value[0] : value;
+}
 
 function DetailPill({
   icon,
@@ -34,15 +42,31 @@ function DetailPill({
 export default function ProviderDetailModal() {
   const theme = useTheme();
   const router = useRouter();
+  const params = useLocalSearchParams();
   const { selectedMatch } = useMatchStore();
-  const provider = selectedMatch?.provider;
+
+  const requestedProviderId = firstParam(params.providerId);
+  const selectedMatchForProvider =
+    !requestedProviderId || selectedMatch?.provider.id === requestedProviderId
+      ? selectedMatch
+      : null;
+  const provider =
+    selectedMatchForProvider?.provider ??
+    PROVIDERS.find((candidate) => candidate.id === requestedProviderId);
+  const isMatchContext = Boolean(selectedMatchForProvider);
 
   const handleBook = () => {
+    if (isMatchContext) {
+      router.dismiss();
+      router.push('/request/quote');
+      return;
+    }
+
     router.dismiss();
-    router.push('/request/quote');
+    router.replace('/');
   };
 
-  if (!provider || !selectedMatch) {
+  if (!provider) {
     return (
       <SafeAreaView style={[styles.container, { backgroundColor: theme.colors.background }]}>
         <View style={styles.empty}>
@@ -113,12 +137,16 @@ export default function ProviderDetailModal() {
                 { color: theme.colors.textSecondary, fontFamily: theme.fontFamily.regular },
               ]}
             >
-              {provider.provider_type === 'agency' ? 'Care agency' : 'Individual provider'} - Rank #
-              {selectedMatch.rank}
+              {provider.provider_type === 'agency' ? 'Care agency' : 'Individual provider'}
+              {selectedMatchForProvider ? ` - Rank #${selectedMatchForProvider.rank}` : ''}
             </Text>
           </View>
           <View style={[styles.matchBadge, { backgroundColor: Colors.accent }]}>
-            <Text style={styles.matchScore}>{Math.round(selectedMatch.score.total * 100)}%</Text>
+            <Text style={styles.matchScore}>
+              {selectedMatchForProvider
+                ? `${Math.round(selectedMatchForProvider.score.total * 100)}%`
+                : provider.rating.toFixed(1)}
+            </Text>
           </View>
         </View>
 
@@ -143,8 +171,12 @@ export default function ProviderDetailModal() {
           />
           <DetailPill
             icon="car"
-            label="Arrival"
-            value={`~${selectedMatch.suggested_arrival_buffer_minutes} min`}
+            label={isMatchContext ? 'Arrival' : 'Radius'}
+            value={
+              selectedMatchForProvider
+                ? `~${selectedMatchForProvider.suggested_arrival_buffer_minutes} min`
+                : `${provider.service_radius_km} km`
+            }
             color={Colors.primaryLight}
           />
         </View>
@@ -164,7 +196,7 @@ export default function ProviderDetailModal() {
               { color: theme.colors.textSecondary, fontFamily: theme.fontFamily.regular },
             ]}
           >
-            {selectedMatch.explanation ??
+            {selectedMatchForProvider?.explanation ??
               `${provider.name} is a strong match for this request based on service fit, reliability, and location.`}
           </Text>
         </View>
@@ -215,7 +247,9 @@ export default function ProviderDetailModal() {
           >
             {provider.gender.charAt(0).toUpperCase() + provider.gender.slice(1)} provider -{' '}
             {provider.languages.join(', ')} - {provider.experience_years} years experience -{' '}
-            {selectedMatch.distance_km.toFixed(1)} km away
+            {selectedMatchForProvider
+              ? `${selectedMatchForProvider.distance_km.toFixed(1)} km away`
+              : `serves ${provider.areas.slice(0, 3).join(', ')}`}
           </Text>
           {provider.bio && (
             <Text
@@ -234,7 +268,7 @@ export default function ProviderDetailModal() {
         </View>
 
         <Button
-          label="Book this Provider"
+          label={isMatchContext ? 'Book this Provider' : 'Start a Care Request'}
           variant="primary"
           size="md"
           fullWidth

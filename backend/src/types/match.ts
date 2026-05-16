@@ -37,6 +37,7 @@ export interface MatchResult {
   elder_buffer_minutes: number;
   suggested_arrival_buffer_minutes: number;
   rank: number; // 1 = top match
+  agent_reasoning?: string;
 }
 
 export interface MatchResponse {
@@ -48,5 +49,21 @@ export interface MatchResponse {
     failed_filter?: string;
     suggested_next_slot?: string;
   }>;
+  agent_trace?: Array<{
+    tool: string;
+    input: Record<string, unknown>;
+    observation: unknown;
+  }>;
+  agent_decision?: {
+    selected_provider_ids: string[];
+    reasoning: string;
+    adapted_from_baseline?: boolean;
+  };
+  baseline_comparison?: {
+    baseline_provider_id?: string;
+    baseline_rule: string;
+    agent_provider_id?: string;
+    why_agent_better: string;
+  };
 }
 

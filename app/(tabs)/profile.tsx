@@ -301,7 +301,12 @@ const styles = StyleSheet.create({
   },
   headerTitle: { fontSize: FontSize.xl },
 
-  scrollContent: { padding: Spacing.md, gap: Spacing.sm },
+  scrollContent: {
+    paddingHorizontal: Spacing.md,
+    paddingTop: Spacing.md,
+    paddingBottom: 120,
+    gap: Spacing.sm,
+  },
 
   // Identity card
   identityCard: {

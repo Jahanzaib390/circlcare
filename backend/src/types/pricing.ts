@@ -23,6 +23,15 @@ export interface PricingBreakdown {
   total: number;
   currency: 'PKR';
   cheaper_slot_suggestion?: CheaperSlotSuggestion;
+  pricing_agent?: {
+    tool_trace: Array<{
+      tool: string;
+      input: Record<string, unknown>;
+      observation: unknown;
+    }>;
+    reasoning: string;
+    decision: 'keep_quote' | 'discount' | 'suggest_cheaper_slot' | 'escalate';
+  };
 }
 
 /** Body shape for POST /api/quote */

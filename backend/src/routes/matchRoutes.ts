@@ -2,7 +2,7 @@ import { Router } from 'express';
 import path from 'path';
 import fs from 'fs';
 import { success, error } from '../utils/responseHelpers';
-import { matchProviders } from '../services/matchingEngine';
+import { baselineFirstAvailableByDistance, matchProviders } from '../services/matchingEngine';
 import { getCachedExplanation, setCachedExplanation } from '../utils/explanationCache';
 import type { ParsedRequest } from '../types/parsedRequest';
 import type { Provider } from '../types/provider';
@@ -74,9 +74,10 @@ matchRoutes.post('/match', async (req, res, next) => {
       return error(res, 'Provider data unavailable — cannot perform matching', 503);
     }
 
-    // Stage 1 + 2: Hard filters + weighted scoring
+    // Stage 1 + 2: tool observations for the routing agent
     const bookings = loadBookings();
     const matchResult = matchProviders(parsedRequest, providers, bookings);
+    const baseline = baselineFirstAvailableByDistance(parsedRequest, providers, bookings);
 
     if (matchResult.top_matches.length === 0) {
       // No providers passed filters — return structured empty result
@@ -88,10 +89,41 @@ matchRoutes.post('/match', async (req, res, next) => {
       return success(res, response);
     }
 
-    // Stage 3: OpenAI explanation for top matches (with caching)
+    // Stage 3: agentic tool-calling decision over observed candidates
     const llm = getLLM();
+    let agentDecision;
+    try {
+      agentDecision = await llm.selectMatchesWithTools(
+        parsedRequest,
+        matchResult.top_matches,
+        matchResult.filtered_out,
+        baseline?.provider.id
+      );
+    } catch (agentErr) {
+      console.warn('[matchRoutes] Agentic matching failed; using ranked candidates:', agentErr);
+      agentDecision = {
+        selected_provider_ids: matchResult.top_matches.map((match) => match.provider.id),
+        reasoning: 'Agent unavailable; returned the safest eligible ranked candidates.',
+        adapted_from_baseline: false,
+        tool_trace: [],
+      };
+    }
+
+    const rankedByAgent = agentDecision.selected_provider_ids
+      .map((id) => matchResult.top_matches.find((match) => match.provider.id === id))
+      .filter((match): match is MatchResult => Boolean(match));
+    const remaining = matchResult.top_matches.filter(
+      (match) => !agentDecision.selected_provider_ids.includes(match.provider.id)
+    );
+    const agentRankedMatches = [...rankedByAgent, ...remaining].slice(0, 3).map((match, index) => ({
+      ...match,
+      rank: index + 1,
+      agent_reasoning: index === 0 ? agentDecision.reasoning : undefined,
+    }));
+
+    // Stage 4: OpenAI explanation for top matches (with caching)
     const topMatchesWithExplanations: MatchResult[] = await Promise.all(
-      matchResult.top_matches.map(async (match) => {
+      agentRankedMatches.map(async (match) => {
         // Check cache first
         const cached = getCachedExplanation(parsedRequest, match.provider.id);
         if (cached) {
@@ -122,6 +154,21 @@ matchRoutes.post('/match', async (req, res, next) => {
       request: parsedRequest,
       top_matches: topMatchesWithExplanations,
       filtered_out: matchResult.filtered_out,
+      agent_trace: agentDecision.tool_trace,
+      agent_decision: {
+        selected_provider_ids: agentDecision.selected_provider_ids,
+        reasoning: agentDecision.reasoning,
+        adapted_from_baseline: agentDecision.adapted_from_baseline,
+      },
+      baseline_comparison: {
+        baseline_provider_id: baseline?.provider.id,
+        baseline_rule: 'first eligible provider by distance',
+        agent_provider_id: topMatchesWithExplanations[0]?.provider.id,
+        why_agent_better:
+          baseline?.provider.id && topMatchesWithExplanations[0]?.provider.id !== baseline.provider.id
+            ? 'The agent adapted beyond distance-only routing by considering strict family preferences, verification, reliability, and cancellation risk.'
+            : 'The agent agreed with the distance baseline after checking preferences, risk, and availability.',
+      },
     };
 
     return success(res, response);

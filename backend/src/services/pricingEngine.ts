@@ -25,7 +25,7 @@ const LOYALTY_THRESHOLD = 3; // Number of past bookings to qualify
 
 function resolvePatientLocation(locationFrom: string): { lat: number; lng: number } {
   // Simplistic mock geocoder matching matchingEngine.ts
-  const LAHORE_AREA_CENTROIDS: Record<string, { lat: number; lng: number }> = {
+  const AREA_CENTROIDS: Record<string, { lat: number; lng: number }> = {
     dha: { lat: 31.482, lng: 74.401 },
     gulberg: { lat: 31.524, lng: 74.359 },
     'model town': { lat: 31.516, lng: 74.345 },
@@ -37,9 +37,20 @@ function resolvePatientLocation(locationFrom: string): { lat: number; lng: numbe
     'faisal town': { lat: 31.505, lng: 74.33 },
     ichra: { lat: 31.518, lng: 74.325 },
     lahore: { lat: 31.5204, lng: 74.3587 },
+    clifton: { lat: 24.8138, lng: 67.0302 },
+    'dha karachi': { lat: 24.7936, lng: 67.0644 },
+    'gulshan-e-iqbal': { lat: 24.918, lng: 67.0971 },
+    gulshan: { lat: 24.918, lng: 67.0971 },
+    nazimabad: { lat: 24.9189, lng: 67.0304 },
+    karachi: { lat: 24.8607, lng: 67.0011 },
+    'f-7': { lat: 33.7206, lng: 73.0553 },
+    'f-8': { lat: 33.7115, lng: 73.0397 },
+    'g-9': { lat: 33.6844, lng: 73.0436 },
+    'blue area': { lat: 33.7087, lng: 73.0498 },
+    islamabad: { lat: 33.6844, lng: 73.0479 },
   };
   const lower = locationFrom.toLowerCase().trim();
-  for (const [area, coords] of Object.entries(LAHORE_AREA_CENTROIDS)) {
+  for (const [area, coords] of Object.entries(AREA_CENTROIDS)) {
     if (lower.includes(area)) {
       return coords;
     }

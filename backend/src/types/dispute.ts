@@ -18,3 +18,24 @@ export interface Dispute {
   submitted_at?: string;
   status?: 'open' | 'under_review' | 'resolved' | 'escalated';
 }
+
+export interface DisputeAgentMessage {
+  role: 'user' | 'agent' | 'tool';
+  content: string;
+  tool_name?: string;
+}
+
+export interface DisputeAgentResponse {
+  messages: DisputeAgentMessage[];
+  recommendation: {
+    action: 'refund' | 'revisit' | 'human_escalation';
+    reason: string;
+    refund_amount?: number;
+  };
+  status: 'resolved' | 'under_review' | 'escalated';
+  tool_trace: Array<{
+    tool: string;
+    input: Record<string, unknown>;
+    observation: unknown;
+  }>;
+}

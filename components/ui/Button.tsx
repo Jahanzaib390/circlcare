@@ -103,7 +103,7 @@ function variantContainer(
 ): ViewStyle {
   switch (variant) {
     case 'primary':
-      return { 
+      return {
         backgroundColor: colors.primary,
         shadowColor: colors.primary,
         shadowOffset: { width: 0, height: 4 },

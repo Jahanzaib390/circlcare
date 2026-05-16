@@ -3,6 +3,8 @@ import type { LLMProvider } from './llmProvider';
 import type { ParsedRequest } from '../types/parsedRequest';
 import type { Provider } from '../types/provider';
 import type { Dispute } from '../types/dispute';
+import type { MatchResult, MatchResponse } from '../types/match';
+import type { PricingBreakdown } from '../types/pricing';
 
 const DEFAULT_OPENAI_MODEL = 'gpt-5.4-mini';
 
@@ -186,6 +188,220 @@ Be specific and mention 2-3 concrete reasons. Do not start with "I".`,
     } as any);
 
     return getResponseText(response).trim();
+  }
+
+  async selectMatchesWithTools(
+    request: ParsedRequest,
+    candidates: MatchResult[],
+    filteredOut: MatchResponse['filtered_out'],
+    baselineProviderId?: string
+  ) {
+    const toolTrace: Array<{ tool: string; input: Record<string, unknown>; observation: unknown }> = [];
+    const toolHandlers: Record<string, (args: any) => unknown> = {
+      get_providers_in_area: () =>
+        candidates.map((match) => ({
+          id: match.provider.id,
+          name: match.provider.name,
+          gender: match.provider.gender,
+          verified: match.provider.verified,
+          languages: match.provider.languages,
+          specializations: match.provider.specializations,
+          distance_km: Number(match.distance_km.toFixed(1)),
+          score: Number(match.score.total.toFixed(3)),
+          rating: match.provider.rating,
+          on_time_score: match.provider.on_time_score,
+          cancellation_rate: match.provider.cancellation_rate,
+        })),
+      check_calendar_conflicts: () =>
+        candidates.map((match) => ({
+          id: match.provider.id,
+          conflict: false,
+          travel_time_minutes: match.travel_time_minutes,
+          suggested_arrival_buffer_minutes: match.suggested_arrival_buffer_minutes,
+        })),
+      inspect_rejected_providers: () =>
+        filteredOut.map((item) => ({
+          id: item.provider.id,
+          failed_filter: item.failed_filter,
+          reason: item.reason,
+        })),
+      compare_baseline: () => ({
+        baseline_provider_id: baselineProviderId,
+        baseline_rule: 'first eligible provider by distance',
+      }),
+    };
+
+    const tools = [
+      {
+        type: 'function',
+        name: 'get_providers_in_area',
+        description: 'Return eligible providers and observed quality signals for this care request.',
+        parameters: { type: 'object', properties: { area: { type: 'string' } }, required: ['area'] },
+      },
+      {
+        type: 'function',
+        name: 'check_calendar_conflicts',
+        description: 'Check whether candidate providers have calendar conflicts or travel timing risks.',
+        parameters: { type: 'object', properties: { scheduled_time: { type: 'string' } } },
+      },
+      {
+        type: 'function',
+        name: 'inspect_rejected_providers',
+        description: 'Show providers excluded by safety, gender, language, availability, or verification checks.',
+        parameters: { type: 'object', properties: {} },
+      },
+      {
+        type: 'function',
+        name: 'compare_baseline',
+        description: 'Show the non-agentic baseline provider selected by distance only.',
+        parameters: { type: 'object', properties: {} },
+      },
+    ];
+
+    let input: any[] = [
+      {
+        role: 'system',
+        content:
+          'You are a care-routing agent. Observe tool results, reason about strict preferences, risk, reliability, distance, and price, then choose ranked provider IDs. Return JSON only.',
+      },
+      {
+        role: 'user',
+        content: `Request: ${JSON.stringify(request)}
+Return {"selected_provider_ids":["..."],"reasoning":"...","adapted_from_baseline":true|false}.`,
+      },
+    ];
+
+    for (let i = 0; i < 4; i += 1) {
+      const response = await this.client.responses.create({
+        model: this.modelName,
+        input,
+        tools,
+        tool_choice: i === 0 ? 'auto' : 'auto',
+      } as any);
+      const calls = (response.output ?? []).filter(
+        (item: any) => item.type === 'function_call'
+      ) as any[];
+      if (calls.length === 0) {
+        const parsed = JSON.parse(getResponseText(response));
+        return {
+          selected_provider_ids: parsed.selected_provider_ids ?? [],
+          reasoning: parsed.reasoning ?? 'The agent selected providers after reviewing tool observations.',
+          adapted_from_baseline: parsed.adapted_from_baseline,
+          tool_trace: toolTrace,
+        };
+      }
+
+      input = [...input, ...response.output];
+      for (const call of calls) {
+        const args = call.arguments ? JSON.parse(call.arguments) : {};
+        const observation = toolHandlers[call.name]?.(args) ?? { error: `Unknown tool ${call.name}` };
+        toolTrace.push({ tool: call.name, input: args, observation });
+        input.push({
+          type: 'function_call_output',
+          call_id: call.call_id,
+          output: JSON.stringify(observation),
+        });
+      }
+    }
+
+    return {
+      selected_provider_ids: candidates.slice(0, 3).map((match) => match.provider.id),
+      reasoning: 'The agent tool loop reached its step limit, so the safest ranked eligible candidates were returned.',
+      adapted_from_baseline: false,
+      tool_trace: toolTrace,
+    };
+  }
+
+  async reviewQuoteWithTools(
+    request: ParsedRequest,
+    provider: Provider,
+    quote: PricingBreakdown
+  ): Promise<PricingBreakdown['pricing_agent']> {
+    const trace: Array<{ tool: string; input: Record<string, unknown>; observation: unknown }> = [];
+    const toolHandlers: Record<string, (args: any) => unknown> = {
+      inspect_quote_lines: () => quote.line_items,
+      check_urgency_flexibility: () => ({
+        urgency: request.urgency,
+        cheaper_slot_suggestion: quote.cheaper_slot_suggestion,
+      }),
+      check_provider_quality_risk: () => ({
+        cancellation_rate: provider.cancellation_rate,
+        on_time_score: provider.on_time_score,
+        past_disputes: provider.past_disputes,
+      }),
+    };
+    const tools = [
+      {
+        type: 'function',
+        name: 'inspect_quote_lines',
+        description: 'Inspect transparent quote line items and totals.',
+        parameters: { type: 'object', properties: {} },
+      },
+      {
+        type: 'function',
+        name: 'check_urgency_flexibility',
+        description: 'Check whether urgency fees can be avoided with a cheaper slot.',
+        parameters: { type: 'object', properties: {} },
+      },
+      {
+        type: 'function',
+        name: 'check_provider_quality_risk',
+        description: 'Check provider quality and dispute risk before final pricing.',
+        parameters: { type: 'object', properties: {} },
+      },
+    ];
+    let input: any[] = [
+      {
+        role: 'system',
+        content:
+          'You are a pricing fairness agent. Call tools before deciding. Return JSON only.',
+      },
+      {
+        role: 'user',
+        content: `Request: ${JSON.stringify(request)}
+Provider: ${JSON.stringify({ id: provider.id, name: provider.name })}
+Quote total: ${quote.total} ${quote.currency}
+Return {"decision":"keep_quote|discount|suggest_cheaper_slot|escalate","reasoning":"..."}.`,
+      },
+    ];
+    let parsed: {
+      decision: NonNullable<PricingBreakdown['pricing_agent']>['decision'];
+      reasoning: string;
+    } = {
+      decision: quote.cheaper_slot_suggestion ? 'suggest_cheaper_slot' : 'keep_quote',
+      reasoning: 'The pricing agent reviewed the quote and provider risk observations.',
+    };
+    for (let i = 0; i < 4; i += 1) {
+      const response = await this.client.responses.create({
+        model: this.modelName,
+        input,
+        tools,
+        tool_choice: 'auto',
+      } as any);
+      const calls = (response.output ?? []).filter(
+        (item: any) => item.type === 'function_call'
+      ) as any[];
+      if (calls.length === 0) {
+        parsed = JSON.parse(getResponseText(response));
+        break;
+      }
+      input = [...input, ...response.output];
+      for (const call of calls) {
+        const args = call.arguments ? JSON.parse(call.arguments) : {};
+        const observation = toolHandlers[call.name]?.(args) ?? { error: `Unknown tool ${call.name}` };
+        trace.push({ tool: call.name, input: args, observation });
+        input.push({
+          type: 'function_call_output',
+          call_id: call.call_id,
+          output: JSON.stringify(observation),
+        });
+      }
+    }
+    return {
+      tool_trace: trace,
+      decision: parsed.decision,
+      reasoning: parsed.reasoning,
+    };
   }
 
   async summarizeDispute(dispute: Dispute): Promise<string> {

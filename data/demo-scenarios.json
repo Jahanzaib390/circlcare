@@ -2,13 +2,13 @@
   {
     "id": "A",
     "title": "Clinic Visit Bundle",
-    "request_text": "Ammi ko kal 11 baje clinic le jana hai, wheelchair friendly car chahiye aur wapis medicine bhi pick karni hai.",
+    "request_text": "Ammi ko Gulberg Lahore se kal 11 baje clinic le jana hai, wheelchair friendly car chahiye aur wapis medicine bhi pick karni hai.",
     "expected_action": "bundle_match",
     "expected_outputs": {
       "parsed_request": {
         "service_bundle": ["clinic_visit", "medicine_pickup"],
         "patient": "Patient (Mother)",
-        "location_from": "Gulshan",
+        "location_from": "Gulberg Lahore",
         "location_to": "Clinic",
         "time_preference": "tomorrow 11:00",
         "scheduled_datetime": "2026-05-16T11:00:00+05:00",
@@ -162,6 +162,229 @@
         "Use the booking cancellation flow",
         "Replacement quote should include compensation discount",
         "Family notification payload should be shown"
+      ]
+    }
+  },
+  {
+    "id": "F",
+    "title": "Noisy Roman Urdu ICU Nurse",
+    "request_text": "meri ammi ko raat me oxygen wali femal nurs chahye DHA me, plz reliable ho cancel na kry",
+    "expected_action": "agentic_risk_match",
+    "expected_outputs": {
+      "parsed_request": {
+        "service_bundle": ["home_nurse"],
+        "patient": "Patient (Mother)",
+        "location_from": "DHA",
+        "time_preference": "night",
+        "scheduled_datetime": "2026-05-18T21:00:00+05:00",
+        "mobility_needs": ["oxygen support"],
+        "provider_preferences": {
+          "gender": "female_required",
+          "language": ["Urdu"],
+          "language_required": false,
+          "verified_only": true,
+          "elder_care_experience": true
+        },
+        "urgency": "high",
+        "risk_level": "high",
+        "clarification_needed": false,
+        "confidence": 0.82
+      },
+      "demo_notes": [
+        "Noisy Roman Urdu spelling still parses to home nurse",
+        "Distance baseline may prefer the nearest nurse",
+        "Agent should avoid high cancellation risk and pick ICU/oxygen experience"
+      ]
+    }
+  },
+  {
+    "id": "G",
+    "title": "Wheelchair Clinic Escort Trap",
+    "request_text": "Abu ko DHA se clinic jana hai kal 10 baje, wheelchair transfer zaroori hai aur medicine bhi leni hai.",
+    "expected_action": "agentic_accessibility_match",
+    "expected_outputs": {
+      "parsed_request": {
+        "service_bundle": ["clinic_visit", "medicine_pickup"],
+        "patient": "Patient (Father)",
+        "location_from": "DHA",
+        "location_to": "Clinic",
+        "time_preference": "tomorrow 10:00",
+        "scheduled_datetime": "2026-05-19T10:00:00+05:00",
+        "mobility_needs": ["wheelchair"],
+        "provider_preferences": {
+          "gender": "any",
+          "language": ["Urdu"],
+          "language_required": false,
+          "verified_only": false,
+          "elder_care_experience": true
+        },
+        "urgency": "medium",
+        "risk_level": "medium",
+        "clarification_needed": false,
+        "confidence": 0.9
+      },
+      "demo_notes": [
+        "Closest clinic runner lacks wheelchair support",
+        "Agent should prefer wheelchair-capable bundled escort",
+        "Good demo for tool-observed accessibility constraints"
+      ]
+    }
+  },
+  {
+    "id": "H",
+    "title": "Dementia Night Supervision",
+    "request_text": "Nani raat ko bhool kar bahar nikal jati hain, female Punjabi caregiver chahiye Model Town mein.",
+    "expected_action": "agentic_specialization_match",
+    "expected_outputs": {
+      "parsed_request": {
+        "service_bundle": ["caregiver", "elder_companion"],
+        "patient": "Patient (Grandmother)",
+        "location_from": "Model Town",
+        "time_preference": "night",
+        "scheduled_datetime": "2026-05-20T20:00:00+05:00",
+        "mobility_needs": ["wandering risk"],
+        "provider_preferences": {
+          "gender": "female_required",
+          "language": ["Punjabi"],
+          "language_required": true,
+          "verified_only": false,
+          "elder_care_experience": true
+        },
+        "urgency": "high",
+        "risk_level": "medium",
+        "clarification_needed": false,
+        "confidence": 0.87
+      },
+      "demo_notes": [
+        "Closest basic companion is weaker on dementia",
+        "Agent should prioritize dementia and night supervision specialization",
+        "Good care-quality contrast against distance-only matching"
+      ]
+    }
+  },
+  {
+    "id": "I",
+    "title": "Ambiguous Low Confidence Clarification",
+    "request_text": "kal kisi ko bhej dein ammi ke liye, zyada masla hai",
+    "expected_action": "clarification_needed",
+    "expected_outputs": {
+      "parsed_request": {
+        "service_bundle": ["daily_support"],
+        "patient": "Patient (Mother)",
+        "location_from": "not specified",
+        "time_preference": "tomorrow",
+        "mobility_needs": [],
+        "provider_preferences": {
+          "gender": "any",
+          "language": ["Urdu"],
+          "language_required": false,
+          "verified_only": false,
+          "elder_care_experience": true
+        },
+        "urgency": "medium",
+        "risk_level": "medium",
+        "clarification_needed": true,
+        "clarification_question": "What type of care is needed and where should the provider go?",
+        "confidence": 0.52
+      },
+      "demo_notes": [
+        "Triggers low-confidence confirmation choices",
+        "Shows edge-case handling instead of pretending certainty"
+      ]
+    }
+  },
+  {
+    "id": "J",
+    "title": "Code-Switched Post-Surgery Physio",
+    "request_text": "Dad knee replacement ke baad home physio needs, evening slot, verified only, English/Urdu ok.",
+    "expected_action": "agentic_clinical_match",
+    "expected_outputs": {
+      "parsed_request": {
+        "service_bundle": ["physiotherapy"],
+        "patient": "Patient (Father)",
+        "location_from": "DHA",
+        "time_preference": "evening",
+        "scheduled_datetime": "2026-05-21T18:00:00+05:00",
+        "mobility_needs": ["post-surgery support"],
+        "provider_preferences": {
+          "gender": "any",
+          "language": ["Urdu", "English"],
+          "language_required": false,
+          "verified_only": true,
+          "elder_care_experience": true
+        },
+        "urgency": "medium",
+        "risk_level": "medium",
+        "clarification_needed": false,
+        "confidence": 0.89
+      },
+      "demo_notes": [
+        "Code-switched English/Roman Urdu input",
+        "Agent should prefer verified joint replacement specialization",
+        "Baseline comparison highlights clinical specialization over distance"
+      ]
+    }
+  },
+  {
+    "id": "K",
+    "title": "Karachi Clifton Caregiver",
+    "request_text": "Meri khala Clifton Karachi mein akeli rehti hain, female caregiver chahiye jo Urdu English dono bol sake.",
+    "expected_action": "karachi_match",
+    "expected_outputs": {
+      "parsed_request": {
+        "service_bundle": ["caregiver", "elder_companion"],
+        "patient": "Patient (Aunt)",
+        "location_from": "Clifton Karachi",
+        "time_preference": "flexible",
+        "mobility_needs": [],
+        "provider_preferences": {
+          "gender": "female_required",
+          "language": ["Urdu", "English"],
+          "language_required": false,
+          "verified_only": false,
+          "elder_care_experience": true
+        },
+        "urgency": "medium",
+        "risk_level": "low",
+        "clarification_needed": false,
+        "confidence": 0.9
+      },
+      "demo_notes": [
+        "Shows Karachi provider coverage",
+        "Useful if demo is recorded from Karachi",
+        "Agent should select a Karachi-area elder-care provider"
+      ]
+    }
+  },
+  {
+    "id": "L",
+    "title": "Islamabad Post-Surgery Rehab",
+    "request_text": "F-8 Islamabad mein father ke knee replacement ke baad verified home physio chahiye, evening slot.",
+    "expected_action": "islamabad_match",
+    "expected_outputs": {
+      "parsed_request": {
+        "service_bundle": ["physiotherapy"],
+        "patient": "Patient (Father)",
+        "location_from": "F-8 Islamabad",
+        "time_preference": "evening",
+        "scheduled_datetime": "2026-05-21T18:00:00+05:00",
+        "mobility_needs": ["post-surgery support"],
+        "provider_preferences": {
+          "gender": "any",
+          "language": ["Urdu", "English"],
+          "language_required": false,
+          "verified_only": true,
+          "elder_care_experience": true
+        },
+        "urgency": "medium",
+        "risk_level": "medium",
+        "clarification_needed": false,
+        "confidence": 0.9
+      },
+      "demo_notes": [
+        "Shows Islamabad provider coverage",
+        "Clinical request should prefer verified rehab team",
+        "Demonstrates multi-city matching instead of Lahore-only data"
       ]
     }
   }

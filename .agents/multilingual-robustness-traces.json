@@ -1,0 +1,38 @@
+[
+  {
+    "case": "roman_urdu_misspellings",
+    "input": "meri ammi k liye femal care giver chahye model tawn me roz 2 ghanty",
+    "expected": "caregiver, female_required, Model Town, recurring daily",
+    "ui_evidence": "Understand screen shows AI Confidence; below 70% opens multiple-choice confirmation chips."
+  },
+  {
+    "case": "code_switched",
+    "input": "Abu knee surgery ke baad home physio needs, evening, Urdu speaking pls",
+    "expected": "physiotherapy, post-surgery support, evening, Urdu preference",
+    "ui_evidence": "Clarification dialog appears if location or service confidence is weak."
+  },
+  {
+    "case": "ambiguous_request",
+    "input": "kal kisi ko bhej dein ammi ke liye",
+    "expected": "clarification_needed true, service/location/time confirmation",
+    "ui_evidence": "Multiple-choice confirmation questions plus free-text re-analysis are available."
+  },
+  {
+    "case": "live_script_result_roman_urdu",
+    "input": "meri ammi ko raat me oxygen wali femal nurs chahye DHA me, plz reliable ho cancel na kry",
+    "observed": "services=home_nurse, location=DHA, confidence=0.63, clarification=true",
+    "evidence": "npm run check:agentic"
+  },
+  {
+    "case": "live_script_result_code_switched",
+    "input": "Dad knee replacement ke baad home physio needs, evening slot, verified only, English/Urdu ok",
+    "observed": "services=physiotherapy, location=not specified, confidence=0.62, clarification=true",
+    "evidence": "npm run check:agentic"
+  },
+  {
+    "case": "live_script_result_ambiguous",
+    "input": "kal kisi ko bhej dein ammi ke liye, zyada masla hai",
+    "observed": "services=none, location=not specified, confidence=0.54, clarification=true",
+    "evidence": "npm run check:agentic"
+  }
+]

@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState, useCallback } from 'react';
 import {
   Animated,
+  Dimensions,
   Keyboard,
   KeyboardAvoidingView,
   Platform,
@@ -27,6 +28,8 @@ import demoScenariosJson from '@/data/demo-scenarios.json';
 import type { ParsedRequest } from '@/types/request';
 import { DEMO_MODE_KEY } from '@/constants/StorageKeys';
 
+const { width: SCREEN_WIDTH } = Dimensions.get('window');
+
 // ── Category data ──────────────────────────────────────────────────────────────
 const QUICK_CATEGORIES: { category: ServiceCategory; color: string; bg: string }[] = [
   { category: ServiceCategory.ClinicVisit, color: '#4F46E5', bg: '#EEF2FF' },
@@ -39,7 +42,6 @@ const QUICK_CATEGORIES: { category: ServiceCategory; color: string; bg: string }
   { category: ServiceCategory.DailySupport, color: '#14B8A6', bg: '#F0FDFA' },
 ];
 
-// ── Stagger animation delay per tile ──────────────────────────────────────────
 const STAGGER_DELAY = 60;
 
 interface DemoScenario {
@@ -64,6 +66,13 @@ interface DemoScenariosResponse {
 }
 
 const BUNDLED_DEMO_SCENARIOS = demoScenariosJson as DemoScenario[];
+
+function getTimeGreeting(): { emoji: string; text: string } {
+  const h = new Date().getHours();
+  if (h < 12) return { emoji: '🌤️', text: 'Good morning' };
+  if (h < 17) return { emoji: '☀️', text: 'Good afternoon' };
+  return { emoji: '🌙', text: 'Good evening' };
+}
 
 export default function HomeScreen() {
   const theme = useTheme();
@@ -102,31 +111,41 @@ export default function HomeScreen() {
 
   // Staggered fade-in for category tiles
   const tileAnims = useRef(QUICK_CATEGORIES.map(() => new Animated.Value(0))).current;
-  const tileTranslates = useRef(QUICK_CATEGORIES.map(() => new Animated.Value(20))).current;
+  const tileTranslates = useRef(QUICK_CATEGORIES.map(() => new Animated.Value(24))).current;
 
-  // Emergency shake animation for input card
+  // Emergency pulse animation
   const emergencyPulse = useRef(new Animated.Value(0)).current;
 
+  // Hero float animation
+  const heroFloat = useRef(new Animated.Value(0)).current;
+
   useEffect(() => {
-    // Staggered tile entrance
     const animations = QUICK_CATEGORIES.map((_, i) =>
       Animated.parallel([
         Animated.timing(tileAnims[i], {
           toValue: 1,
           duration: 350,
-          delay: 200 + i * STAGGER_DELAY,
+          delay: 300 + i * STAGGER_DELAY,
           useNativeDriver: true,
         }),
         Animated.timing(tileTranslates[i], {
           toValue: 0,
           duration: 350,
-          delay: 200 + i * STAGGER_DELAY,
+          delay: 300 + i * STAGGER_DELAY,
           useNativeDriver: true,
         }),
       ])
     );
     Animated.parallel(animations).start();
-  }, [tileAnims, tileTranslates]);
+
+    // Floating orb animation
+    Animated.loop(
+      Animated.sequence([
+        Animated.timing(heroFloat, { toValue: 1, duration: 3000, useNativeDriver: true }),
+        Animated.timing(heroFloat, { toValue: 0, duration: 3000, useNativeDriver: true }),
+      ])
+    ).start();
+  }, [tileAnims, tileTranslates, heroFloat]);
 
   useEffect(() => {
     if (isEmergency) {
@@ -174,8 +193,14 @@ export default function HomeScreen() {
     outputRange: [Colors.danger, '#FF6B6B'],
   });
 
+  const heroTranslateY = heroFloat.interpolate({
+    inputRange: [0, 1],
+    outputRange: [0, -12],
+  });
+
   const canSubmit = rawRequest.trim().length >= 3;
   const isDark = theme.isDark;
+  const greeting = getTimeGreeting();
 
   return (
     <SafeAreaView style={[s.root, { backgroundColor: theme.colors.background }]}>
@@ -190,7 +215,27 @@ export default function HomeScreen() {
           keyboardShouldPersistTaps="handled"
           showsVerticalScrollIndicator={false}
         >
-          {/* ── Header ─────────────────────────────────────────────── */}
+          {/* ── Decoratite orb ─────────────────────────────────────────── */}
+          <View style={s.orbContainer} pointerEvents="none">
+            <Animated.View style={[s.orb1, { transform: [{ translateY: heroTranslateY }] }]} />
+            <Animated.View
+              style={[
+                s.orb2,
+                {
+                  transform: [
+                    {
+                      translateY: heroTranslateY.interpolate({
+                        inputRange: [0, 1],
+                        outputRange: [0, 10],
+                      }),
+                    },
+                  ],
+                },
+              ]}
+            />
+          </View>
+
+          {/* ── Header ──────────────────────────────────────────────────── */}
           <View style={s.header}>
             <View>
               <Text
@@ -199,7 +244,7 @@ export default function HomeScreen() {
                   { color: theme.colors.textSecondary, fontFamily: theme.fontFamily.medium },
                 ]}
               >
-                Good morning 👋
+                {greeting.text} {greeting.emoji}
               </Text>
               <Text
                 style={[
@@ -210,40 +255,54 @@ export default function HomeScreen() {
                 What care is needed?
               </Text>
             </View>
-            <View style={[s.avatarPlaceholder, { backgroundColor: theme.colors.primary + '15' }]}>
-              <Ionicons name="person" size={24} color={theme.colors.primary} />
-            </View>
+            <TouchableOpacity
+              style={[
+                s.avatarBtn,
+                {
+                  backgroundColor: theme.colors.primary + '12',
+                  borderColor: theme.colors.primary + '25',
+                },
+              ]}
+              activeOpacity={0.7}
+            >
+              <Ionicons name="person" size={22} color={theme.colors.primary} />
+            </TouchableOpacity>
           </View>
 
-          {/* ── AI Tag ─────────────────────────────────────────────── */}
-          <View style={[s.aiTag, { backgroundColor: theme.colors.primary + '15' }]}>
-            <Ionicons name="sparkles" size={13} color={theme.colors.primary} />
+          {/* ── AI Tag ──────────────────────────────────────────────────── */}
+          <View style={[s.aiTag, { backgroundColor: theme.colors.primary + '10' }]}>
+            <View style={[s.aiSpark, { backgroundColor: theme.colors.primary + '18' }]}>
+              <Ionicons name="sparkles" size={12} color={theme.colors.primary} />
+            </View>
             <Text
               style={[
                 s.aiTagText,
                 { color: theme.colors.primary, fontFamily: theme.fontFamily.medium },
               ]}
             >
-              Powered by OpenAI — describe in your own words
+              AI-powered — describe care in your own words
             </Text>
           </View>
 
-          {/* ── Input Card ─────────────────────────────────────────── */}
+          {/* ── Input Card ───────────────────────────────────────────────── */}
           <Animated.View
             style={[
               s.inputCard,
               {
                 backgroundColor: theme.colors.surface,
-                shadowColor: isEmergency ? Colors.danger : theme.colors.primary,
-                shadowOffset: { width: 0, height: 8 },
-                shadowOpacity: isEmergency ? 0.15 : 0.08,
-                shadowRadius: 12,
-                elevation: 4,
-                borderWidth: isEmergency ? 2 : 1,
                 borderColor: isEmergency ? emergencyBorderColor : theme.colors.border,
+                borderWidth: isEmergency ? 2 : 1,
+                shadowColor: isEmergency ? Colors.danger : Colors.primary,
+                shadowOffset: { width: 0, height: 8 },
+                shadowOpacity: isEmergency ? 0.18 : 0.08,
+                shadowRadius: 16,
+                elevation: isEmergency ? 6 : 3,
               },
             ]}
           >
+            {/* Subtle glow at top */}
+            <View style={[s.inputGlow, { backgroundColor: theme.colors.primary + '06' }]} />
+
             <TextInput
               style={[
                 s.textInput,
@@ -275,7 +334,16 @@ export default function HomeScreen() {
               <TouchableOpacity
                 style={[
                   s.sendButton,
-                  { backgroundColor: canSubmit ? theme.colors.primary : theme.colors.surfaceElevated },
+                  {
+                    backgroundColor: canSubmit
+                      ? theme.colors.primary
+                      : theme.colors.surfaceElevated,
+                    shadowColor: canSubmit ? theme.colors.primary : 'transparent',
+                    shadowOffset: { width: 0, height: 4 },
+                    shadowOpacity: 0.2,
+                    shadowRadius: 8,
+                    elevation: 4,
+                  },
                 ]}
                 onPress={handleSubmit}
                 disabled={!canSubmit || isPending}
@@ -283,9 +351,19 @@ export default function HomeScreen() {
                 accessibilityRole="button"
               >
                 {isPending ? (
-                  <Ionicons name="hourglass" size={22} color={canSubmit ? "#fff" : theme.colors.textMuted} />
+                  <Animated.View>
+                    <Ionicons
+                      name="hourglass"
+                      size={22}
+                      color={canSubmit ? '#fff' : theme.colors.textMuted}
+                    />
+                  </Animated.View>
                 ) : (
-                  <Ionicons name="arrow-forward" size={22} color={canSubmit ? "#fff" : theme.colors.textMuted} />
+                  <Ionicons
+                    name="arrow-forward"
+                    size={22}
+                    color={canSubmit ? '#fff' : theme.colors.textMuted}
+                  />
                 )}
               </TouchableOpacity>
             </View>
@@ -306,13 +384,13 @@ export default function HomeScreen() {
             )}
           </Animated.View>
 
-          {/* ── Emergency Toggle ───────────────────────────────────── */}
+          {/* ── Emergency Toggle ─────────────────────────────────────────── */}
           <Pressable
             style={[
               s.emergencyRow,
               {
-                backgroundColor: isEmergency ? Colors.danger + '15' : theme.colors.surfaceElevated,
-                borderColor: isEmergency ? Colors.danger : theme.colors.border,
+                backgroundColor: isEmergency ? Colors.danger + '10' : theme.colors.surfaceElevated,
+                borderColor: isEmergency ? Colors.danger + '30' : theme.colors.border,
               },
             ]}
             onPress={() => setIsEmergency(!isEmergency)}
@@ -362,7 +440,7 @@ export default function HomeScreen() {
             />
           </Pressable>
 
-          {/* ── Demo Scenarios ───────────────────────────────────── */}
+          {/* ── Demo Scenarios ────────────────────────────────────────── */}
           {isDemoMode && demoScenarios.length > 0 && (
             <View style={{ marginBottom: 20 }}>
               <Text
@@ -384,11 +462,12 @@ export default function HomeScreen() {
                     style={[
                       s.demoTile,
                       {
-                        backgroundColor: theme.colors.primary + '15',
-                        borderColor: theme.colors.primary,
+                        backgroundColor: theme.colors.primary + '10',
+                        borderColor: theme.colors.primary + '30',
                       },
                     ]}
                     onPress={() => handleDemoTap(scenario)}
+                    activeOpacity={0.75}
                   >
                     <Text
                       style={[
@@ -404,7 +483,7 @@ export default function HomeScreen() {
             </View>
           )}
 
-          {/* ── Quick Categories ───────────────────────────────────── */}
+          {/* ── Quick Categories ────────────────────────────────────────── */}
           <View style={s.sectionHeader}>
             <Text
               style={[
@@ -414,6 +493,7 @@ export default function HomeScreen() {
             >
               Quick Select
             </Text>
+            <View style={[s.sectionLine, { backgroundColor: theme.colors.border }]} />
           </View>
           <View style={s.categoryGrid}>
             {QUICK_CATEGORIES.map((item, i) => (
@@ -430,7 +510,7 @@ export default function HomeScreen() {
                     s.categoryTile,
                     {
                       backgroundColor: isDark ? item.color + '15' : item.bg,
-                      borderColor: isDark ? item.color + '30' : item.color + '20',
+                      borderColor: isDark ? item.color + '30' : item.color + '15',
                     },
                   ]}
                   onPress={() => handleCategoryTap(item.category)}
@@ -438,10 +518,22 @@ export default function HomeScreen() {
                   accessibilityLabel={ServiceDisplayNames[item.category]}
                   accessibilityRole="button"
                 >
-                  <View style={[s.iconContainer, { backgroundColor: item.color + '10' }]}>
+                  <View
+                    style={[
+                      s.iconContainer,
+                      {
+                        backgroundColor: item.color + '15',
+                        shadowColor: item.color,
+                        shadowOffset: { width: 0, height: 4 },
+                        shadowOpacity: 0.15,
+                        shadowRadius: 8,
+                        elevation: 3,
+                      },
+                    ]}
+                  >
                     <Ionicons
                       name={ServiceIcons[item.category] as keyof typeof Ionicons.glyphMap}
-                      size={26}
+                      size={24}
                       color={item.color}
                     />
                   </View>
@@ -449,7 +541,7 @@ export default function HomeScreen() {
                     style={[
                       s.tileLabel,
                       {
-                        color: isDark ? theme.colors.textPrimary : theme.colors.textPrimary,
+                        color: theme.colors.textPrimary,
                         fontFamily: theme.fontFamily.medium,
                       },
                     ]}
@@ -462,31 +554,37 @@ export default function HomeScreen() {
             ))}
           </View>
 
-          {/* ── Recent Requests ────────────────────────────────────── */}
+          {/* ── Recent Requests ─────────────────────────────────────────── */}
           {recentRequests.length > 0 && (
             <>
-              <Text
-                style={[
-                  s.sectionTitle,
-                  { color: theme.colors.textSecondary, fontFamily: theme.fontFamily.semiBold },
-                ]}
-              >
-                Recent Requests
-              </Text>
+              <View style={s.sectionHeader}>
+                <Text
+                  style={[
+                    s.sectionTitle,
+                    { color: theme.colors.textSecondary, fontFamily: theme.fontFamily.semiBold },
+                  ]}
+                >
+                  Recent Requests
+                </Text>
+                <View style={[s.sectionLine, { backgroundColor: theme.colors.border }]} />
+              </View>
               <View style={s.recentList}>
                 {recentRequests.slice(0, 5).map((item) => (
                   <TouchableOpacity
                     key={item.id}
                     style={[
                       s.recentItem,
-                      { backgroundColor: theme.colors.surface, borderColor: theme.colors.border },
+                      {
+                        backgroundColor: theme.colors.surface,
+                        borderColor: theme.colors.border,
+                      },
                     ]}
                     onPress={() => handleRecentTap(item)}
                     activeOpacity={0.7}
                     accessibilityLabel={`Reuse request: ${item.text}`}
                     accessibilityRole="button"
                   >
-                    <View style={[s.recentIcon, { backgroundColor: theme.colors.primary + '15' }]}>
+                    <View style={[s.recentIcon, { backgroundColor: theme.colors.primary + '10' }]}>
                       <Ionicons name="time" size={16} color={theme.colors.primary} />
                     </View>
                     <View style={{ flex: 1 }}>
@@ -506,7 +604,7 @@ export default function HomeScreen() {
                             { color: theme.colors.textMuted, fontFamily: theme.fontFamily.regular },
                           ]}
                         >
-                          {item.serviceBundle.map((s) => s.replace(/_/g, ' ')).join(', ')}
+                          {item.serviceBundle.map((svc) => svc.replace(/_/g, ' ')).join(', ')}
                         </Text>
                       )}
                     </View>
@@ -517,7 +615,6 @@ export default function HomeScreen() {
             </>
           )}
 
-          {/* Bottom padding */}
           <View style={{ height: 32 }} />
         </ScrollView>
       </KeyboardAvoidingView>
@@ -528,40 +625,88 @@ export default function HomeScreen() {
 // ── Styles ────────────────────────────────────────────────────────────────────
 const s = StyleSheet.create({
   root: { flex: 1 },
-  scrollContent: { paddingHorizontal: 24, paddingTop: 16, paddingBottom: 40 },
+  scrollContent: { paddingHorizontal: 24, paddingTop: 16, paddingBottom: 120 },
 
+  // ── Orbs ──
+  orbContainer: {
+    position: 'absolute',
+    top: -60,
+    right: -40,
+    width: SCREEN_WIDTH * 0.7,
+    height: SCREEN_WIDTH * 0.7,
+    overflow: 'hidden',
+  },
+  orb1: {
+    position: 'absolute',
+    top: 0,
+    right: -30,
+    width: 180,
+    height: 180,
+    borderRadius: 90,
+    backgroundColor: Colors.primary + '0A',
+  },
+  orb2: {
+    position: 'absolute',
+    top: 80,
+    right: 40,
+    width: 100,
+    height: 100,
+    borderRadius: 50,
+    backgroundColor: Colors.accent + '08',
+  },
+
+  // ── Header ──
   header: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     marginBottom: 20,
+    paddingTop: 4,
   },
   greeting: { fontSize: 14, marginBottom: 4, letterSpacing: 0.2 },
   headline: { fontSize: 28, lineHeight: 34, letterSpacing: -0.5 },
-  avatarPlaceholder: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
+  avatarBtn: {
+    width: 46,
+    height: 46,
+    borderRadius: 23,
+    borderWidth: 1.5,
     alignItems: 'center',
     justifyContent: 'center',
   },
 
+  // ── AI Tag ──
   aiTag: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 6,
-    paddingVertical: 8,
-    paddingHorizontal: 14,
+    gap: 8,
+    paddingVertical: 7,
+    paddingHorizontal: 12,
     borderRadius: 20,
     alignSelf: 'flex-start',
     marginBottom: 16,
   },
+  aiSpark: {
+    width: 22,
+    height: 22,
+    borderRadius: 11,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
   aiTagText: { fontSize: 12, letterSpacing: 0.2 },
 
+  // ── Input Card ──
   inputCard: {
     borderRadius: 20,
     padding: 18,
-    marginBottom: 16,
+    marginBottom: 14,
+    overflow: 'hidden',
+  },
+  inputGlow: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    height: 4,
   },
   textInput: { fontSize: 16, lineHeight: 24, textAlignVertical: 'top' },
   inputActions: {
@@ -581,15 +726,11 @@ const s = StyleSheet.create({
     borderRadius: 24,
     alignItems: 'center',
     justifyContent: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.1,
-    shadowRadius: 6,
-    elevation: 3,
   },
   errorRow: { flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 12 },
   errorText: { fontSize: 14 },
 
+  // ── Emergency ──
   emergencyRow: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -609,21 +750,33 @@ const s = StyleSheet.create({
   emergencyLabel: { fontSize: 15, marginBottom: 2 },
   emergencySubLabel: { fontSize: 13 },
 
+  // ── Section ──
   sectionHeader: {
-    marginBottom: 16,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    marginBottom: 14,
     paddingHorizontal: 4,
   },
   sectionTitle: { fontSize: 13, letterSpacing: 1, textTransform: 'uppercase' },
+  sectionLine: { flex: 1, height: 1 },
 
-  categoryGrid: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between', rowGap: 16, marginBottom: 32 },
+  // ── Category Grid ──
+  categoryGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'space-between',
+    rowGap: 14,
+    marginBottom: 32,
+  },
   categoryTile: {
     alignItems: 'center',
     justifyContent: 'center',
-    padding: 14,
+    padding: 12,
     borderRadius: 18,
     borderWidth: 1,
     gap: 10,
-    height: 100,
+    height: 98,
   },
   iconContainer: {
     width: 44,
@@ -632,8 +785,9 @@ const s = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  tileLabel: { fontSize: 12, textAlign: 'center', lineHeight: 16 },
+  tileLabel: { fontSize: 11, textAlign: 'center', lineHeight: 15 },
 
+  // ── Recent ──
   recentList: { gap: 10, marginBottom: 12 },
   recentItem: {
     flexDirection: 'row',
@@ -658,13 +812,12 @@ const s = StyleSheet.create({
   recentText: { fontSize: 15 },
   recentTag: { fontSize: 13, marginTop: 4, textTransform: 'capitalize' },
 
+  // ── Demo ──
   demoTile: {
     paddingVertical: 10,
     paddingHorizontal: 16,
     borderRadius: 12,
     borderWidth: 1,
   },
-  demoTitle: {
-    fontSize: 14,
-  },
+  demoTitle: { fontSize: 14 },
 });

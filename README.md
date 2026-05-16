@@ -6,7 +6,18 @@ CirclCare AI is a multilingual, agent-assisted mobile platform for coordinating 
 
 The product is not a generic service marketplace and not a single-domain physiotherapy app. It is a trust-aware coordination layer for families who currently manage elder-care needs through WhatsApp groups, phone calls, referrals, and repeated manual follow-up.
 
-The system turns noisy natural-language requests into structured service plans, matches the right local provider using explainable rules, generates transparent quotes, schedules the job, simulates live progress, captures proof of completion, updates reputation, and handles disputes or fallback scenarios.
+The system turns noisy natural-language requests into structured service plans, then uses agentic tool-calling flows to observe provider data, reason about constraints, decide on matches and pricing, act on bookings/refunds, and expose the evidence trail to judges.
+
+## Judge Evidence: Agentic Behavior
+
+CirclCare now avoids presenting a simple summarizer or static ranking algorithm as "agentic":
+
+- Matching: `POST /api/match` calls an LLM routing agent with tools such as `get_providers_in_area`, `check_calendar_conflicts`, `inspect_rejected_providers`, and `compare_baseline`. The response includes `agent_trace`, `agent_decision`, and `baseline_comparison`.
+- Pricing: `POST /api/quote` returns `pricing_agent.tool_trace`, showing quote-line inspection, urgency flexibility checks, and provider risk review before deciding whether to keep the quote, discount, suggest a cheaper slot, or escalate.
+- Disputes: `POST /api/disputes/chat` runs an interactive evidence agent. For an extra charge complaint it checks booking terms and GPS arrival logs, then can initiate a mock refund automatically.
+- Baseline comparison: `GET /api/demo/baseline-comparison` compares the non-agentic "first eligible provider by distance" baseline with the agentic multi-factor outcome for all 5 demo scenarios. A CSV copy is in `.agents/baseline-comparison.csv`.
+- Multilingual robustness: `i18n/en.json` and `i18n/ur.json` back locale strings, `I18nManager.forceRTL()` switches Urdu RTL layout, and `.agents/multilingual-robustness-traces.json` records noisy Roman Urdu, code-switched, and ambiguous input tests.
+- Cost and scalability: see `COST_AND_SCALABILITY.md` for cost per operation estimates, 10x/100x scaling plan, and latency/throughput targets.
 
 ## Core Idea
 

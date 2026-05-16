@@ -13,4 +13,13 @@ export interface PricingBreakdown {
     datetime: string;
     savings: number;
   };
+  pricing_agent?: {
+    tool_trace: Array<{
+      tool: string;
+      input: Record<string, unknown>;
+      observation: unknown;
+    }>;
+    reasoning: string;
+    decision: 'keep_quote' | 'discount' | 'suggest_cheaper_slot' | 'escalate';
+  };
 }

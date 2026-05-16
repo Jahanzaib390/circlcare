@@ -289,6 +289,19 @@ const SERVICE_OPTIONS = [
 
 const MOBILITY_OPTIONS = ['wheelchair', 'stretcher', 'oxygen support'];
 
+function clarificationChoices(pr: ParsedRequest): string[] {
+  if (pr.location_from === 'not specified') {
+    return ['DHA Lahore', 'Model Town Lahore', 'Gulberg Lahore'];
+  }
+  if (pr.service_bundle.length === 0 || pr.service_bundle.includes(ServiceCategory.DailySupport)) {
+    return ['Home nurse', 'Caregiver', 'Physiotherapy'];
+  }
+  if (pr.time_preference === 'flexible') {
+    return ['Today evening', 'Tomorrow morning', 'This weekend'];
+  }
+  return ['Yes, continue', 'Need female provider', 'Verified provider only'];
+}
+
 // ── Main screen ────────────────────────────────────────────────────────────────
 export default function UnderstandScreen() {
   const theme = useTheme();
@@ -311,6 +324,20 @@ export default function UnderstandScreen() {
   const handleAnswerClarification = () => {
     if (!clarificationText.trim()) return;
     const combined = `${rawRequest} — ${clarificationText.trim()}`;
+    setRawRequest(combined);
+    setIsAnswering(true);
+    reparse(
+      { text: combined },
+      {
+        onSettled: () => setIsAnswering(false),
+        onSuccess: () => setClarificationText(''),
+      }
+    );
+  };
+
+  const handleClarificationChoice = (choice: string) => {
+    setClarificationText(choice);
+    const combined = `${rawRequest} — ${choice}`;
     setRawRequest(combined);
     setIsAnswering(true);
     reparse(
@@ -556,7 +583,7 @@ export default function UnderstandScreen() {
             </View>
           )}
 
-          {pr.clarification_needed && pr.clarification_question && (
+          {(pr.clarification_needed || pr.confidence < 0.7) && pr.clarification_question && (
             <View
               style={[
                 sc.clarifyCard,
@@ -582,6 +609,27 @@ export default function UnderstandScreen() {
               >
                 {pr.clarification_question}
               </Text>
+              <View style={sc.choicePanel}>
+                {clarificationChoices(pr).map((choice) => (
+                  <TouchableOpacity
+                    key={choice}
+                    style={[
+                      sc.choiceButton,
+                      { backgroundColor: theme.colors.surface, borderColor: theme.colors.border },
+                    ]}
+                    onPress={() => handleClarificationChoice(choice)}
+                  >
+                    <Text
+                      style={[
+                        sc.choiceText,
+                        { color: theme.colors.textPrimary, fontFamily: theme.fontFamily.medium },
+                      ]}
+                    >
+                      {choice}
+                    </Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
               <TextInput
                 style={[
                   sc.clarifyInput,
@@ -1191,6 +1239,14 @@ const sc = StyleSheet.create({
   clarifyHeader: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   clarifyTitle: { fontSize: 15 },
   clarifyQuestion: { fontSize: 15, lineHeight: 22 },
+  choicePanel: { gap: 8 },
+  choiceButton: {
+    borderWidth: 1,
+    borderRadius: 10,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+  },
+  choiceText: { fontSize: 14 },
   clarifyInput: {
     borderWidth: 1,
     borderRadius: 10,

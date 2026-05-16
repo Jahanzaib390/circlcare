@@ -16,6 +16,7 @@ import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ONBOARDING_KEY } from '@/constants/StorageKeys';
+import { setLocale } from '@/i18n';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -32,14 +33,35 @@ export const unstable_settings = {
 
 function RootLayoutNav() {
   return (
-    <Stack screenOptions={{ headerShown: false }}>
+    <Stack
+      screenOptions={{
+        headerShown: false,
+        animation: 'fade_from_bottom',
+        animationDuration: 300,
+      }}
+    >
       <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-      <Stack.Screen name="request/understand" options={{ headerShown: false }} />
-      <Stack.Screen name="request/match" options={{ headerShown: false }} />
-      <Stack.Screen name="request/quote" options={{ headerShown: false }} />
-      <Stack.Screen name="request/confirm" options={{ headerShown: false }} />
-      <Stack.Screen name="request/status" options={{ headerShown: false }} />
-      <Stack.Screen name="request/feedback" options={{ headerShown: false }} />
+      <Stack.Screen
+        name="request/understand"
+        options={{ headerShown: false, animation: 'slide_from_right' }}
+      />
+      <Stack.Screen
+        name="request/match"
+        options={{ headerShown: false, animation: 'slide_from_right' }}
+      />
+      <Stack.Screen
+        name="request/quote"
+        options={{ headerShown: false, animation: 'slide_from_right' }}
+      />
+      <Stack.Screen name="request/confirm" options={{ headerShown: false, animation: 'fade' }} />
+      <Stack.Screen
+        name="request/status"
+        options={{ headerShown: false, animation: 'slide_from_right' }}
+      />
+      <Stack.Screen
+        name="request/feedback"
+        options={{ headerShown: false, animation: 'slide_from_right' }}
+      />
       <Stack.Screen name="modals/dispute" options={{ presentation: 'modal', headerShown: false }} />
       <Stack.Screen
         name="modals/provider-detail"
@@ -57,7 +79,7 @@ function RootLayoutNav() {
         name="modals/ProviderDashboard"
         options={{ presentation: 'modal', headerShown: false }}
       />
-      <Stack.Screen name="onboarding" options={{ headerShown: false }} />
+      <Stack.Screen name="onboarding" options={{ headerShown: false, animation: 'fade' }} />
     </Stack>
   );
 }
@@ -78,6 +100,8 @@ export default function RootLayout() {
   useEffect(() => {
     async function checkOnboarding() {
       try {
+        const locale = await AsyncStorage.getItem('circlcare_locale');
+        setLocale(locale === 'ur' ? 'ur' : 'en');
         const value = await AsyncStorage.getItem(ONBOARDING_KEY);
         setHasOnboarded(value === 'true');
       } catch {

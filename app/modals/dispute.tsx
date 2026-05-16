@@ -5,6 +5,7 @@ import {
   ScrollView,
   StyleSheet,
   Text,
+  TextInput,
   TouchableOpacity,
   View,
 } from 'react-native';
@@ -34,10 +35,24 @@ interface DisputeRecommendation {
   refund_amount?: number;
 }
 
-interface DisputeResponse {
+type ChatRole = 'user' | 'agent' | 'tool';
+
+interface DisputeChatMessage {
+  role: ChatRole;
+  content: string;
+  tool_name?: string;
+}
+
+interface DisputeChatResponse {
   dispute_id: string;
-  summary: string;
+  messages: DisputeChatMessage[];
   recommendation: DisputeRecommendation;
+  status: 'resolved' | 'under_review' | 'escalated';
+  tool_trace: {
+    tool: string;
+    input: Record<string, unknown>;
+    observation: unknown;
+  }[];
   human_agent_notified: boolean;
 }
 
@@ -74,9 +89,10 @@ export default function DisputeModal() {
   const initialType = normalizeType(firstParam(params.type));
   const [selectedType, setSelectedType] = useState<DisputeType>(initialType);
   const [isLoading, setIsLoading] = useState(false);
-  const [summary, setSummary] = useState('');
   const [recommendation, setRecommendation] = useState<DisputeRecommendation | null>(null);
   const [escalated, setEscalated] = useState(false);
+  const [messages, setMessages] = useState<DisputeChatMessage[]>([]);
+  const [chatText, setChatText] = useState('');
 
   const bookingId = firstParam(params.bookingId) ?? booking?.booking_id ?? 'demo_booking';
   const providerId = firstParam(params.providerId) ?? selectedMatch?.provider.id ?? 'demo_provider';
@@ -85,31 +101,39 @@ export default function DisputeModal() {
     DISPUTE_TYPES.find((type) => type.id === selectedType)?.description ??
     'User reported an issue post-service.';
 
-  const fileDispute = async (type: DisputeType) => {
+  const fileDispute = async (type: DisputeType, messageOverride?: string) => {
     setIsLoading(true);
-    setSummary('');
     setRecommendation(null);
+    const userMessage = messageOverride ?? description;
+    setMessages([{ role: 'user', content: userMessage }]);
     try {
-      const response = await apiClient.post<DisputeResponse>('/api/disputes', {
+      const response = await apiClient.post<DisputeChatResponse>('/api/disputes/chat', {
         booking_id: bookingId,
         provider_id: providerId,
         user_id: booking?.user_id ?? 'demo_user',
         type,
-        description,
+        description: userMessage,
+        message: userMessage,
         submitted_at: new Date().toISOString(),
       });
-      setSummary(response.summary);
       setRecommendation(response.recommendation);
       setEscalated(response.human_agent_notified);
+      setMessages([{ role: 'user', content: userMessage }, ...response.messages]);
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
     } catch (error) {
       console.warn('[DisputeModal] Falling back after API error:', error);
-      setSummary('Dispute filed. Our team will review this shortly.');
       setRecommendation({
         action: 'human_escalation',
         reason: 'The backend could not be reached, so this should be reviewed by a human agent.',
       });
       setEscalated(true);
+      setMessages([
+        { role: 'user', content: userMessage },
+        {
+          role: 'agent',
+          content: 'I could not reach the dispute agent, so I escalated this to a human reviewer.',
+        },
+      ]);
     } finally {
       setIsLoading(false);
     }
@@ -123,6 +147,13 @@ export default function DisputeModal() {
   const handleTypePress = (type: DisputeType) => {
     setSelectedType(type);
     fileDispute(type);
+  };
+
+  const handleSend = () => {
+    if (!chatText.trim()) return;
+    const next = chatText.trim();
+    setChatText('');
+    fileDispute(selectedType, next);
   };
 
   const handleEscalate = () => {
@@ -220,24 +251,78 @@ export default function DisputeModal() {
           <>
             <Card style={styles.card}>
               <View style={styles.summaryHeader}>
-                <Feather name="file-text" size={20} color={theme.colors.primary} />
+                <Feather name="message-circle" size={20} color={theme.colors.primary} />
                 <Text
                   style={[
                     styles.sectionTitle,
                     { color: theme.colors.textPrimary, fontFamily: theme.fontFamily.semiBold },
                   ]}
                 >
-                  Dispute Summary
+                  Agent Conversation
                 </Text>
               </View>
-              <Text
-                style={[
-                  styles.summaryText,
-                  { color: theme.colors.textSecondary, fontFamily: theme.fontFamily.regular },
-                ]}
-              >
-                {summary}
-              </Text>
+              <View style={styles.chatStack}>
+                {messages.map((message, index) => {
+                  const isUser = message.role === 'user';
+                  const isTool = message.role === 'tool';
+                  return (
+                    <View
+                      key={`${message.role}-${index}`}
+                      style={[
+                        styles.bubble,
+                        {
+                          alignSelf: isUser ? 'flex-end' : 'flex-start',
+                          backgroundColor: isUser
+                            ? theme.colors.primary
+                            : isTool
+                              ? theme.colors.surfaceElevated
+                              : theme.colors.background,
+                          borderColor: isTool ? theme.colors.border : 'transparent',
+                        },
+                      ]}
+                    >
+                      {isTool && (
+                        <Text
+                          style={[
+                            styles.toolLabel,
+                            { color: theme.colors.primary, fontFamily: theme.fontFamily.semiBold },
+                          ]}
+                        >
+                          {message.tool_name?.replace(/_/g, ' ')}
+                        </Text>
+                      )}
+                      <Text
+                        style={[
+                          styles.bubbleText,
+                          {
+                            color: isUser ? '#FFFFFF' : theme.colors.textPrimary,
+                            fontFamily: theme.fontFamily.regular,
+                          },
+                        ]}
+                      >
+                        {message.content}
+                      </Text>
+                    </View>
+                  );
+                })}
+              </View>
+              <View style={[styles.composer, { borderColor: theme.colors.border }]}>
+                <TextInput
+                  style={[
+                    styles.composerInput,
+                    { color: theme.colors.textPrimary, fontFamily: theme.fontFamily.regular },
+                  ]}
+                  value={chatText}
+                  onChangeText={setChatText}
+                  placeholder="Ask the agent to check another issue..."
+                  placeholderTextColor={theme.colors.textMuted}
+                  returnKeyType="send"
+                  onSubmitEditing={handleSend}
+                />
+                <TouchableOpacity onPress={handleSend} style={styles.sendButton}>
+                  <Feather name="send" size={18} color={theme.colors.primary} />
+                </TouchableOpacity>
+              </View>
             </Card>
 
             {recommendation && (
@@ -327,5 +412,30 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: 'bold',
     overflow: 'hidden',
+  },
+  chatStack: { gap: 10 },
+  bubble: {
+    maxWidth: '92%',
+    borderRadius: 12,
+    borderWidth: 1,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+  },
+  bubbleText: { fontSize: 14, lineHeight: 20 },
+  toolLabel: { fontSize: 11, marginBottom: 4, textTransform: 'capitalize' },
+  composer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderRadius: 12,
+    marginTop: 14,
+    paddingHorizontal: 10,
+  },
+  composerInput: { flex: 1, minHeight: 44, fontSize: 14 },
+  sendButton: {
+    width: 36,
+    height: 36,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
 });

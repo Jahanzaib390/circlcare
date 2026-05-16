@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Animated, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
@@ -8,6 +8,7 @@ import { useBookingStore } from '@/hooks/useBookingStore';
 import { useMatchStore } from '@/hooks/useMatchStore';
 import { useRequestStore } from '@/hooks/useRequestStore';
 import { Button } from '@/components/ui/Button';
+import { CelebrationOverlay } from '@/components/ui/CelebrationOverlay';
 import { Colors } from '@/constants/theme';
 
 export default function ConfirmScreen() {
@@ -17,13 +18,16 @@ export default function ConfirmScreen() {
   const { booking } = useBookingStore();
   const { selectedMatch } = useMatchStore();
   const { parsedRequest } = useRequestStore();
+  const [showCelebration, setShowCelebration] = useState(true);
 
   const scaleAnim = useRef(new Animated.Value(0.5)).current;
   const opacityAnim = useRef(new Animated.Value(0)).current;
-  const slideAnim = useRef(new Animated.Value(50)).current;
+  const slideAnim = useRef(new Animated.Value(30)).current;
+  const ringScale = useRef(new Animated.Value(0)).current;
+  const orbFloat = useRef(new Animated.Value(0)).current;
+  const confettiOpacity = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
-    // Play success animations on mount
     Animated.sequence([
       Animated.parallel([
         Animated.spring(scaleAnim, {
@@ -34,10 +38,27 @@ export default function ConfirmScreen() {
         }),
         Animated.timing(opacityAnim, {
           toValue: 1,
-          duration: 400,
+          duration: 350,
+          useNativeDriver: true,
+        }),
+        Animated.spring(ringScale, {
+          toValue: 1,
+          tension: 40,
+          friction: 8,
           useNativeDriver: true,
         }),
       ]),
+      Animated.timing(confettiOpacity, {
+        toValue: 1,
+        duration: 200,
+        useNativeDriver: true,
+      }),
+      Animated.timing(confettiOpacity, {
+        toValue: 0,
+        duration: 300,
+        delay: 500,
+        useNativeDriver: true,
+      }),
       Animated.spring(slideAnim, {
         toValue: 0,
         tension: 50,
@@ -45,7 +66,17 @@ export default function ConfirmScreen() {
         useNativeDriver: true,
       }),
     ]).start();
-  }, [scaleAnim, opacityAnim, slideAnim]);
+
+    Animated.loop(
+      Animated.sequence([
+        Animated.timing(orbFloat, { toValue: 1, duration: 4000, useNativeDriver: true }),
+        Animated.timing(orbFloat, { toValue: 0, duration: 4000, useNativeDriver: true }),
+      ])
+    ).start();
+
+    const celebrationTimer = setTimeout(() => setShowCelebration(false), 1500);
+    return () => clearTimeout(celebrationTimer);
+  }, [scaleAnim, opacityAnim, slideAnim, ringScale, confettiOpacity, orbFloat]);
 
   if (!booking || !selectedMatch || !parsedRequest) {
     return (
@@ -70,22 +101,53 @@ export default function ConfirmScreen() {
     minute: '2-digit',
   });
 
+  const orbY = orbFloat.interpolate({ inputRange: [0, 1], outputRange: [0, -20] });
+
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: theme.colors.background }]}>
+      {/* ── Decorative orbs ── */}
+      <Animated.View
+        style={[
+          styles.bgOrb,
+          { backgroundColor: Colors.accent + '08', transform: [{ translateY: orbY }] },
+        ]}
+      />
+      <Animated.View style={[styles.bgOrb2, { backgroundColor: Colors.primary + '06' }]} />
+
       {/* ── Success Graphic ── */}
       <View style={styles.graphicContainer}>
         <Animated.View
           style={[
             styles.successCircle,
             {
-              backgroundColor: Colors.accent + '20',
+              backgroundColor: Colors.accent + '15',
               transform: [{ scale: scaleAnim }],
               opacity: opacityAnim,
             },
           ]}
         >
+          <Animated.View
+            style={[
+              styles.outerRing,
+              {
+                borderColor: Colors.accent + '30',
+                transform: [{ scale: ringScale }],
+              },
+            ]}
+          />
+          <Animated.View
+            style={[
+              styles.outerRing2,
+              {
+                borderColor: Colors.accent + '18',
+                transform: [
+                  { scale: ringScale.interpolate({ inputRange: [0, 1], outputRange: [0, 1.3] }) },
+                ],
+              },
+            ]}
+          />
           <View style={[styles.successInner, { backgroundColor: Colors.accent }]}>
-            <Ionicons name="checkmark-sharp" size={48} color="#fff" style={{ marginTop: 4 }} />
+            <Ionicons name="checkmark-sharp" size={46} color="#fff" style={{ marginTop: 3 }} />
           </View>
         </Animated.View>
 
@@ -135,24 +197,48 @@ export default function ConfirmScreen() {
               { color: theme.colors.textPrimary, fontFamily: theme.fontFamily.semiBold },
             ]}
           >
-            Booking ID: #{booking.booking_id.split('-')[0].toUpperCase()}
+            Booking Summary
           </Text>
+          <View style={[styles.idBadge, { backgroundColor: Colors.primary + '12' }]}>
+            <Text
+              style={[
+                styles.idBadgeText,
+                { color: Colors.primary, fontFamily: theme.fontFamily.semiBold },
+              ]}
+            >
+              #{booking.booking_id}
+            </Text>
+          </View>
         </View>
 
         <View style={styles.cardBody}>
           <View style={styles.detailRow}>
-            <Ionicons name="person-outline" size={18} color={theme.colors.textMuted} />
-            <Text style={[styles.detailText, { color: theme.colors.textPrimary }]}>
+            <View style={[styles.detailIcon, { backgroundColor: Colors.primary + '10' }]}>
+              <Ionicons name="person-outline" size={16} color={Colors.primary} />
+            </View>
+            <Text
+              style={[
+                styles.detailText,
+                { color: theme.colors.textPrimary, fontFamily: theme.fontFamily.medium },
+              ]}
+              numberOfLines={1}
+            >
               {selectedMatch.provider.name}
             </Text>
           </View>
 
           <View style={styles.detailRow}>
-            <Ionicons name="medical-outline" size={18} color={theme.colors.textMuted} />
+            <View style={[styles.detailIcon, { backgroundColor: '#EC4899' + '10' }]}>
+              <Ionicons name="medical-outline" size={16} color="#EC4899" />
+            </View>
             <Text
               style={[
                 styles.detailText,
-                { color: theme.colors.textPrimary, textTransform: 'capitalize' },
+                {
+                  color: theme.colors.textPrimary,
+                  fontFamily: theme.fontFamily.medium,
+                  textTransform: 'capitalize',
+                },
               ]}
             >
               {booking.service_bundle.join(', ').replace(/_/g, ' ')}
@@ -160,16 +246,28 @@ export default function ConfirmScreen() {
           </View>
 
           <View style={styles.detailRow}>
-            <Ionicons name="calendar-outline" size={18} color={theme.colors.textMuted} />
-            <Text style={[styles.detailText, { color: theme.colors.textPrimary }]}>
+            <View style={[styles.detailIcon, { backgroundColor: '#F59E0B' + '10' }]}>
+              <Ionicons name="calendar-outline" size={16} color="#F59E0B" />
+            </View>
+            <Text
+              style={[
+                styles.detailText,
+                { color: theme.colors.textPrimary, fontFamily: theme.fontFamily.medium },
+              ]}
+            >
               {formattedDate}
             </Text>
           </View>
 
           <View style={styles.detailRow}>
-            <Ionicons name="location-outline" size={18} color={theme.colors.textMuted} />
+            <View style={[styles.detailIcon, { backgroundColor: '#10B981' + '10' }]}>
+              <Ionicons name="location-outline" size={16} color="#10B981" />
+            </View>
             <Text
-              style={[styles.detailText, { color: theme.colors.textPrimary }]}
+              style={[
+                styles.detailText,
+                { color: theme.colors.textPrimary, fontFamily: theme.fontFamily.medium },
+              ]}
               numberOfLines={1}
             >
               {booking.location_from}
@@ -188,7 +286,7 @@ export default function ConfirmScreen() {
                 { color: theme.colors.textPrimary, fontFamily: theme.fontFamily.bold },
               ]}
             >
-              {booking.quoted_price.toLocaleString()} PKR
+              PKR {booking.quoted_price.toLocaleString()}
             </Text>
           </View>
         </View>
@@ -206,8 +304,8 @@ export default function ConfirmScreen() {
           },
         ]}
       >
-        <View style={[styles.iconBox, { backgroundColor: Colors.accent + '20' }]}>
-          <Ionicons name="people" size={16} color={Colors.accent} />
+        <View style={[styles.iconBox, { backgroundColor: Colors.accent + '15' }]}>
+          <Ionicons name="people" size={18} color={Colors.accent} />
         </View>
         <View style={styles.familyPillText}>
           <Text
@@ -253,6 +351,8 @@ export default function ConfirmScreen() {
           onPress={() => router.replace('/')}
         />
       </Animated.View>
+
+      <CelebrationOverlay visible={showCelebration} />
     </SafeAreaView>
   );
 }
@@ -261,10 +361,27 @@ const styles = StyleSheet.create({
   container: { flex: 1 },
   centered: { flex: 1, alignItems: 'center', justifyContent: 'center' },
 
+  bgOrb: {
+    position: 'absolute',
+    top: -80,
+    right: -80,
+    width: 220,
+    height: 220,
+    borderRadius: 110,
+  },
+  bgOrb2: {
+    position: 'absolute',
+    bottom: '40%',
+    left: -60,
+    width: 160,
+    height: 160,
+    borderRadius: 80,
+  },
+
   graphicContainer: {
     alignItems: 'center',
-    paddingTop: 60,
-    paddingBottom: 40,
+    paddingTop: 56,
+    paddingBottom: 36,
   },
   successCircle: {
     width: 120,
@@ -274,69 +391,106 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     marginBottom: 24,
   },
+  outerRing: {
+    position: 'absolute',
+    width: 160,
+    height: 160,
+    borderRadius: 80,
+    borderWidth: 2,
+    borderStyle: 'dashed',
+  },
+  outerRing2: {
+    position: 'absolute',
+    width: 200,
+    height: 200,
+    borderRadius: 100,
+    borderWidth: 1,
+    borderStyle: 'dashed',
+  },
   successInner: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
+    width: 78,
+    height: 78,
+    borderRadius: 39,
     alignItems: 'center',
     justifyContent: 'center',
+    shadowColor: Colors.accent,
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.3,
+    shadowRadius: 16,
+    elevation: 8,
   },
-  successTitle: {
-    fontSize: 24,
-    marginBottom: 8,
-  },
-  successSubtitle: {
-    fontSize: 15,
-  },
+  successTitle: { fontSize: 26, marginBottom: 6, letterSpacing: -0.3 },
+  successSubtitle: { fontSize: 15, letterSpacing: 0.1 },
 
   summaryCard: {
-    marginHorizontal: 16,
-    borderRadius: 16,
+    marginHorizontal: 20,
+    borderRadius: 18,
     borderWidth: 1,
     overflow: 'hidden',
     marginBottom: 16,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.06,
+    shadowRadius: 12,
+    elevation: 4,
   },
   cardHeader: {
-    paddingHorizontal: 16,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: 18,
     paddingVertical: 14,
     borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: '#00000015',
-    backgroundColor: '#00000005',
+    borderBottomColor: '#00000010',
+    backgroundColor: '#00000003',
   },
-  cardTitle: { fontSize: 14 },
-  cardBody: { padding: 16, gap: 12 },
+  cardTitle: { fontSize: 15 },
+  idBadge: {
+    paddingHorizontal: 10,
+    paddingVertical: 3,
+    borderRadius: 8,
+  },
+  idBadgeText: { fontSize: 12 },
+  cardBody: { padding: 18, gap: 14 },
 
   detailRow: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 12,
   },
+  detailIcon: {
+    width: 32,
+    height: 32,
+    borderRadius: 10,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
   detailText: { fontSize: 15, flex: 1 },
 
-  divider: { height: StyleSheet.hairlineWidth, marginVertical: 4 },
+  divider: { height: StyleSheet.hairlineWidth, marginVertical: 2 },
 
   totalRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginTop: 4,
+    marginTop: 2,
   },
   totalLabel: { fontSize: 15 },
-  totalAmount: { fontSize: 18 },
+  totalAmount: { fontSize: 20 },
 
   familyPill: {
-    marginHorizontal: 16,
-    borderRadius: 12,
+    marginHorizontal: 20,
+    borderRadius: 14,
     borderWidth: 1,
-    padding: 12,
+    padding: 14,
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 12,
+    gap: 14,
   },
   iconBox: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
+    width: 40,
+    height: 40,
+    borderRadius: 20,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -345,7 +499,7 @@ const styles = StyleSheet.create({
   familySub: { fontSize: 12 },
 
   actions: {
-    padding: 16,
-    paddingBottom: 32,
+    padding: 20,
+    paddingBottom: 36,
   },
 });

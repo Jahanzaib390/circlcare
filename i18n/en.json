@@ -1,0 +1,10 @@
+{
+  "app.name": "CirclCare",
+  "understand.title": "We understood this",
+  "understand.confidence": "AI Confidence",
+  "understand.clarification.title": "Confirm a detail",
+  "understand.clarification.service": "Which care service should we arrange?",
+  "understand.clarification.location": "Where is care needed?",
+  "dispute.title": "Resolution Center",
+  "dispute.agent_conversation": "Agent Conversation"
+}

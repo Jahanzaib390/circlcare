@@ -5,6 +5,7 @@ import {
   getDemoScenarios,
   getActiveDemoScenario,
 } from '../services/demoScenarioState';
+import { runBaselineComparison } from '../services/baselineComparison';
 
 export const demoRoutes = Router();
 
@@ -13,6 +14,10 @@ demoRoutes.get('/demo/scenarios', (_req, res) => {
     scenarios: getDemoScenarios(),
     active_scenario_id: getActiveDemoScenario()?.id ?? null,
   });
+});
+
+demoRoutes.get('/demo/baseline-comparison', (_req, res) => {
+  success(res, runBaselineComparison());
 });
 
 demoRoutes.post('/demo/scenario/:id', async (req, res, next) => {
