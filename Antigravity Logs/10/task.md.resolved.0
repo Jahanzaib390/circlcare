@@ -1,0 +1,5 @@
+- [x] Copy primary logo to `assets/images/icon.png`
+- [x] Generate and copy Android adaptive icon foreground
+- [x] Generate and copy splash screen icon
+- [x] Copy favicon
+- [/] Update `app.json` configuration

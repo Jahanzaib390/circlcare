@@ -1,0 +1,5 @@
+- `[x]` Update `backend/src/types/booking.ts` to add `original_request?: ParsedRequest` to `Booking` interface.
+- `[x]` Update `backend/src/services/bookingSimulator.ts` for `original_request` assignment, updated return type for `cancelBooking`, and update `simulateNextStep`.
+- `[x]` Update `backend/src/services/pricingEngine.ts` to accept `compensationDiscount` in `calculateQuote` and add it as a `discount` line item.
+- `[x]` Update `backend/src/routes/bookingRoutes.ts` to implement re-ranking excluding the cancelled provider and generate replacement matches and quotes.
+- `[x]` Check off Phase 6.1 tasks in `ACTION_PLAN.md`.

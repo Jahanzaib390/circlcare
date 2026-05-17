@@ -1,0 +1,27 @@
+[2026-05-17T14:00:01.401Z] [INFO] [ProviderMatchingEngine] Initiating search for parsed requirements (ID: req_8f2a91b).
+[2026-05-17T14:00:01.405Z] [DEBUG] [ProviderMatchingEngine] Applying hard filters: condition=dementia, language=ur|en, max_distance=25km.
+[2026-05-17T14:00:01.450Z] [DEBUG] [ProviderMatchingEngine] 12 providers passed hard filters. Calculating weighted scores...
+[2026-05-17T14:00:01.520Z] [INFO] [ProviderMatchingEngine] Top 3 Candidates Ranked:
+1. Provider P-402 (Fatima Ali) - Total Score: 92/100
+   - Distance: 4.2 km (Score: 18/20)
+   - Dementia Experience: 5 years (Score: 25/25)
+   - Language (Urdu Native): (Score: 15/15)
+   - Rating: 4.9/5.0 (Score: 24/25)
+   - Verification: Platinum (Score: 10/15)
+   LLM Rationale: "Fatima is a native Urdu speaker with extensive, verified experience in dementia care located very close to Lahore. Her platinum verification and high ratings make her the optimal choice."
+
+2. Provider P-115 (Ahmed Khan) - Total Score: 85/100
+   - Distance: 12.1 km (Score: 12/20)
+   - Dementia Experience: 3 years (Score: 20/25)
+   - Language (Urdu Fluent): (Score: 15/15)
+   - Rating: 4.8/5.0 (Score: 23/25)
+   - Verification: Gold (Score: 15/15)
+   LLM Rationale: "Ahmed is highly qualified and fluent in Urdu, though located slightly further away. He is an excellent alternative."
+
+3. Provider P-889 (Ayesha Tariq) - Total Score: 78/100
+   - Distance: 8.5 km (Score: 15/20)
+   - Dementia Experience: 2 years (Score: 15/25)
+   - Language (Urdu Conversational): (Score: 10/15)
+   - Rating: 4.7/5.0 (Score: 23/25)
+   - Verification: Gold (Score: 15/15)
+   LLM Rationale: "Ayesha is closer than Ahmed but has less specific dementia experience and conversational Urdu. Recommended as a backup."

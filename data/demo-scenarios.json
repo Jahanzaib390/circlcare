@@ -387,5 +387,195 @@
         "Demonstrates multi-city matching instead of Lahore-only data"
       ]
     }
+  },
+  {
+    "id": "M",
+    "title": "Karachi Post-Stroke Physio",
+    "request_text": "DHA Karachi mein ammi ke stroke ke baad female home physio chahiye, Urdu English dono theek hain.",
+    "expected_action": "karachi_physio_match",
+    "expected_outputs": {
+      "parsed_request": {
+        "service_bundle": ["physiotherapy"],
+        "patient": "Patient (Mother)",
+        "location_from": "DHA Karachi",
+        "time_preference": "flexible",
+        "mobility_needs": ["post-stroke support"],
+        "provider_preferences": {
+          "gender": "female_required",
+          "language": ["Urdu", "English"],
+          "language_required": false,
+          "verified_only": true,
+          "elder_care_experience": true
+        },
+        "urgency": "medium",
+        "risk_level": "medium",
+        "clarification_needed": false,
+        "confidence": 0.9
+      },
+      "demo_notes": [
+        "Tests Karachi physiotherapy coverage",
+        "Female provider requirement should be respected",
+        "Stroke recovery specialization should influence ranking"
+      ]
+    }
+  },
+  {
+    "id": "N",
+    "title": "Karachi Diabetic Meals and Medicine",
+    "request_text": "Clifton Karachi mein diabetic khana aur weekly medicine refill chahiye, budget bhi reasonable ho.",
+    "expected_action": "karachi_meal_medicine_match",
+    "expected_outputs": {
+      "parsed_request": {
+        "service_bundle": ["meal_plan", "medicine_pickup"],
+        "patient": "Diabetic Patient",
+        "location_from": "Clifton Karachi",
+        "time_preference": "weekly flexible",
+        "mobility_needs": [],
+        "provider_preferences": {
+          "gender": "any",
+          "language": ["Urdu"],
+          "language_required": false,
+          "verified_only": false,
+          "elder_care_experience": true
+        },
+        "urgency": "low",
+        "risk_level": "low",
+        "recurring": {
+          "frequency": "weekly"
+        },
+        "clarification_needed": false,
+        "confidence": 0.88
+      },
+      "demo_notes": [
+        "Tests Karachi meal and medicine bundle",
+        "Low urgency should make price fit and cheaper-slot suggestions relevant",
+        "Recurring weekly service should stay visible"
+      ]
+    }
+  },
+  {
+    "id": "O",
+    "title": "Islamabad Emergency Night Nurse",
+    "request_text": "G-9 Islamabad mein raat ko oxygen monitoring ke liye verified female nurse urgent chahiye.",
+    "expected_action": "islamabad_emergency_nurse",
+    "expected_outputs": {
+      "parsed_request": {
+        "service_bundle": ["home_nurse"],
+        "patient": "Patient",
+        "location_from": "G-9 Islamabad",
+        "time_preference": "tonight",
+        "scheduled_datetime": "2026-05-22T21:00:00+05:00",
+        "mobility_needs": ["oxygen support"],
+        "provider_preferences": {
+          "gender": "female_required",
+          "language": ["Urdu"],
+          "language_required": false,
+          "verified_only": true,
+          "elder_care_experience": true
+        },
+        "urgency": "emergency",
+        "risk_level": "high",
+        "clarification_needed": false,
+        "confidence": 0.91
+      },
+      "demo_notes": [
+        "Tests Islamabad emergency nurse coverage",
+        "High-risk request should require verified provider",
+        "Night availability and oxygen specialization should matter"
+      ]
+    }
+  },
+  {
+    "id": "P",
+    "title": "No Female Islamabad Physiotherapist Available",
+    "request_text": "F-8 Islamabad mein female physiotherapist required hai, father knee replacement ke baad ghar pe session chahiye.",
+    "expected_action": "no_match_gender_constraint",
+    "expected_outputs": {
+      "parsed_request": {
+        "service_bundle": ["physiotherapy"],
+        "patient": "Patient (Father)",
+        "location_from": "F-8 Islamabad",
+        "time_preference": "flexible",
+        "mobility_needs": ["post-surgery support"],
+        "provider_preferences": {
+          "gender": "female_required",
+          "language": ["Urdu", "English"],
+          "language_required": false,
+          "verified_only": true,
+          "elder_care_experience": true
+        },
+        "urgency": "medium",
+        "risk_level": "medium",
+        "clarification_needed": false,
+        "confidence": 0.86
+      },
+      "demo_notes": [
+        "Tests no-match handling for strict gender constraint",
+        "System should show rejected providers and fallback/relax-preference guidance",
+        "Useful to prove the matcher does not silently ignore hard preferences"
+      ]
+    }
+  },
+  {
+    "id": "Q",
+    "title": "Required Pashto Language No Match",
+    "request_text": "Islamabad F-7 mein caregiver chahiye jo Pashto lazmi bolti ho, female preferred.",
+    "expected_action": "no_match_language_constraint",
+    "expected_outputs": {
+      "parsed_request": {
+        "service_bundle": ["caregiver", "elder_companion"],
+        "patient": "Patient",
+        "location_from": "F-7 Islamabad",
+        "time_preference": "flexible",
+        "mobility_needs": [],
+        "provider_preferences": {
+          "gender": "female_preferred",
+          "language": ["Pashto"],
+          "language_required": true,
+          "verified_only": false,
+          "elder_care_experience": true
+        },
+        "urgency": "medium",
+        "risk_level": "low",
+        "clarification_needed": false,
+        "confidence": 0.84
+      },
+      "demo_notes": [
+        "Tests language-required no-match path",
+        "System should explain language filter failure",
+        "Good demo for asking the family whether Urdu or English is acceptable"
+      ]
+    }
+  },
+  {
+    "id": "R",
+    "title": "Budget Flexible Medicine Pickup",
+    "request_text": "Gulberg Lahore mein medicine pickup chahiye, time flexible hai aur budget low rakhna hai.",
+    "expected_action": "budget_sensitive_quote",
+    "expected_outputs": {
+      "parsed_request": {
+        "service_bundle": ["medicine_pickup"],
+        "patient": "Patient",
+        "location_from": "Gulberg Lahore",
+        "time_preference": "flexible",
+        "mobility_needs": [],
+        "provider_preferences": {
+          "gender": "any",
+          "language": ["Urdu"],
+          "language_required": false,
+          "verified_only": false,
+          "elder_care_experience": false
+        },
+        "urgency": "low",
+        "risk_level": "low",
+        "clarification_needed": false,
+        "confidence": 0.9
+      },
+      "demo_notes": [
+        "Tests price-sensitive matching and quote review",
+        "Low urgency should allow cheaper-slot suggestion",
+        "Budget runner should be competitive on price fit"
+      ]
+    }
   }
 ]

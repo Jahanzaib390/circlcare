@@ -1,0 +1,6 @@
+{
+  "artifactType":  "ARTIFACT_TYPE_IMPLEMENTATION_PLAN",
+  "summary":  "Implementation plan for Phase 7: Demo Scenarios, Polish, and Onboarding. Includes creating a demo toggle, pre-filling scenario inputs, UI polish like skeletons and haptics, and a first-launch onboarding flow.",
+  "updatedAt":  "2026-05-15T16:04:16.820223900Z",
+  "requestFeedback":  true
+}

@@ -1,0 +1,9 @@
+- [x] Create `backend/src/services/providerData.ts` to manage in-memory providers.
+- [x] Create `backend/src/llm/llmFactory.ts` for shared LLM initialization.
+- [x] Refactor `backend/src/routes/matchRoutes.ts` to use `providerData.ts` and `llmFactory.ts`.
+- [x] Refactor `backend/src/routes/providerRoutes.ts` to use `providerData.ts` and implement reputation update.
+- [x] Create `backend/src/services/disputeEngine.ts`.
+- [x] Update `backend/src/routes/disputeRoutes.ts` to handle dispute creation.
+- [x] Update `app/request/feedback.tsx` for 5-star rating and complaint flows.
+- [x] Update `app/modals/dispute.tsx` to handle the dispute UI flow.
+- [x] Mark Phase 5 tasks as complete in `ACTION_PLAN.md`.

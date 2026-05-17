@@ -1,0 +1,25 @@
+[2026-05-17T14:00:01.102Z] [INFO] [LanguageParserAgent] Received raw query: "I need a caregiver for my grandmother who has dementia, speaks Urdu, and we need someone in Lahore for next Tuesday morning."
+[2026-05-17T14:00:01.105Z] [DEBUG] [LanguageParserAgent] Initializing intent recognition...
+[2026-05-17T14:00:01.350Z] [DEBUG] [LanguageParserAgent] LLM Response generated.
+[2026-05-17T14:00:01.352Z] [INFO] [LanguageParserAgent] Parsed Structured Intent:
+{
+  "confidenceScore": 0.98,
+  "detectedLanguage": "en",
+  "entities": {
+    "patientType": "elderly",
+    "conditions": ["dementia"],
+    "requiredLanguages": ["ur", "en"],
+    "location": {
+      "city": "Lahore",
+      "region": "Punjab"
+    },
+    "timeframe": {
+      "type": "specific",
+      "value": "2026-05-26T08:00:00Z",
+      "flexibility": "morning"
+    }
+  },
+  "serviceType": "home_care",
+  "urgency": "standard"
+}
+[2026-05-17T14:00:01.355Z] [INFO] [LanguageParserAgent] Confidence threshold (0.85) met. Proceeding to Provider Matching Engine.

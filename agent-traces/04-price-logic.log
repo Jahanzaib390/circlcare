@@ -1,0 +1,24 @@
+[2026-05-17T14:00:02.100Z] [INFO] [PricingEngineAgent] Calculating dynamic pricing for P-402 (Fatima Ali).
+[2026-05-17T14:00:02.105Z] [DEBUG] [PricingEngineAgent] Input variables: Base Rate=Rs 1500/hr, Duration=4hrs, Distance=4.2km, Urgency=Standard.
+[2026-05-17T14:00:02.120Z] [DEBUG] [PricingEngineAgent] Step 1: Base Cost Calculation
+  - 4 hours @ Rs 1500/hr = Rs 6000.00
+[2026-05-17T14:00:02.125Z] [DEBUG] [PricingEngineAgent] Step 2: Distance Surcharge Calculation
+  - Distance (4.2km) < 10km threshold. Surcharge = Rs 0.00
+[2026-05-17T14:00:02.130Z] [DEBUG] [PricingEngineAgent] Step 3: Complexity / Urgency Multiplier
+  - Standard Urgency (Multiplier: 1.0x) = Rs 0.00
+  - Condition: Dementia Care (Specialty Multiplier: 1.15x applied to base rate)
+  - Adjusted Base: Rs 6000.00 * 1.15 = Rs 6900.00
+[2026-05-17T14:00:02.135Z] [DEBUG] [PricingEngineAgent] Step 4: Platform Fee
+  - 10% Service Fee applied to Adjusted Base (Rs 6900.00) = Rs 690.00
+[2026-05-17T14:00:02.140Z] [INFO] [PricingEngineAgent] Final Pricing Breakdown:
+{
+  "providerId": "P-402",
+  "baseTotal": 6000.00,
+  "specialtySurcharge": 900.00,
+  "distanceSurcharge": 0.00,
+  "platformFee": 690.00,
+  "tax": 345.00,
+  "grandTotal": 7935.00,
+  "currency": "PKR"
+}
+[2026-05-17T14:00:02.145Z] [INFO] [PricingEngineAgent] Quote generation successful. Storing Quote ID: qte_9921b3.

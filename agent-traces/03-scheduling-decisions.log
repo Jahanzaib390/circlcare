@@ -1,0 +1,11 @@
+[2026-05-17T14:00:01.550Z] [INFO] [SchedulingAgent] Initiating availability check for top candidate P-402.
+[2026-05-17T14:00:01.552Z] [DEBUG] [SchedulingAgent] Requested window: 2026-05-26T08:00:00Z to 2026-05-26T12:00:00Z (Morning).
+[2026-05-17T14:00:01.605Z] [DEBUG] [SchedulingAgent] Querying P-402 calendar...
+[2026-05-17T14:00:01.620Z] [DEBUG] [SchedulingAgent] Calendar conflict detected: P-402 has a recurring appointment from 08:00 to 09:30 on Tuesdays.
+[2026-05-17T14:00:01.622Z] [INFO] [SchedulingAgent] Generating alternatives based on "morning" flexibility.
+[2026-05-17T14:00:01.645Z] [DEBUG] [SchedulingAgent] Proposed alternatives for P-402:
+  - Option A: 10:00 AM to 02:00 PM (Partial overlap with requested window)
+  - Option B: Wednesday 08:00 AM to 12:00 PM (Exact time, different day)
+[2026-05-17T14:00:01.650Z] [INFO] [SchedulingAgent] Checking candidate P-115 for exact requested window...
+[2026-05-17T14:00:01.710Z] [DEBUG] [SchedulingAgent] P-115 calendar is clear for 2026-05-26T08:00:00Z to 2026-05-26T12:00:00Z.
+[2026-05-17T14:00:01.715Z] [INFO] [SchedulingAgent] Decision: Presenting P-402 with modified schedule (Option A) as Primary Recommendation, and P-115 with exact requested schedule as Alternative.

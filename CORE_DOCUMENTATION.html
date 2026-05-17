@@ -1,0 +1,1120 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>CirclCare AI Core Documentation</title>
+  <style>
+    :root {
+      --ink: #18212f;
+      --muted: #536174;
+      --line: #d9e1ea;
+      --soft: #f6f9fc;
+      --soft-2: #edf6f1;
+      --accent: #136f63;
+      --accent-2: #9b5b00;
+      --danger: #a33a3a;
+      --code: #0f172a;
+      --code-bg: #eef2f7;
+      --white: #ffffff;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      margin: 0;
+      color: var(--ink);
+      background: var(--white);
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      line-height: 1.6;
+    }
+
+    .page {
+      width: min(1120px, calc(100% - 32px));
+      margin: 0 auto;
+      padding: 40px 0 64px;
+    }
+
+    header {
+      border-bottom: 1px solid var(--line);
+      padding-bottom: 28px;
+      margin-bottom: 28px;
+    }
+
+    .eyebrow {
+      color: var(--accent);
+      font-size: 13px;
+      font-weight: 800;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      margin: 0 0 8px;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: clamp(34px, 5vw, 56px);
+      line-height: 1.02;
+      letter-spacing: 0;
+    }
+
+    .subtitle {
+      max-width: 860px;
+      color: var(--muted);
+      font-size: 18px;
+      margin: 18px 0 0;
+    }
+
+    .meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 22px;
+    }
+
+    .pill {
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      padding: 6px 11px;
+      color: var(--muted);
+      background: var(--soft);
+      font-size: 13px;
+      font-weight: 700;
+    }
+
+    .layout {
+      display: grid;
+      grid-template-columns: 252px minmax(0, 1fr);
+      gap: 30px;
+      align-items: start;
+    }
+
+    nav {
+      position: sticky;
+      top: 18px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      padding: 16px;
+      background: var(--soft);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      max-height: calc(100vh - 36px);
+      overflow-y: auto;
+    }
+
+    .toc-title {
+      margin: 0 0 8px;
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 850;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+    }
+
+    nav a {
+      color: var(--accent);
+      text-decoration: none;
+      font-weight: 750;
+      font-size: 14px;
+      line-height: 1.25;
+      border-radius: 6px;
+      padding: 8px 9px;
+    }
+
+    nav a:hover {
+      background: #e7f2ed;
+      text-decoration: none;
+    }
+
+    section {
+      padding: 30px 0;
+      border-bottom: 1px solid var(--line);
+      scroll-margin-top: 24px;
+    }
+
+    h2 {
+      margin: 0 0 14px;
+      font-size: 28px;
+      line-height: 1.18;
+      letter-spacing: 0;
+    }
+
+    h3 {
+      margin: 26px 0 10px;
+      font-size: 19px;
+      line-height: 1.25;
+      letter-spacing: 0;
+    }
+
+    p {
+      margin: 0 0 14px;
+    }
+
+    ul,
+    ol {
+      margin: 10px 0 18px;
+      padding-left: 22px;
+    }
+
+    li {
+      margin: 5px 0;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 14px 0 20px;
+      font-size: 14px;
+    }
+
+    th,
+    td {
+      border: 1px solid var(--line);
+      padding: 10px 12px;
+      text-align: left;
+      vertical-align: top;
+    }
+
+    th {
+      background: var(--soft);
+      font-weight: 800;
+    }
+
+    code {
+      color: var(--code);
+      background: var(--code-bg);
+      border-radius: 5px;
+      padding: 2px 5px;
+      font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+      font-size: .92em;
+    }
+
+    pre {
+      overflow-x: auto;
+      background: #0f172a;
+      color: #eef6ff;
+      padding: 16px;
+      border-radius: 8px;
+      font-size: 13px;
+      line-height: 1.55;
+    }
+
+    pre code {
+      color: inherit;
+      background: transparent;
+      padding: 0;
+    }
+
+    .callout {
+      border-left: 4px solid var(--accent);
+      background: var(--soft-2);
+      padding: 14px 16px;
+      border-radius: 8px;
+      margin: 16px 0;
+    }
+
+    .warning {
+      border-left-color: var(--accent-2);
+      background: #fff8ed;
+    }
+
+    .risk {
+      border-left-color: var(--danger);
+      background: #fff4f4;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 14px;
+      margin: 16px 0;
+    }
+
+    .box {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 16px;
+      background: var(--white);
+    }
+
+    .box h3 {
+      margin-top: 0;
+    }
+
+    .small {
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .diagram {
+      white-space: pre;
+      overflow-x: auto;
+      background: var(--soft);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 16px;
+      font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+      font-size: 13px;
+      line-height: 1.4;
+    }
+
+    footer {
+      padding-top: 28px;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    @media (max-width: 900px) {
+      .layout {
+        display: block;
+      }
+
+      nav {
+        position: static;
+        max-height: none;
+        margin-bottom: 24px;
+      }
+    }
+
+    @media print {
+      body {
+        color: #000;
+      }
+
+      .page {
+        width: auto;
+        padding: 0;
+      }
+
+      nav {
+        display: none;
+      }
+
+      section {
+        break-inside: avoid;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="page">
+    <header>
+      <p class="eyebrow">Core submission documentation</p>
+      <h1>CirclCare AI</h1>
+      <p class="subtitle">
+        CirclCare AI is a multilingual, agent-assisted mobile platform for coordinating informal elder-care services across families, caregivers, drivers, nurses, physiotherapists, pharmacy runners, clinic helpers, home attendants, and trusted local providers.
+      </p>
+      <div class="meta" aria-label="Project summary">
+        <span class="pill">Expo React Native app</span>
+        <span class="pill">Node.js and Express backend</span>
+        <span class="pill">OpenAI-compatible LLM abstraction</span>
+        <span class="pill">Mock data for Lahore, Karachi, Islamabad</span>
+        <span class="pill">Agentic matching, pricing, and dispute flows</span>
+      </div>
+    </header>
+
+    <div class="layout">
+      <nav aria-label="Document sections">
+        <p class="toc-title">Sections</p>
+        <a href="#overview">1. Product Overview</a>
+        <a href="#architecture">2. Architecture</a>
+        <a href="#dataset-schema">3. Provider Dataset Schema</a>
+        <a href="#matching">4. Matching Factors</a>
+        <a href="#antigravity">5. Antigravity Workflow</a>
+        <a href="#apis-tools">6. APIs and Tools</a>
+        <a href="#cost-latency">7. Cost and Latency</a>
+        <a href="#baseline">8. Baseline Comparison</a>
+        <a href="#assumptions">9. Assumptions</a>
+        <a href="#privacy">10. Privacy Note</a>
+        <a href="#limitations">11. Limitations</a>
+        <a href="#evidence">12. Evidence Files</a>
+      </nav>
+
+      <div class="content">
+    <section id="overview">
+      <h2>1. Product Overview</h2>
+      <p>
+        Families often coordinate elder-care work manually through WhatsApp, phone calls, references, and repeated follow-up. A single request can involve multiple real-world constraints: a wheelchair-friendly clinic ride, a trusted companion, a female nurse, a physiotherapist who speaks the patient's language, a pharmacy stop after consultation, or a recurring caregiver.
+      </p>
+      <p>
+        CirclCare AI turns noisy natural-language requests into structured service plans, then matches the family with trusted providers using safety, language, availability, reliability, distance, pricing, and family preference signals.
+      </p>
+
+      <div class="grid">
+        <div class="box">
+          <h3>One-line Pitch</h3>
+          <p>CirclCare AI is a multilingual life-admin agent for elder-care services that matches families with trusted local providers using safety, preferences, language, availability, reliability, and transparent pricing.</p>
+        </div>
+        <div class="box">
+          <h3>Primary Differentiator</h3>
+          <p>The product is not a generic home-services marketplace. It focuses on high-trust elder-care workflows where the best match is often not simply the nearest provider.</p>
+        </div>
+        <div class="box">
+          <h3>Demo Coverage</h3>
+          <p>The seeded data and demo scenarios cover clinic visits, recurring caregivers, home physiotherapy, food and medicine support, fallback flows, noisy Roman Urdu, and code-switched requests.</p>
+        </div>
+      </div>
+
+      <h3>Supported Service Categories</h3>
+      <ul>
+        <li>Health and care: home nurse, physiotherapy, caregiver, elder companion, lab sample collection.</li>
+        <li>Mobility and appointments: clinic visit, wheelchair support, hospital appointment companion, medicine stop.</li>
+        <li>Errands: medicine pickup, prescription refill, lab report pickup, document carrying.</li>
+        <li>Food and daily support: diabetic meal provider, low-salt food, daily support, meal plans.</li>
+        <li>Recurring care: daily caregiver, weekly physiotherapy, monthly medicine refill.</li>
+      </ul>
+
+      <h3>Main App Flow</h3>
+      <ol>
+        <li>User enters or speaks a natural-language elder-care request.</li>
+        <li>The backend parses intent, services, patient, location, time, mobility needs, risk, and preferences.</li>
+        <li>The app shows a confirmation screen for family review.</li>
+        <li>The backend filters and scores providers, then an agentic tool loop reviews candidate evidence.</li>
+        <li>The app displays ranked matches with human-readable reasons and transparent score factors.</li>
+        <li>The pricing engine returns an itemized quote and optional cheaper-slot suggestion.</li>
+        <li>The booking simulator advances lifecycle status for demo purposes.</li>
+        <li>The dispute flow reviews evidence and recommends refund, revisit, escalation, or no action.</li>
+      </ol>
+    </section>
+
+    <section id="architecture">
+      <h2>2. Architecture</h2>
+      <p>
+        The prototype uses an Expo 54 / React Native mobile app, a Node.js / Express backend, JSON-backed seeded data, deterministic business logic, and an LLM provider abstraction that can use OpenAI or a mock provider depending on environment configuration.
+      </p>
+
+      <div class="diagram" role="img" aria-label="Architecture diagram">Mobile App - Expo React Native
+  |-- Request capture, confirmation, match results, quote, booking status
+  |-- React Query hooks and small client-side stores
+  |-- i18n strings for English and Urdu
+  |
+  v
+Backend API - Node.js / Express
+  |-- parseRoutes: natural-language request parsing
+  |-- matchRoutes: hard filters, scoring, agentic match selection
+  |-- quoteRoutes: deterministic quote plus pricing-agent review
+  |-- bookingRoutes: booking creation, status, simulate, cancel
+  |-- disputeRoutes: dispute creation and chat/evidence flow
+  |-- providerRoutes: provider list, detail, reputation update
+  |-- demoRoutes: demo scenarios and baseline comparison
+  |
+  v
+Business Logic Layer
+  |-- matchingEngine.ts
+  |-- pricingEngine.ts
+  |-- bookingSimulator.ts
+  |-- disputeEngine.ts
+  |-- baselineComparison.ts
+  |-- providerData.ts
+  |
+  v
+Data and LLM Layer
+  |-- data/providers.json, services.json, bookings.json, users.json
+  |-- OpenAIProvider or MockProvider through LLMProvider interface</div>
+
+      <h3>Frontend</h3>
+      <ul>
+        <li>Expo Router screens in <code>app/</code> for home, request understanding, match results, quote, status, feedback, provider dashboard, settings, and modals.</li>
+        <li>Reusable components in <code>components/ui/</code> for buttons, cards, chips, badges, empty states, skeleton states, voice input, and feedback UI.</li>
+        <li>Hooks in <code>hooks/</code> wrap API calls and local state, including parse, match, quote, booking, and polling flows.</li>
+        <li>Localization lives in <code>i18n/en.json</code> and <code>i18n/ur.json</code>.</li>
+      </ul>
+
+      <h3>Backend</h3>
+      <ul>
+        <li>Express API server in <code>backend/src/server.ts</code>.</li>
+        <li>Route modules in <code>backend/src/routes/</code>.</li>
+        <li>Core service modules in <code>backend/src/services/</code>.</li>
+        <li>Shared backend types in <code>backend/src/types/</code>.</li>
+        <li>LLM abstraction in <code>backend/src/llm/</code> with <code>LLMProvider</code>, <code>OpenAIProvider</code>, <code>MockProvider</code>, and <code>llmFactory</code>.</li>
+      </ul>
+
+      <h3>Design Decision Summary</h3>
+      <table>
+        <thead>
+          <tr>
+            <th>Area</th>
+            <th>Decision</th>
+            <th>Reason</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Provider matching</td>
+            <td>Deterministic filters and weighted scoring before LLM reasoning</td>
+            <td>Keeps safety-critical constraints auditable and prevents opaque provider rejection.</td>
+          </tr>
+          <tr>
+            <td>LLM usage</td>
+            <td>LLM parses requests, explains matches, and reviews tool observations</td>
+            <td>Uses AI where language and reasoning help, while keeping core calculations deterministic.</td>
+          </tr>
+          <tr>
+            <td>Data storage</td>
+            <td>JSON data for prototype</td>
+            <td>Fast to demo, easy to inspect, and replaceable with a database repository layer later.</td>
+          </tr>
+          <tr>
+            <td>Location</td>
+            <td>Area centroids and Haversine distance in prototype</td>
+            <td>Supports matching by city/area without requiring live maps billing in the demo.</td>
+          </tr>
+          <tr>
+            <td>Failure handling</td>
+            <td>Mock provider and deterministic fallback paths</td>
+            <td>Demo remains usable if the live LLM key is unavailable or rate limited.</td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section id="dataset-schema">
+      <h2>3. Provider Dataset Schema</h2>
+      <p>
+        Provider records are stored in <code>data/providers.json</code> and mirrored into backend/frontend TypeScript types. The schema is intentionally rich enough to support elder-care-specific safety and trust decisions.
+      </p>
+
+      <h3>Provider Fields</h3>
+      <table>
+        <thead>
+          <tr>
+            <th>Field</th>
+            <th>Type</th>
+            <th>Purpose</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td><code>id</code></td><td>string</td><td>Stable provider identifier.</td></tr>
+          <tr><td><code>name</code></td><td>string</td><td>Provider or agency display name.</td></tr>
+          <tr><td><code>provider_type</code></td><td><code>individual | agency</code></td><td>Distinguishes solo workers from agencies.</td></tr>
+          <tr><td><code>gender</code></td><td><code>male | female | other</code></td><td>Used for explicit family comfort and safety preferences.</td></tr>
+          <tr><td><code>services</code></td><td>service category array</td><td>Determines service eligibility.</td></tr>
+          <tr><td><code>specializations</code></td><td>string array</td><td>Captures skill fit such as dementia care, oxygen therapy, orthopedic rehab, diabetic care.</td></tr>
+          <tr><td><code>languages</code></td><td>string array</td><td>Supports Urdu, Punjabi, English, Sindhi, Saraiki, Pashto, and other language matching.</td></tr>
+          <tr><td><code>areas</code></td><td>string array</td><td>Named service areas such as DHA, Gulberg, Model Town, Clifton, F-8.</td></tr>
+          <tr><td><code>home_visit</code></td><td>boolean</td><td>Required for home nurse, caregiver, physiotherapy, lab sample, daily support, medicine pickup, and similar services.</td></tr>
+          <tr><td><code>verified</code></td><td>boolean</td><td>Required for high-risk requests and verified-only preferences.</td></tr>
+          <tr><td><code>family_friendly</code></td><td>boolean</td><td>Trust signal for elder-care contexts.</td></tr>
+          <tr><td><code>wheelchair_support</code></td><td>boolean</td><td>Required when the request includes wheelchair mobility needs.</td></tr>
+          <tr><td><code>rating</code></td><td>number, 0 to 5</td><td>Overall provider quality signal.</td></tr>
+          <tr><td><code>review_count</code></td><td>number</td><td>Confidence signal for rating volume.</td></tr>
+          <tr><td><code>recent_review_score</code></td><td>number, 0 to 5</td><td>Recent quality signal, weighted more heavily than lifetime rating.</td></tr>
+          <tr><td><code>on_time_score</code></td><td>number, 0 to 1</td><td>Reliability signal for appointment-sensitive care.</td></tr>
+          <tr><td><code>cancellation_rate</code></td><td>number, 0 to 1</td><td>Risk signal. Lower cancellation rate improves score.</td></tr>
+          <tr><td><code>base_rate</code></td><td>number, PKR</td><td>Base visit price used by the pricing and price-fit logic.</td></tr>
+          <tr><td><code>hourly_rate</code></td><td>number, PKR</td><td>Hourly pricing for longer or recurring care.</td></tr>
+          <tr><td><code>experience_years</code></td><td>number</td><td>Trust and capability signal.</td></tr>
+          <tr><td><code>capacity_per_day</code></td><td>number</td><td>Used to estimate availability and workload fit.</td></tr>
+          <tr><td><code>availability</code></td><td>array of day/time slots</td><td>Determines whether a provider can serve the requested slot.</td></tr>
+          <tr><td><code>location</code></td><td><code>{ lat, lng, area }</code></td><td>Used for distance and travel-time estimates.</td></tr>
+          <tr><td><code>service_radius_km</code></td><td>number</td><td>Maximum distance the provider can serve.</td></tr>
+          <tr><td><code>risk_flags</code></td><td>string array</td><td>Flags such as high cancellation risk.</td></tr>
+          <tr><td><code>past_disputes</code></td><td>number</td><td>Reputation and risk signal.</td></tr>
+          <tr><td><code>photo_url</code></td><td>optional string</td><td>Optional display image.</td></tr>
+          <tr><td><code>bio</code></td><td>optional string</td><td>Short provider profile text.</td></tr>
+        </tbody>
+      </table>
+
+      <h3>Example Provider Record</h3>
+      <pre><code>{
+  "id": "prov_005",
+  "name": "ShifaCare Agency",
+  "provider_type": "agency",
+  "gender": "female",
+  "services": ["caregiver", "daily_support", "elder_companion", "meal_plan"],
+  "specializations": ["Alzheimer Care", "Palliative Support", "Daily Routine Assistance"],
+  "languages": ["Urdu", "Punjabi", "Saraiki"],
+  "areas": ["DHA", "Cantt", "Bahria Town", "Model Town"],
+  "home_visit": true,
+  "verified": true,
+  "family_friendly": true,
+  "wheelchair_support": true,
+  "rating": 4.6,
+  "review_count": 320,
+  "recent_review_score": 4.7,
+  "on_time_score": 0.89,
+  "cancellation_rate": 0.04,
+  "base_rate": 3200,
+  "hourly_rate": 900,
+  "experience_years": 10,
+  "capacity_per_day": 8,
+  "availability": [
+    { "day": "mon", "start_time": "00:00", "end_time": "23:59" }
+  ],
+  "location": { "lat": 31.5011, "lng": 74.3879, "area": "DHA Phase 2" },
+  "service_radius_km": 25,
+  "risk_flags": [],
+  "past_disputes": 1
+}</code></pre>
+
+      <h3>Related Data Files</h3>
+      <ul>
+        <li><code>data/providers.json</code>: seeded providers across Lahore, Karachi, and Islamabad.</li>
+        <li><code>data/services.json</code>: service catalog and service metadata.</li>
+        <li><code>data/bookings.json</code>: seeded bookings used for conflict checks and booking simulation.</li>
+        <li><code>data/users.json</code>: seeded family/user profiles for demo flows.</li>
+        <li><code>data/demo-scenarios.json</code>: ready-made scenarios for demonstrations and comparison checks.</li>
+      </ul>
+    </section>
+
+    <section id="matching">
+      <h2>4. Matching Factors</h2>
+      <p>
+        CirclCare uses a two-stage matching model. Stage 1 applies hard filters that can reject unsafe or incompatible providers. Stage 2 scores the remaining providers using weighted factors. The agentic step then reviews observed evidence and can adapt the final ranking beyond a simple distance-first baseline.
+      </p>
+
+      <h3>Stage 1: Hard Filters</h3>
+      <table>
+        <thead>
+          <tr>
+            <th>Filter</th>
+            <th>Behavior</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>Service type</td><td>Provider must offer at least one requested service.</td></tr>
+          <tr><td>Area coverage</td><td>Provider must serve the area by name match or be inside service radius using distance calculation.</td></tr>
+          <tr><td>Availability</td><td>Provider must have an availability slot compatible with the requested time.</td></tr>
+          <tr><td>Booking conflict</td><td>Provider is rejected if already booked for an overlapping slot. A next-slot suggestion may be returned.</td></tr>
+          <tr><td>Home visit</td><td>Required for services that happen at the elder's home.</td></tr>
+          <tr><td>Gender requirement</td><td>Explicit male/female required preferences are hard filters.</td></tr>
+          <tr><td>Verification</td><td>Required for high-risk care, verified-only preference, home nursing, physiotherapy, and lab sample requests.</td></tr>
+          <tr><td>Wheelchair support</td><td>Required when the request includes wheelchair needs.</td></tr>
+          <tr><td>Language requirement</td><td>If language is explicitly required, provider must speak at least one requested language.</td></tr>
+        </tbody>
+      </table>
+
+      <h3>Stage 2: Weighted Scoring</h3>
+      <table>
+        <thead>
+          <tr>
+            <th>Factor</th>
+            <th>Default Weight</th>
+            <th>How It Is Calculated</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>Specialization</td><td>0.20</td><td>Compares provider specialties against service bundle, patient context, and mobility needs.</td></tr>
+          <tr><td>Availability fit</td><td>0.15</td><td>Uses number of available slots and daily capacity.</td></tr>
+          <tr><td>Reliability</td><td>0.15</td><td>Uses provider <code>on_time_score</code>.</td></tr>
+          <tr><td>Language</td><td>0.10</td><td>Measures overlap between requested languages and provider languages.</td></tr>
+          <tr><td>Gender comfort</td><td>0.10</td><td>Rewards preferred gender where applicable after hard requirements are handled.</td></tr>
+          <tr><td>Rating recency</td><td>0.10</td><td>Combines recent review score and lifetime rating, with more weight on recent reviews.</td></tr>
+          <tr><td>Cancellation risk</td><td>0.10</td><td>Inverts cancellation rate so lower cancellation improves score.</td></tr>
+          <tr><td>Distance</td><td>0.05</td><td>Scores closeness relative to provider service radius.</td></tr>
+          <tr><td>Price fit</td><td>0.05</td><td>Normalizes base rate and allows emergency requests to tolerate a premium.</td></tr>
+        </tbody>
+      </table>
+
+      <h3>Category-Specific Weight Adjustments</h3>
+      <p>
+        Certain service categories override default weights. For example, physiotherapy increases specialization and rating-recency weight, while clinic visits increase availability, distance, and reliability. Caregiver and home nurse flows increase reliability, gender comfort, specialization, language, and cancellation-risk importance.
+      </p>
+
+      <h3>Agentic Matching Step</h3>
+      <p>
+        After hard filtering and scoring, <code>POST /api/match</code> sends candidate summaries, rejected-provider reasons, conflict information, and the distance-only baseline provider into an LLM tool loop. The returned response includes:
+      </p>
+      <ul>
+        <li><code>agent_trace</code>: tools called and observations inspected.</li>
+        <li><code>agent_decision</code>: selected provider IDs and reasoning.</li>
+        <li><code>baseline_comparison</code>: whether the agent agreed with or adapted beyond the baseline.</li>
+      </ul>
+
+      <div class="callout">
+        <strong>Why this matters:</strong> The matching flow can explain both why a provider was selected and why other providers were rejected. This is important for trust, safety, and debugging.
+      </div>
+    </section>
+
+    <section id="antigravity">
+      <h2>5. Antigravity Workflow</h2>
+      <p>
+        The project was built with Antigravity as the primary development workflow. The implementation was not created as one large prompt. It was divided into phased conversations so each part of the product could be planned, implemented, reviewed, and continued with context.
+      </p>
+
+      <h3>How Antigravity Was Used</h3>
+      <ol>
+        <li>An overall phase-wise action plan was created first. This became the build roadmap for the app, backend, data, agent behavior, demo flow, and submission artifacts.</li>
+        <li>Each follow-up conversation focused on a specific phase or feature area, such as project setup, request capture, provider data, matching, pricing, booking simulation, dispute handling, fallback behavior, demo scenarios, polish, testing, and Android build configuration.</li>
+        <li>For each phase, Antigravity was used to produce or refine implementation plans, edit files, run local checks, and continue from the previous work.</li>
+        <li>Conversation artifacts were kept separately so the development process can be reviewed independently from the application code.</li>
+        <li>The final project includes both the implemented source code and the separate conversation logs that show the staged AI-assisted build process.</li>
+      </ol>
+
+      <h3>Conversation Log Location</h3>
+      <p>
+        The Antigravity conversation exports are stored separately in <code>Antigravity Logs/</code>. Each numbered folder represents a separate conversation or work session. These logs are intended to be submitted separately from this standalone documentation file.
+      </p>
+
+      <h3>Workflow Evidence Map</h3>
+      <table>
+        <thead>
+          <tr>
+            <th>Workflow Area</th>
+            <th>Evidence in Repository</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>Overall roadmap</td><td><code>ACTION_PLAN.md</code> and <code>Antigravity Logs/</code> conversation exports.</td></tr>
+          <tr><td>Architecture planning</td><td><code>ARCHITECTURE.md</code> and backend/frontend source structure.</td></tr>
+          <tr><td>Feature-by-feature implementation</td><td>Numbered folders in <code>Antigravity Logs/</code> containing task, implementation plan, and walkthrough files.</td></tr>
+          <tr><td>Agent behavior evidence</td><td><code>agent-traces/</code>, backend tool traces, <code>.agents/baseline-comparison.csv</code>, and <code>.agents/multilingual-robustness-traces.json</code>.</td></tr>
+          <tr><td>Build and package preparation</td><td><code>Antigravity Logs/walkthrough.md</code>, <code>app.json</code>, and <code>eas.json</code>.</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section id="apis-tools">
+      <h2>6. APIs and Tools</h2>
+      <p>
+        The backend exposes REST endpoints under <code>/api</code>. The frontend calls these through <code>services/apiClient.ts</code> and custom hooks.
+      </p>
+
+      <h3>Backend API Contract</h3>
+      <table>
+        <thead>
+          <tr>
+            <th>Endpoint</th>
+            <th>Method</th>
+            <th>Purpose</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td><code>/health</code></td><td>GET</td><td>Server health check.</td></tr>
+          <tr><td><code>/api/parse-request</code></td><td>POST</td><td>Parse natural-language request into structured care request.</td></tr>
+          <tr><td><code>/api/match</code></td><td>POST</td><td>Run provider matching, tool-backed agent selection, explanations, and baseline comparison.</td></tr>
+          <tr><td><code>/api/quote</code></td><td>POST</td><td>Generate deterministic quote and pricing-agent review.</td></tr>
+          <tr><td><code>/api/bookings</code></td><td>POST</td><td>Create booking record for the selected provider and quote.</td></tr>
+          <tr><td><code>/api/bookings/:id</code></td><td>GET</td><td>Fetch booking details.</td></tr>
+          <tr><td><code>/api/bookings/:id/status</code></td><td>GET</td><td>Fetch current booking status.</td></tr>
+          <tr><td><code>/api/bookings/:id/simulate</code></td><td>POST</td><td>Advance the demo booking lifecycle.</td></tr>
+          <tr><td><code>/api/bookings/:id/cancel</code></td><td>POST</td><td>Cancel booking and trigger fallback handling where applicable.</td></tr>
+          <tr><td><code>/api/disputes</code></td><td>POST</td><td>Submit a dispute.</td></tr>
+          <tr><td><code>/api/disputes/chat</code></td><td>POST</td><td>Run interactive dispute/evidence response.</td></tr>
+          <tr><td><code>/api/providers</code></td><td>GET</td><td>List providers.</td></tr>
+          <tr><td><code>/api/providers/:id</code></td><td>GET</td><td>Fetch provider detail.</td></tr>
+          <tr><td><code>/api/providers/:id/reputation</code></td><td>POST</td><td>Update provider reputation after feedback or dispute outcome.</td></tr>
+          <tr><td><code>/api/demo/scenarios</code></td><td>GET</td><td>List available demo scenarios.</td></tr>
+          <tr><td><code>/api/demo/scenario/:id</code></td><td>POST</td><td>Activate a seeded demo scenario.</td></tr>
+          <tr><td><code>/api/demo/baseline-comparison</code></td><td>GET</td><td>Return baseline-vs-agentic comparison across seeded scenarios.</td></tr>
+        </tbody>
+      </table>
+
+      <h3>Agent Tools and Internal Observations</h3>
+      <ul>
+        <li><code>get_providers_in_area</code>: observes eligible providers by service area.</li>
+        <li><code>check_calendar_conflicts</code>: inspects booking conflicts against requested time.</li>
+        <li><code>inspect_rejected_providers</code>: reviews why providers failed hard filters.</li>
+        <li><code>compare_baseline</code>: compares agent decision with distance-only baseline.</li>
+        <li><code>inspect_quote_lines</code>: reviews pricing line items.</li>
+        <li><code>check_urgency_flexibility</code>: determines whether a cheaper slot can be suggested.</li>
+        <li><code>review_provider_risk</code>: checks cancellation, disputes, and reputation signals.</li>
+        <li><code>inspect_booking_terms</code>: dispute flow checks what the family accepted.</li>
+        <li><code>check_gps_arrival_log</code>: dispute flow checks simulated arrival evidence.</li>
+        <li><code>initiate_mock_refund</code>: dispute flow can trigger a mock refund recommendation.</li>
+      </ul>
+
+      <h3>Primary Developer Commands</h3>
+      <pre><code># Frontend
+npm install
+npm start
+npm test
+
+# Backend
+cd backend
+npm install
+npm run dev
+npm test
+npm run check:agentic
+npm run generate:baseline</code></pre>
+
+      <h3>Key Libraries and Services</h3>
+      <ul>
+        <li>Expo 54, React Native 0.81, React 19, Expo Router.</li>
+        <li>TanStack React Query, Zustand, AsyncStorage.</li>
+        <li>Express, TypeScript, Zod, Jest, Supertest.</li>
+        <li>OpenAI SDK through an internal <code>LLMProvider</code> interface.</li>
+        <li>Mock LLM provider for deterministic offline demos.</li>
+      </ul>
+    </section>
+
+    <section id="cost-latency">
+      <h2>7. Cost and Latency Analysis</h2>
+      <p>
+        Cost estimates are planning estimates, not invoices. Actual cost depends on model choice, prompt length, traffic, caching, and provider dataset size.
+      </p>
+
+      <h3>Unit Operations</h3>
+      <table>
+        <thead>
+          <tr>
+            <th>Operation</th>
+            <th>Typical LLM Calls</th>
+            <th>Estimated Latency</th>
+            <th>Notes</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>Understand request</td><td>1</td><td>1.5-4s</td><td>Parses noisy multilingual input into structured JSON.</td></tr>
+          <tr><td>Agentic matching</td><td>1</td><td>2-6s</td><td>Tool loop observes providers, conflicts, rejected candidates, and baseline.</td></tr>
+          <tr><td>Match explanation</td><td>1-3, often cached</td><td>1-4s</td><td>Explains top providers to the family.</td></tr>
+          <tr><td>Pricing review</td><td>1</td><td>1.5-4s</td><td>Reviews quote, urgency, provider risk, and cheaper-slot options.</td></tr>
+          <tr><td>Booking confirmation</td><td>0</td><td>&lt;800ms target</td><td>Should not depend on LLM.</td></tr>
+          <tr><td>Dispute mock flow</td><td>0 in current mock flow</td><td>&lt;500ms current, &lt;2s target</td><td>Uses local evidence tools in the prototype.</td></tr>
+        </tbody>
+      </table>
+
+      <h3>Cost Per User Journey</h3>
+      <p>
+        A normal full journey uses request parsing, provider matching, explanations for top candidates, quote review, and optionally a dispute flow. Expected LLM calls:
+      </p>
+      <ul>
+        <li>Low: 3 calls if explanations are cached or only the top match is explained.</li>
+        <li>Normal demo: 5-6 calls.</li>
+        <li>Heavy: 8+ calls if the family repeatedly clarifies and re-runs matching.</li>
+      </ul>
+      <p>
+        The prototype is designed to use a small routing model for most language tasks. Using GPT-5.4 mini as the planning baseline, the public OpenAI API pricing page lists standard text pricing at <code>$0.75 / 1M input tokens</code>, <code>$0.075 / 1M cached input tokens</code>, and <code>$4.50 / 1M output tokens</code>. The estimates below use uncached input to stay conservative.
+      </p>
+
+      <h3>Estimated LLM Cost Per Operation</h3>
+      <table>
+        <thead>
+          <tr>
+            <th>Application Operation</th>
+            <th>Estimated Tokens</th>
+            <th>Estimated Cost</th>
+            <th>Notes</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Parse request</td>
+            <td>1,200 input + 400 output</td>
+            <td>About $0.0027</td>
+            <td>Natural-language request to structured care JSON.</td>
+          </tr>
+          <tr>
+            <td>Agentic matching decision</td>
+            <td>2,000 input + 600 output</td>
+            <td>About $0.0042</td>
+            <td>Candidate summaries, rejected-provider reasons, conflict checks, and baseline comparison.</td>
+          </tr>
+          <tr>
+            <td>One match explanation</td>
+            <td>1,000 input + 250 output</td>
+            <td>About $0.0019</td>
+            <td>Often cached by request/provider pair. Explaining 3 matches is about $0.0056 uncached.</td>
+          </tr>
+          <tr>
+            <td>Pricing review</td>
+            <td>1,500 input + 400 output</td>
+            <td>About $0.0029</td>
+            <td>Reviews line items, urgency flexibility, cheaper slot, and provider risk.</td>
+          </tr>
+          <tr>
+            <td>Dispute mock flow</td>
+            <td>0 LLM tokens currently</td>
+            <td>$0.0000</td>
+            <td>Current demo uses local evidence tools. A future LLM summary would add a small extra call.</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <h3>Estimated Cost Per Completed Care Request</h3>
+      <table>
+        <thead>
+          <tr>
+            <th>Journey Type</th>
+            <th>Included LLM Work</th>
+            <th>Estimated Cost</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Lean journey</td>
+            <td>Parse + matching + one explanation + pricing review</td>
+            <td>About $0.0117 per request</td>
+          </tr>
+          <tr>
+            <td>Normal demo journey</td>
+            <td>Parse + matching + three explanations + pricing review</td>
+            <td>About $0.0154 per request</td>
+          </tr>
+          <tr>
+            <td>Heavy journey</td>
+            <td>Repeated clarification, re-match, multiple explanations, pricing review</td>
+            <td>About $0.025-$0.035 per request</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <h3>10x and 100x LLM Spend Estimate</h3>
+      <table>
+        <thead>
+          <tr>
+            <th>Scale</th>
+            <th>Requests Per Day</th>
+            <th>Normal Journey Estimate</th>
+            <th>Monthly Estimate</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Demo baseline</td>
+            <td>100</td>
+            <td>About $1.54/day</td>
+            <td>About $46/month</td>
+          </tr>
+          <tr>
+            <td>10x</td>
+            <td>1,000</td>
+            <td>About $15.40/day</td>
+            <td>About $462/month</td>
+          </tr>
+          <tr>
+            <td>100x</td>
+            <td>10,000</td>
+            <td>About $154/day</td>
+            <td>About $4,620/month</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <h3>Subscription and Unit Economics</h3>
+      <p>
+        The platform-level monthly numbers grow with usage, but the important sustainability metric is cost per family. A normal completed care request is estimated at about <code>$0.0154</code> in LLM usage. If a family uses the app one or two times per month, the LLM cost for that family is about <code>$0.02-$0.03/month</code>.
+      </p>
+      <table>
+        <thead>
+          <tr>
+            <th>Family Usage Pattern</th>
+            <th>Estimated LLM Cost</th>
+            <th>Example Revenue Model</th>
+            <th>Sustainability Read</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>1 request/month</td>
+            <td>About $0.015/month</td>
+            <td>Small booking fee or provider commission</td>
+            <td>LLM cost is almost negligible compared with service revenue.</td>
+          </tr>
+          <tr>
+            <td>2 requests/month</td>
+            <td>About $0.03/month</td>
+            <td>Low family subscription plus optional booking fee</td>
+            <td>Even a very low monthly plan covers LLM usage many times over.</td>
+          </tr>
+          <tr>
+            <td>8 requests/month</td>
+            <td>About $0.12/month</td>
+            <td>Recurring-care family plan</td>
+            <td>Higher usage improves retention while LLM cost remains low.</td>
+          </tr>
+        </tbody>
+      </table>
+      <p>
+        A pure subscription model may be difficult for families who only need help once or twice a month. A stronger model is hybrid: free request intake, a small confirmed-booking fee, provider commission on completed services, and an optional family care plan for recurring users. This aligns cost with actual service value instead of asking every family to pay heavily before they need care.
+      </p>
+
+      <div class="callout warning">
+        <p><strong>Cost interpretation:</strong> These are LLM-token estimates only. They do not include hosting, database, SMS/WhatsApp, maps, payment processing, observability, or human support costs. Caching, shorter prompts, Batch API for offline jobs, and fewer explanation calls can reduce spend.</p>
+      </div>
+
+      <h3>Cost Controls</h3>
+      <ul>
+        <li>Use deterministic filters before any LLM call.</li>
+        <li>Send compact candidate summaries instead of full provider records.</li>
+        <li>Cache stable match explanations by request/provider pair.</li>
+        <li>Cap tool-loop steps.</li>
+        <li>Use cheaper models for parsing and reserve stronger models for high-risk decisions.</li>
+        <li>Keep dispute demo tools local and deterministic.</li>
+      </ul>
+
+      <h3>Scaling Plan</h3>
+      <table>
+        <thead>
+          <tr>
+            <th>Scale</th>
+            <th>Expected Load</th>
+            <th>Architecture Changes</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Prototype</td>
+            <td>Seeded local demo traffic</td>
+            <td>JSON data, Express server, local matching engine, optional live OpenAI key.</td>
+          </tr>
+          <tr>
+            <td>10x</td>
+            <td>About 1,000 care requests/day</td>
+            <td>Move provider data to database repository layer, index by city/service/gender/availability, queue non-critical explanations, run 2-3 stateless API instances.</td>
+          </tr>
+          <tr>
+            <td>100x</td>
+            <td>About 10,000 care requests/day plus provider updates and disputes</td>
+            <td>Postgres/Supabase, Redis cache, background jobs, audit logs, regional/city partitioning, semantic provider specialty index if catalog grows.</td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section id="baseline">
+      <h2>8. Baseline Comparison</h2>
+      <p>
+        The non-agentic baseline is simple: choose the first eligible provider by distance after hard filters. The agentic flow starts from the same eligible provider set but inspects additional evidence before deciding whether to agree with the baseline or adapt beyond it.
+      </p>
+
+      <h3>Baseline Rule</h3>
+      <pre><code>baseline = first eligible provider sorted by distance_km</code></pre>
+
+      <h3>Agentic Rule</h3>
+      <pre><code>agentic_match = hard filters + weighted scoring + tool observations + LLM decision
+
+tool observations include:
+- candidate providers
+- rejected providers and rejection reasons
+- calendar conflicts
+- baseline provider
+- reliability, cancellation, verification, specialization, language, and risk signals</code></pre>
+
+      <h3>Comparison Summary</h3>
+      <p>
+        The generated comparison file contains 18 scenarios. In some scenarios the agent confirms the distance baseline after checking evidence. In other scenarios it adapts because the distance-first provider is weaker on reliability, specialization, verification, family constraints, language, or cancellation risk.
+      </p>
+
+      <table>
+        <thead>
+          <tr>
+            <th>Scenario Type</th>
+            <th>Baseline Weakness</th>
+            <th>Agentic Advantage</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>Recurring caregiver</td><td>Distance-only does not optimize risk, specialization, or family constraints.</td><td>Selects an agency with better verification, coverage, reliability, and specialization.</td></tr>
+          <tr><td>Home physiotherapy</td><td>Nearest provider may not be strongest for post-surgery rehab.</td><td>Prioritizes orthopedic rehab, verification, and lower cancellation risk.</td></tr>
+          <tr><td>Food and medicine support</td><td>Nearest care agency may not be best for medicine logistics.</td><td>Selects provider specializing in prescription pickup and cold-chain medicines.</td></tr>
+          <tr><td>Failure and fallback</td><td>Nearest provider may carry higher cancellation risk.</td><td>Selects safer provider with stronger reliability and lower cancellation rate.</td></tr>
+          <tr><td>Wheelchair or clinic escort</td><td>Distance baseline can be correct but still needs validation.</td><td>Confirms baseline only after checking wheelchair support, verification, and reliability.</td></tr>
+        </tbody>
+      </table>
+
+      <p>
+        Evidence files: <code>.agents/baseline-comparison.csv</code> and <code>GET /api/demo/baseline-comparison</code>.
+      </p>
+    </section>
+
+    <section id="assumptions">
+      <h2>9. Assumptions</h2>
+      <ul>
+        <li>The prototype uses mock provider, booking, service, and user data. It does not connect to a live care-provider marketplace.</li>
+        <li>Provider ratings, cancellation rates, disputes, and availability slots are seeded demo values.</li>
+        <li>Area matching uses named service areas and approximate coordinates. Production would use verified addresses and a routing API.</li>
+        <li>Payments, refunds, and dispatch notifications are simulated. No real money is moved.</li>
+        <li>OpenAI can be used when an API key is configured, but the app also supports deterministic mock mode for offline demos.</li>
+        <li>Urdu and Roman Urdu handling are demonstrated through parser behavior, localization files, and robustness traces, but broad dialect coverage would require more testing.</li>
+        <li>Provider identity, background checks, licenses, and insurance are represented by demo fields such as <code>verified</code>; real onboarding would require operational verification.</li>
+        <li>The app is designed around family coordination for elder care, not emergency medical diagnosis or urgent clinical triage.</li>
+      </ul>
+    </section>
+
+    <section id="privacy">
+      <h2>10. Privacy Note</h2>
+      <p>
+        The prototype uses seeded mock data and should not contain real patient records, real provider records, payment credentials, or protected medical information. User-entered requests may describe health or family situations, so production handling would require stronger controls.
+      </p>
+
+      <h3>Prototype Privacy Behavior</h3>
+      <ul>
+        <li>Seeded JSON data is used for providers, users, bookings, services, and demo scenarios.</li>
+        <li>No real payment processing is performed.</li>
+        <li>No real provider dispatch happens.</li>
+        <li>No production database of patient data is included.</li>
+        <li>Conversation logs are stored separately and should be reviewed before external sharing to ensure they do not include secrets or private information.</li>
+      </ul>
+
+      <h3>Production Privacy Requirements</h3>
+      <ul>
+        <li>Encrypt personal, booking, location, and dispute data at rest and in transit.</li>
+        <li>Use authentication, authorization, role-based access, and audit logs.</li>
+        <li>Minimize data sent to LLMs by stripping unnecessary identifiers and using compact summaries.</li>
+        <li>Store agent traces with access controls because they may include sensitive care context.</li>
+        <li>Define retention policies for booking, location, dispute, and conversation data.</li>
+        <li>Add consent flows for family members and providers.</li>
+      </ul>
+    </section>
+
+    <section id="limitations">
+      <h2>11. Limitations</h2>
+      <div class="risk">
+        <p><strong>Important:</strong> CirclCare AI is a coordination prototype. It is not a medical diagnosis system, not an emergency response service, and not a replacement for licensed clinical judgment.</p>
+      </div>
+
+      <ul>
+        <li>Provider data is mocked and not verified against real-world credentials.</li>
+        <li>Availability and booking conflicts are simulated from local JSON data.</li>
+        <li>Location matching uses approximate coordinates and service radius, not live traffic-aware routing.</li>
+        <li>LLM parsing can be wrong for ambiguous, noisy, or mixed-language requests; low confidence should trigger clarification.</li>
+        <li>The matching algorithm depends on seeded quality signals. Real deployments need continuous provider quality monitoring.</li>
+        <li>The current dispute flow uses mock evidence such as simulated GPS and booking terms.</li>
+        <li>The pricing model is a transparent prototype, not a market-tested pricing engine.</li>
+        <li>The app does not yet include production authentication, payment gateway integration, provider onboarding, insurance checks, or live notification delivery.</li>
+        <li>Fairness controls are policy-level and code-level in the prototype. Production would need monitoring for disparate impact and user appeals.</li>
+      </ul>
+
+      <h3>Safety and Fairness Boundaries</h3>
+      <ul>
+        <li>Explicit gender requirements are allowed when they represent family comfort or safety needs in home-care contexts.</li>
+        <li>Caste, sect, ethnic, and religion-based matching are intentionally excluded.</li>
+        <li>High-risk care requires verified providers in the matching logic.</li>
+        <li>Rejected providers are returned with reasons so decisions can be inspected.</li>
+      </ul>
+    </section>
+
+    <section id="evidence">
+      <h2>12. Evidence Files</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>File or Folder</th>
+            <th>What It Shows</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td><code>README.md</code></td><td>Project overview and broad feature description.</td></tr>
+          <tr><td><code>ARCHITECTURE.md</code></td><td>Detailed frontend, backend, data, security, scalability, and safety architecture.</td></tr>
+          <tr><td><code>PROJECT_STRUCTURE.md</code></td><td>Repository structure and module boundaries.</td></tr>
+          <tr><td><code>ACTION_PLAN.md</code></td><td>Phase-wise build plan used to structure implementation.</td></tr>
+          <tr><td><code>COST_AND_SCALABILITY.md</code></td><td>Detailed cost, scaling, latency, and reliability analysis.</td></tr>
+          <tr><td><code>data/providers.json</code></td><td>Seeded provider dataset.</td></tr>
+          <tr><td><code>backend/src/services/matchingEngine.ts</code></td><td>Hard filters, category weights, scoring, and baseline function.</td></tr>
+          <tr><td><code>backend/src/services/pricingEngine.ts</code></td><td>Quote logic and pricing breakdown behavior.</td></tr>
+          <tr><td><code>backend/src/services/disputeEngine.ts</code></td><td>Evidence-based dispute recommendation flow.</td></tr>
+          <tr><td><code>backend/scripts/agentic-flow-check.ts</code></td><td>Automated check covering parsing, agentic matching, pricing review, dispute action, and baseline comparison.</td></tr>
+          <tr><td><code>.agents/baseline-comparison.csv</code></td><td>Generated comparison of distance-only baseline and agentic outcome across scenarios.</td></tr>
+          <tr><td><code>.agents/multilingual-robustness-traces.json</code></td><td>Robustness traces for noisy Roman Urdu, code-switched, and ambiguous requests.</td></tr>
+          <tr><td><code>agent-traces/</code></td><td>Readable trace examples for language parsing, provider ranking, scheduling, pricing, action execution, and fallback behavior.</td></tr>
+          <tr><td><code>Antigravity Logs/</code></td><td>Separate Antigravity conversation logs showing phased development workflow.</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+      </div>
+    </div>
+
+    <footer>
+      <p>CirclCare AI core documentation. This file is standalone and can be opened directly in a browser.</p>
+    </footer>
+  </main>
+</body>
+</html>

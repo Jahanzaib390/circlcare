@@ -1,0 +1,13 @@
+[2026-05-17T16:02:15.002Z] [WARN] [FallbackEngineAgent] Provider P-402 (Fatima Ali) declined booking bkg_559902 due to unforeseen personal emergency.
+[2026-05-17T16:02:15.005Z] [INFO] [FallbackEngineAgent] Initiating Fallback Recovery Protocol...
+[2026-05-17T16:02:15.010Z] [DEBUG] [FallbackEngineAgent] Re-evaluating ranked candidates from previous session (ID: req_8f2a91b).
+[2026-05-17T16:02:15.015Z] [INFO] [FallbackEngineAgent] Retrieving Next Best Candidate: P-115 (Ahmed Khan) - Score: 85/100.
+[2026-05-17T16:02:15.020Z] [DEBUG] [FallbackEngineAgent] Verifying real-time availability for P-115 for 2026-05-26T08:00:00Z to 2026-05-26T12:00:00Z.
+[2026-05-17T16:02:15.300Z] [DEBUG] [FallbackEngineAgent] Availability confirmed.
+[2026-05-17T16:02:15.305Z] [INFO] [PricingEngineAgent] Recalculating quote for P-115...
+[2026-05-17T16:02:15.350Z] [DEBUG] [PricingEngineAgent] Original Quote: Rs 7935.00. New Quote for P-115: Rs 8250.00 (Distance Surcharge Applied).
+[2026-05-17T16:02:15.355Z] [INFO] [FallbackEngineAgent] PRICE PROTECTION TRIGGERED: New quote exceeds original by Rs 315.00. Automatically absorbing difference via Platform Subsidy account to guarantee seamless user experience.
+[2026-05-17T16:02:15.360Z] [INFO] [ActionExecutionAgent] Rerouting booking bkg_559902 to P-115.
+[2026-05-17T16:02:15.365Z] [DEBUG] [ActionExecutionAgent] Dispatching notification to P-115...
+[2026-05-17T16:02:15.420Z] [DEBUG] [ActionExecutionAgent] Dispatching update to User App: "Your primary provider Fatima Ali had an unexpected conflict. We have automatically secured our top alternative, Ahmed Khan, at the exact same time and price. Review Ahmed's profile now."
+[2026-05-17T16:02:15.425Z] [INFO] [FallbackEngineAgent] Fallback Recovery Protocol completed successfully. Booking state returned to [PENDING_PROVIDER].

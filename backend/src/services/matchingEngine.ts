@@ -130,6 +130,41 @@ const AREA_CENTROIDS: Record<string, { lat: number; lng: number }> = {
   islamabad: { lat: 33.6844, lng: 73.0479 },
 };
 
+function detectCity(value: string): 'lahore' | 'karachi' | 'islamabad' | undefined {
+  const lower = value.toLowerCase();
+  if (lower.includes('karachi') || lower.includes('clifton') || lower.includes('gulshan') || lower.includes('nazimabad')) {
+    return 'karachi';
+  }
+  if (
+    lower.includes('islamabad') ||
+    lower.includes('f-7') ||
+    lower.includes('f-8') ||
+    lower.includes('g-9') ||
+    lower.includes('blue area')
+  ) {
+    return 'islamabad';
+  }
+  if (
+    lower.includes('lahore') ||
+    lower.includes('gulberg') ||
+    lower.includes('model town') ||
+    lower.includes('johar town') ||
+    lower.includes('garden town') ||
+    lower.includes('faisal town') ||
+    lower.includes('ichra') ||
+    lower.includes('cantt') ||
+    lower.includes('bahria town')
+  ) {
+    return 'lahore';
+  }
+  return undefined;
+}
+
+function providerCity(provider: Provider): 'lahore' | 'karachi' | 'islamabad' | undefined {
+  const combined = [...provider.areas, provider.location.area].join(' ');
+  return detectCity(combined) ?? 'lahore';
+}
+
 function resolvePatientLocation(locationFrom: string): { lat: number; lng: number; area: string } {
   const lower = locationFrom.toLowerCase().trim();
   for (const [area, coords] of Object.entries(AREA_CENTROIDS)) {
@@ -341,6 +376,15 @@ function applyHardFilters(
   // 2. Area / city match — case-insensitive substring check on provider.areas
   const patientArea = request.location_from.toLowerCase().trim();
   if (patientArea !== 'not specified' && patientArea !== 'flexible') {
+    const requestedCity = detectCity(request.location_from);
+    if (requestedCity && providerCity(provider) !== requestedCity) {
+      return {
+        passed: false,
+        failedFilter: 'area_coverage',
+        reason: `Provider is not in ${requestedCity}`,
+      };
+    }
+
     const areaMatch = provider.areas.some(
       (a) => lower(a).includes(patientArea) || patientArea.includes(lower(a))
     );

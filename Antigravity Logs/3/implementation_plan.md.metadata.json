@@ -1,0 +1,6 @@
+{
+  "artifactType":  "ARTIFACT_TYPE_IMPLEMENTATION_PLAN",
+  "summary":  "Detailed implementation plan for Phase 1 (Core Request Capture Flow) of CirclCare AI. Covers: full HomeScreen rebuild with 8-category tiles, recent requests, and emergency toggle; Voice Input strategy decision (defer vs implement now); backend Gemini Request Parser with LLMProvider interface, GeminiProvider and MockProvider implementations; Understanding/Confirmation screen with skeleton loading, tap-to-edit fields, clarification UI, and CTAs; plus supporting Zustand store, TanStack Query mutation hook, and API client. Includes file-by-file breakdown and verification plan.",
+  "updatedAt":  "2026-05-15T06:47:15.517597700Z",
+  "requestFeedback":  true
+}

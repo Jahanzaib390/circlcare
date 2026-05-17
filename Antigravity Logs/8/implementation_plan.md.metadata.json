@@ -1,0 +1,6 @@
+{
+  "artifactType":  "ARTIFACT_TYPE_IMPLEMENTATION_PLAN",
+  "summary":  "Implementation plan for Phase 6.1 Cancellation & Fallback Engine. Includes updates to booking simulator, pricing engine, and route handling.",
+  "updatedAt":  "2026-05-15T15:16:11.533948Z",
+  "requestFeedback":  true
+}

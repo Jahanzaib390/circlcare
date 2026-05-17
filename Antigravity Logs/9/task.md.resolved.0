@@ -1,0 +1,22 @@
+# Phase 7 Implementation Tasks
+
+- [ ] **Demo Mode (7.1)**
+  - [ ] Create `data/demo-scenarios.json`
+  - [ ] Implement `POST /api/demo/scenario/:id` in `backend/src/routes/demoRoutes.ts`
+  - [ ] Add "Demo Mode" toggle in `app/modals/settings.tsx`
+  - [ ] Update `app/(tabs)/index.tsx` with Demo shortcuts that call backend & auto-fill input
+
+- [ ] **UI Polish (7.2)**
+  - [ ] Add `expo-haptics` and `@react-native-async-storage/async-storage` (if not installed)
+  - [ ] Create `components/ui/Skeleton.tsx` for loading states
+  - [ ] Create `components/ui/EmptyState.tsx`
+  - [ ] Implement Skeletons in data-fetching screens (`match.tsx`, `ProviderDashboard.tsx`, etc.)
+  - [ ] Integrate Haptics in actions (booking confirm, rating submit, dispute submit)
+  - [ ] Ensure `SafeAreaView` wrapping where necessary
+
+- [ ] **Onboarding (7.3)**
+  - [ ] Create `app/onboarding.tsx` (3 slides + profile setup)
+  - [ ] Update `app/_layout.tsx` to handle initial routing based on `AsyncStorage` first-launch flag
+
+- [ ] **Wrap Up**
+  - [ ] Update `ACTION_PLAN.md` to mark Phase 7 tasks as completed.
