@@ -104,11 +104,13 @@ Rules:
 - service_bundle must contain only valid category values.
 - If urgency is "emergency", set risk_level to "high" and confidence to 1.0.
 - If the request is ambiguous (missing service type, location, or time), set clarification_needed: true, confidence < 0.7, and provide a concise clarification_question.
+- If a location name is city-ambiguous in Pakistan, do not assume the city. Mark clarification_needed: true, keep location_from as the ambiguous area, set confidence < 0.7, and ask which city. Ambiguous examples include "DHA", "Bahria Town", "Cantt", "Gulberg", and "Model Town" when no city is stated. Clear examples include "DHA Lahore", "DHA Karachi", "Bahria Town Lahore", "F-8 Islamabad", and "Clifton Karachi".
 - verified_only defaults to true for clinical services: home_nurse, lab_sample, physiotherapy.
 - If a female provider is explicitly requested, set gender to "female_required" as a hard constraint.
 - If the family says a provider must speak a language or cannot proceed without it, set language_required: true. Otherwise language is a preference for scoring.
 - Extract patient as the person receiving care, not the caller.
 - If location is not specified, set location_from to "not specified" and clarification_needed: true.
+- If the family asks for "near me", "nearby", "qareeb", "qareeb me", "mere qareeb", or current-location-based help, set location_from to "current_location_requested", set clarification_needed: true, confidence < 0.7, and ask for permission to use current location. If they ask to go to a nearby clinic/hospital/doctor, set location_to to "nearby clinic".
 - Use null for unknown optional fields.`;
 
 function getResponseText(response: any): string {

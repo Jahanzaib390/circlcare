@@ -36,7 +36,9 @@ parseRoutes.post('/parse-request', async (req, res, next) => {
       parsed.risk_level = 'high';
       parsed.confidence = Math.max(parsed.confidence, 0.85);
       parsed.clarification_needed =
-        parsed.service_bundle.length === 0 || parsed.location_from === 'not specified';
+        parsed.service_bundle.length === 0 ||
+        parsed.location_from === 'not specified' ||
+        parsed.location_from === 'current_location_requested';
     }
     return success(res, parsed);
   } catch (e) {

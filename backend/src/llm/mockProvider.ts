@@ -58,37 +58,68 @@ export class MockProvider implements LLMProvider {
         lower.includes('cannot speak'));
 
     // ── Location extraction ────────────────────────────────────────────────────
+    const currentLocationRequested =
+      lower.includes('near me') ||
+      lower.includes('nearby') ||
+      lower.includes('current location') ||
+      lower.includes('qareeb') ||
+      lower.includes('qarib') ||
+      lower.includes('mere qareeb') ||
+      lower.includes('mere qarib');
+    const cityMentioned =
+      lower.includes('lahore') ||
+      lower.includes('karachi') ||
+      lower.includes('islamabad') ||
+      lower.includes('rawalpindi');
+    const ambiguousLocation = [
+      ['bahria town', 'Bahria Town'],
+      ['bahria', 'Bahria Town'],
+      ['dha', 'DHA'],
+      ['cantt', 'Cantt'],
+      ['gulberg', 'Gulberg'],
+      ['model town', 'Model Town'],
+    ].find(([keyword]) => lower.includes(keyword) && !cityMentioned);
     const locationKeywords = [
-      'gulshan',
-      'gulshan-e-iqbal',
-      'dha',
       'dha karachi',
+      'dha lahore',
+      'gulshan-e-iqbal karachi',
+      'clifton karachi',
+      'f-7 islamabad',
+      'f-8 islamabad',
+      'g-9 islamabad',
+      'bahria town lahore',
+      'bahria town karachi',
+      'bahria town rawalpindi',
+      'model town lahore',
+      'gulberg lahore',
+      'gulshan-e-iqbal',
+      'north nazimabad',
+      'blue area',
       'clifton',
       'nazimabad',
-      'north nazimabad',
+      'johar town',
       'johar',
       'f-7',
       'f-8',
       'g-9',
-      'blue area',
-      'bahria',
-      'model town',
-      'johar town',
-      'gulberg',
-      'f-7 islamabad',
-      'f-8 islamabad',
-      'g-9 islamabad',
-      'clifton karachi',
-      'gulshan-e-iqbal karachi',
       'lahore',
       'karachi',
       'islamabad',
       'rawalpindi',
     ];
     const foundLocation = locationKeywords.find((k) => lower.includes(k));
-    const locationFrom = foundLocation
+    const locationFrom = currentLocationRequested
+      ? 'current_location_requested'
+      : ambiguousLocation
+      ? ambiguousLocation[1]
+      : foundLocation
       ? foundLocation.charAt(0).toUpperCase() + foundLocation.slice(1)
       : 'not specified';
+    const locationTo =
+      currentLocationRequested &&
+      (lower.includes('clinic') || lower.includes('doctor') || lower.includes('hospital'))
+        ? 'nearby clinic'
+        : undefined;
 
     // ── Time extraction ─────────────────────────────────────────────────────
     const timeMap: [string, string][] = [
@@ -132,13 +163,16 @@ export class MockProvider implements LLMProvider {
     if (lower.includes('oxygen')) mobilityNeeds.push('oxygen support');
 
     // ── Confidence ────────────────────────────────────────────────────────────
-    const needsClarification = locationFrom === 'not specified' || services[0] === 'daily_support';
+    const needsLocationClarification =
+      currentLocationRequested || Boolean(ambiguousLocation) || locationFrom === 'not specified';
+    const needsClarification = needsLocationClarification || services[0] === 'daily_support';
     const confidence = needsClarification ? 0.55 : 0.88;
 
     return {
       service_bundle: services,
       patient,
       location_from: locationFrom,
+      location_to: locationTo,
       time_preference: timePreference,
       mobility_needs: mobilityNeeds,
       provider_preferences: {
@@ -154,7 +188,11 @@ export class MockProvider implements LLMProvider {
       risk_level: isEmergency ? 'high' : services.includes('home_nurse') ? 'medium' : 'low',
       clarification_needed: needsClarification,
       clarification_question: needsClarification
-        ? locationFrom === 'not specified'
+        ? currentLocationRequested
+          ? 'Should I use your current location to find nearby clinic support?'
+          : ambiguousLocation
+          ? `Which city is ${ambiguousLocation[1]} in: Lahore, Karachi, or Islamabad/Rawalpindi?`
+          : locationFrom === 'not specified'
           ? 'Could you share the location where care is needed?'
           : 'Could you clarify what type of care or support is needed?'
         : undefined,

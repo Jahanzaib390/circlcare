@@ -290,6 +290,9 @@ const SERVICE_OPTIONS = [
 const MOBILITY_OPTIONS = ['wheelchair', 'stretcher', 'oxygen support'];
 
 function clarificationChoices(pr: ParsedRequest): string[] {
+  if (pr.location_from === 'current_location_requested') {
+    return ['Use my current location', 'DHA Lahore', 'Clifton Karachi'];
+  }
   if (pr.location_from === 'not specified') {
     return ['DHA Lahore', 'Model Town Lahore', 'Gulberg Lahore'];
   }
@@ -336,6 +339,10 @@ export default function UnderstandScreen() {
   };
 
   const handleClarificationChoice = (choice: string) => {
+    if (choice === 'Use my current location') {
+      router.push('/modals/location-picker');
+      return;
+    }
     setClarificationText(choice);
     const combined = `${rawRequest} — ${choice}`;
     setRawRequest(combined);
@@ -508,6 +515,8 @@ export default function UnderstandScreen() {
   }
 
   const pr = parsedRequest!;
+  const needsLocationSelection =
+    pr.location_from === 'not specified' || pr.location_from === 'current_location_requested';
 
   return (
     <SafeAreaView style={[sc.root, { backgroundColor: theme.colors.background }]}>
@@ -646,9 +655,13 @@ export default function UnderstandScreen() {
                 returnKeyType="send"
                 onSubmitEditing={handleAnswerClarification}
               />
-              {pr.location_from === 'not specified' && (
+              {needsLocationSelection && (
                 <Button
-                  label="Choose Location"
+                  label={
+                    pr.location_from === 'current_location_requested'
+                      ? 'Use Current Location'
+                      : 'Choose Location'
+                  }
                   variant="secondary"
                   size="sm"
                   fullWidth
@@ -788,7 +801,9 @@ export default function UnderstandScreen() {
             value={
               pr.location_to
                 ? `${pr.location_from} → ${pr.location_to}`
-                : pr.location_from || 'Not specified'
+                : pr.location_from === 'current_location_requested'
+                  ? 'Use current location'
+                  : pr.location_from || 'Not specified'
             }
             editable
             onEdit={() => setEditingField('location_from')}
@@ -1168,7 +1183,7 @@ export default function UnderstandScreen() {
               variant="primary"
               size="lg"
               fullWidth
-              disabled={pr.service_bundle.length === 0 || pr.location_from === 'not specified'}
+              disabled={pr.service_bundle.length === 0 || needsLocationSelection}
               onPress={handleLooksRight}
               style={{ marginBottom: 10 }}
             />

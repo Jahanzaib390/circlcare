@@ -375,6 +375,13 @@ function applyHardFilters(
 
   // 2. Area / city match — case-insensitive substring check on provider.areas
   const patientArea = request.location_from.toLowerCase().trim();
+  if (patientArea === 'current_location_requested') {
+    return {
+      passed: false,
+      failedFilter: 'area_coverage',
+      reason: 'Current location permission is required before matching providers',
+    };
+  }
   if (patientArea !== 'not specified' && patientArea !== 'flexible') {
     const requestedCity = detectCity(request.location_from);
     if (requestedCity && providerCity(provider) !== requestedCity) {
