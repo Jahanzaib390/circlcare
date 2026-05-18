@@ -6,10 +6,14 @@
   "scripts": {
     "dev": "nodemon",
     "build": "tsc",
+    "heroku-postbuild": "npm run build",
     "start": "node dist/server.js",
     "test": "jest --runInBand --passWithNoTests",
     "check:agentic": "ts-node scripts/agentic-flow-check.ts",
     "generate:baseline": "ts-node scripts/generate-baseline-comparison.ts"
+  },
+  "engines": {
+    "node": "22.x"
   },
   "dependencies": {
     "cors": "^2.8.5",
