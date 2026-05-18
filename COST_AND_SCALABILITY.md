@@ -34,7 +34,7 @@ Using a small/mini model for routing and short JSON outputs, a typical request i
 - Tool observations with summarized provider fields instead of full records
 - Explanation cache for repeated provider/request pairs
 - Mock/local dispute tools for deterministic evidence checks
-- Fallback mock provider for demos without API spend
+- Mock provider remains available for local development/tests only; judged demos should use live OpenAI calls.
 
 ## 10x Scaling
 
@@ -90,9 +90,9 @@ Cost controls:
 
 ## Reliability Plan
 
-- If OpenAI is unavailable, `MockProvider` keeps the demo and basic workflow alive.
-- If agentic matching fails, the route falls back to ranked eligible candidates and marks the decision as fallback.
-- If pricing agent fails, the transparent deterministic quote is still returned.
+- In judged mode, `REQUIRE_LIVE_AGENTS=true` makes missing or failed OpenAI agent calls fail loudly instead of silently degrading.
+- Outside judged mode, deterministic matching, pricing, and dispute logic remain useful for local development and unit tests.
+- Every live agent decision returns trace data so failures can be debugged and audited.
 - If location permission is denied, the user can choose saved city areas or enter a manual address.
 - Every agent decision returns trace data so failures can be debugged and audited.
 

@@ -195,7 +195,7 @@ export default function HomeScreen() {
     setRawRequest(scenario.request_text);
     setParsedRequest(null);
     apiClient.post(`/api/demo/scenario/${scenario.id}`, {}).catch(() => {
-      // Bundled scenario data still lets judge demos work without a backend.
+      // Scenario selection still fills the request box; submit runs the live parser.
     });
   };
 

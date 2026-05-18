@@ -58,7 +58,5 @@ export interface MatchResponse {
     agent_provider_id?: string;
     why_agent_better: string;
   };
-  is_offline_fallback?: boolean;
-  fallback_message?: string;
 }
 

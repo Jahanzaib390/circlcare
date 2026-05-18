@@ -100,6 +100,9 @@ matchRoutes.post('/match', async (req, res, next) => {
         baseline?.provider.id
       );
     } catch (agentErr) {
+      if (process.env.REQUIRE_LIVE_AGENTS === 'true') {
+        throw agentErr;
+      }
       console.warn('[matchRoutes] Agentic matching failed; using ranked candidates:', agentErr);
       agentDecision = {
         selected_provider_ids: matchResult.top_matches.map((match) => match.provider.id),
@@ -140,6 +143,9 @@ matchRoutes.post('/match', async (req, res, next) => {
           setCachedExplanation(parsedRequest, match.provider.id, explanation);
           return { ...match, explanation };
         } catch (llmErr) {
+          if (process.env.REQUIRE_LIVE_AGENTS === 'true') {
+            throw llmErr;
+          }
           console.warn(`[matchRoutes] LLM explanation failed for ${match.provider.id}:`, llmErr);
           // Fallback explanation on LLM error
           return {

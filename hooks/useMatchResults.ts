@@ -7,7 +7,6 @@
 
 import { useMutation } from '@tanstack/react-query';
 import { apiClient } from '@/services/apiClient';
-import { buildOfflineMatchResponse } from '@/services/offlineMatching';
 import { useMatchStore } from '@/hooks/useMatchStore';
 import type { MatchResponse } from '@/types/match';
 import type { ParsedRequest } from '@/types/request';
@@ -32,9 +31,8 @@ export function useMatchResults() {
       setMatchResponse(data);
     },
 
-    onError: (err, variables) => {
+    onError: (err) => {
       console.error('[useMatchResults] Error:', err.message);
-      setMatchResponse(buildOfflineMatchResponse(variables.parsedRequest));
     },
   });
 }

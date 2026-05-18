@@ -319,10 +319,10 @@
 **Duration:** ~0.5 day | **Priority:** 🔴
 
 ### 9.1 Judge-Friendly Runtime
-- [ ] 🛠️ Keep a fully scripted demo/mock mode bundled in the app so the Expo link/APK works for judges without external backend setup
-- [ ] 🛠️ Keep local backend support for development via `EXPO_PUBLIC_API_URL=http://localhost:3001`
-- [ ] 🛠️ If live OpenAI is demoed, document the single environment setup path clearly; otherwise default judge builds to deterministic mock responses
-- [ ] 🛠️ Smoke-test the app with airplane-mode/mock data assumptions before submission
+- [x] 🛠️ Document live OpenAI judging path with `REQUIRE_LIVE_AGENTS=true` and `DEMO_SEEDED_PARSE=false`
+- [x] 🛠️ Keep local backend support for development via `EXPO_PUBLIC_API_URL=http://localhost:3001`
+- [x] 🛠️ Add `/api/agent/status` so judges can verify live agent readiness before demo
+- [ ] 🛠️ Smoke-test the full live API journey on the final demo machine before submission
 
 ### 9.2 Expo Preview / Mobile Build
 - [ ] 📱 Publish an Expo preview link when the feature set is compatible with Expo Go
@@ -345,7 +345,7 @@
 | `@react-native-voice` native module | 🟡 MEDIUM | Use `expo-dev-client`; test on device early |
 | Gender/preference hard filter correctness | 🔴 HIGH | Unit test all filter combinations |
 | Multilingual text rendering (Urdu) | 🟡 MEDIUM | Test Urdu chars early; check RTL |
-| Judge runtime reliability | 🟡 MEDIUM | Use bundled demo/mock mode for Expo link/APK; keep backend optional for judging |
+| Judge runtime reliability | 🔴 HIGH | Use a prepared backend with live OpenAI credentials; verify `/api/agent/status` before presenting |
 | Expo Go vs Dev Client | 🟡 MEDIUM | Decide early; go Dev Client if using native modules |
 | Real-time status without WebSockets | 🟢 LOW | 5s polling sufficient for demo |
 

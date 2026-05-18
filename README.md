@@ -15,9 +15,29 @@ CirclCare now avoids presenting a simple summarizer or static ranking algorithm 
 - Matching: `POST /api/match` calls an LLM routing agent with tools such as `get_providers_in_area`, `check_calendar_conflicts`, `inspect_rejected_providers`, and `compare_baseline`. The response includes `agent_trace`, `agent_decision`, and `baseline_comparison`.
 - Pricing: `POST /api/quote` returns `pricing_agent.tool_trace`, showing quote-line inspection, urgency flexibility checks, and provider risk review before deciding whether to keep the quote, discount, suggest a cheaper slot, or escalate.
 - Disputes: `POST /api/disputes/chat` runs an interactive evidence agent. For an extra charge complaint it checks booking terms and GPS arrival logs, then can initiate a mock refund automatically.
-- Baseline comparison: `GET /api/demo/baseline-comparison` compares the non-agentic "first eligible provider by distance" baseline with the agentic multi-factor outcome for all 5 demo scenarios. A CSV copy is in `.agents/baseline-comparison.csv`.
+- Baseline comparison: `GET /api/demo/baseline-comparison` compares the non-agentic "first eligible provider by distance" baseline with the agentic multi-factor outcome for the seeded demo scenarios. A CSV copy is in `.agents/baseline-comparison.csv`.
 - Multilingual robustness: `i18n/en.json` and `i18n/ur.json` back locale strings, `I18nManager.forceRTL()` switches Urdu RTL layout, and `.agents/multilingual-robustness-traces.json` records noisy Roman Urdu, code-switched, and ambiguous input tests.
 - Cost and scalability: see `COST_AND_SCALABILITY.md` for cost per operation estimates, 10x/100x scaling plan, and latency/throughput targets.
+
+### Live-Agent Judging Checklist
+
+For judged demos, run the backend with real LLM calls enabled:
+
+```bash
+LLM_PROVIDER=openai
+OPENAI_API_KEY=sk-...
+OPENAI_MODEL=gpt-5.4-mini
+REQUIRE_LIVE_AGENTS=true
+DEMO_SEEDED_PARSE=false
+```
+
+Verify before presenting:
+
+```bash
+curl http://localhost:3001/api/agent/status
+```
+
+The response should show `provider: "openai"`, `live_agent_ready: true`, and `seeded_parse_enabled: false`. Demo scenario buttons only fill the request text; pressing submit still runs the live parser, matching agent, pricing agent, and trace-producing API flow.
 
 ## Core Idea
 

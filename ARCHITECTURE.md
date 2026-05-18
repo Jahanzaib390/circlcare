@@ -180,7 +180,7 @@ services/
 All services follow:
 ```typescript
 async function serviceCall<T>(payload): Promise<ApiResponse<T>> {
-  // handles loading, error, retry, offline fallback
+  // handles loading, error, retry, and clear live-agent failure states
 }
 ```
 
@@ -197,7 +197,7 @@ async function serviceCall<T>(payload): Promise<ApiResponse<T>> {
 | Process Manager | nodemon (dev) / pm2 (prod) |
 | Environment | dotenv |
 | Testing | Jest + Supertest |
-| Judge delivery | Expo preview link or APK with bundled demo/mock mode; local backend remains available for development |
+| Judge delivery | Expo preview link/APK connected to a prepared backend with live OpenAI credentials; `/api/agent/status` verifies readiness |
 
 ### 3.2 Module Boundaries
 
@@ -224,7 +224,7 @@ backend/
 │   ├── llm/
 │   │   ├── LLMProvider.ts     ← Interface definition
 │   │   ├── OpenAIProvider.ts  ← OpenAI API implementation
-│   │   └── MockLLMProvider.ts ← Test/offline stub
+│   │   └── MockLLMProvider.ts ← Test/local-development stub
 │   │
 │   ├── utils/
 │   │   ├── haversine.ts       ← Distance calculation
@@ -274,7 +274,7 @@ interface LLMProvider {
 // llm/OpenAIProvider.ts — current implementation
 class OpenAIProvider implements LLMProvider { ... }
 
-// llm/MockLLMProvider.ts — for tests and offline mode
+// llm/MockLLMProvider.ts — for tests and local development
 class MockLLMProvider implements LLMProvider { ... }
 ```
 
@@ -488,7 +488,7 @@ i18n/
 ### Prototype Stack
 ```
 Expo (managed workflow or dev client)
-Node.js + Express locally for development; bundled mock mode for judge-facing Expo/APK builds
+Node.js + Express locally for development; prepared backend with live OpenAI credentials for judge-facing Expo/APK builds
 OpenAI API
 JSON files as data store
 In-memory booking state

@@ -19,6 +19,9 @@ quoteRoutes.post('/quote', async (req, res, next) => {
       const pricingAgent = await getLLM().reviewQuoteWithTools(parsedRequest, provider, quote);
       quote.pricing_agent = pricingAgent;
     } catch (agentErr) {
+      if (process.env.REQUIRE_LIVE_AGENTS === 'true') {
+        throw agentErr;
+      }
       console.warn('[quoteRoutes] Pricing agent failed; returning transparent quote:', agentErr);
       quote.pricing_agent = {
         tool_trace: [],

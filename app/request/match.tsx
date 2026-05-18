@@ -599,25 +599,6 @@ export default function MatchScreen() {
       </View>
 
       <ScrollView contentContainerStyle={s.content} showsVerticalScrollIndicator={false}>
-        {matchResponse?.is_offline_fallback && (
-          <View
-            style={[
-              s.offlineBanner,
-              { backgroundColor: Colors.warning + '12', borderColor: Colors.warning + '35' },
-            ]}
-          >
-            <Ionicons name="cloud-offline-outline" size={16} color={Colors.warning} />
-            <Text
-              style={[
-                s.offlineText,
-                { color: Colors.warning, fontFamily: theme.fontFamily.medium },
-              ]}
-            >
-              {matchResponse.fallback_message}
-            </Text>
-          </View>
-        )}
-
         {/* ── Section header ── */}
         <View style={s.sectionHeader}>
           <View style={[s.sectionDot, { backgroundColor: Colors.accent }]} />
@@ -863,14 +844,4 @@ const s = StyleSheet.create({
   },
   rejectedName: { fontSize: 13, marginBottom: 2 },
   rejectedReason: { fontSize: 12, lineHeight: 17 },
-  offlineBanner: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-    borderWidth: 1,
-    borderRadius: 10,
-    padding: 12,
-    marginBottom: 14,
-  },
-  offlineText: { flex: 1, fontSize: 12, lineHeight: 17 },
 });

@@ -20,7 +20,7 @@ parseRoutes.post('/parse-request', async (req, res, next) => {
 
     const { text, isEmergency } = validation.data;
     const demoScenario = getScenarioForRequestText(text);
-    if (demoScenario?.expected_outputs?.parsed_request) {
+    if (process.env.DEMO_SEEDED_PARSE === 'true' && demoScenario?.expected_outputs?.parsed_request) {
       const parsed = { ...demoScenario.expected_outputs.parsed_request };
       if (isEmergency) {
         parsed.urgency = 'emergency';
@@ -43,20 +43,10 @@ parseRoutes.post('/parse-request', async (req, res, next) => {
     return success(res, parsed);
   } catch (e) {
     console.error('[parse-request] LLM error:', e);
-    const fallback = {
-      service_bundle: [],
-      patient: 'Unknown',
-      location_from: 'not specified',
-      time_preference: 'flexible',
-      mobility_needs: [],
-      provider_preferences: { verified_only: false },
-      urgency: 'low' as const,
-      risk_level: 'low' as const,
-      clarification_needed: true,
-      clarification_question:
-        'We had trouble understanding your request. Could you describe what care is needed?',
-      confidence: 0,
-    };
-    return success(res, fallback);
+    return error(
+      res,
+      'Live request parser failed. Check OPENAI_API_KEY, OPENAI_MODEL, and backend logs before the judged demo.',
+      502
+    );
   }
 });

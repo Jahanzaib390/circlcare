@@ -386,7 +386,7 @@
     <section id="architecture">
       <h2>2. Architecture</h2>
       <p>
-        The prototype uses an Expo 54 / React Native mobile app, a Node.js / Express backend, JSON-backed seeded data, deterministic business logic, and an LLM provider abstraction that can use OpenAI or a mock provider depending on environment configuration.
+        The prototype uses an Expo 54 / React Native mobile app, a Node.js / Express backend, JSON-backed seeded data, deterministic business logic, and an LLM provider abstraction. For judged demos, the backend is configured to require live OpenAI-backed agent calls rather than seeded or mock agent responses.
       </p>
 
 <div class="diagram" role="img" aria-label="Architecture diagram">Mobile App - Expo React Native
@@ -418,7 +418,8 @@ Business Logic Layer
 Data and LLM Layer
   |-- data/providers.json, services.json, bookings.json, users.json
   |-- Google Maps Platform keys for mobile map display and backend geocoding/places
-  |-- OpenAIProvider or MockProvider through LLMProvider interface</div>
+  |-- OpenAIProvider through LLMProvider interface for judged live-agent demos
+  |-- MockProvider retained for tests and local development only</div>
 
       <h3>Frontend</h3>
       <ul>
@@ -470,11 +471,24 @@ Data and LLM Layer
           </tr>
           <tr>
             <td>Failure handling</td>
-            <td>Mock provider and deterministic fallback paths</td>
-            <td>Demo remains usable if the live LLM key is unavailable or rate limited.</td>
+            <td>Strict live-agent mode for judged demos</td>
+            <td><code>REQUIRE_LIVE_AGENTS=true</code> fails loudly if OpenAI is not configured, preventing accidental non-agentic demos.</td>
           </tr>
         </tbody>
       </table>
+
+      <h3>Live-Agent Judging Configuration</h3>
+      <p>
+        The submitted demo should be run with live LLM calls enabled. Demo scenario buttons may preload request text, but the parser, matching agent, pricing agent, and dispute summary should call the backend LLM provider during the judged flow.
+      </p>
+      <pre><code>LLM_PROVIDER=openai
+OPENAI_API_KEY=sk-...
+OPENAI_MODEL=gpt-5.4-mini
+REQUIRE_LIVE_AGENTS=true
+DEMO_SEEDED_PARSE=false</code></pre>
+      <p>
+        Before presenting, verify <code>GET /api/agent/status</code>. The response should report <code>provider: "openai"</code>, <code>live_agent_ready: true</code>, and <code>seeded_parse_enabled: false</code>.
+      </p>
     </section>
 
     <section id="dataset-schema">
@@ -703,8 +717,9 @@ Data and LLM Layer
           <tr><td><code>/api/providers</code></td><td>GET</td><td>List providers.</td></tr>
           <tr><td><code>/api/providers/:id</code></td><td>GET</td><td>Fetch provider detail.</td></tr>
           <tr><td><code>/api/providers/:id/reputation</code></td><td>POST</td><td>Update provider reputation after feedback or dispute outcome.</td></tr>
+          <tr><td><code>/api/agent/status</code></td><td>GET</td><td>Verify whether the backend is using live OpenAI agents for judged demos.</td></tr>
           <tr><td><code>/api/demo/scenarios</code></td><td>GET</td><td>List available demo scenarios.</td></tr>
-          <tr><td><code>/api/demo/scenario/:id</code></td><td>POST</td><td>Activate a seeded demo scenario.</td></tr>
+          <tr><td><code>/api/demo/scenario/:id</code></td><td>POST</td><td>Select a demo scenario while keeping live parsing enabled when <code>DEMO_SEEDED_PARSE=false</code>.</td></tr>
           <tr><td><code>/api/demo/baseline-comparison</code></td><td>GET</td><td>Return baseline-vs-agentic comparison across seeded scenarios.</td></tr>
         </tbody>
       </table>
@@ -745,7 +760,7 @@ npm run generate:baseline</code></pre>
         <li>Express, TypeScript, Zod, Jest, Supertest.</li>
         <li>OpenAI SDK through an internal <code>LLMProvider</code> interface.</li>
         <li>Google Maps Platform: mobile Maps SDK key for map rendering, plus backend server key for Geocoding API and Places API checks.</li>
-        <li>Mock LLM provider for deterministic offline demos.</li>
+        <li>Mock LLM provider retained for unit tests and local development; judged demos should use the OpenAI provider.</li>
       </ul>
     </section>
 
@@ -771,7 +786,7 @@ npm run generate:baseline</code></pre>
           <tr><td>Match explanation</td><td>1-3, often cached</td><td>1-4s</td><td>Explains top providers to the family.</td></tr>
           <tr><td>Pricing review</td><td>1</td><td>1.5-4s</td><td>Reviews quote, urgency, provider risk, and cheaper-slot options.</td></tr>
           <tr><td>Booking confirmation</td><td>0</td><td>&lt;800ms target</td><td>Should not depend on LLM.</td></tr>
-          <tr><td>Dispute mock flow</td><td>0 in current mock flow</td><td>&lt;500ms current, &lt;2s target</td><td>Uses local evidence tools in the prototype.</td></tr>
+          <tr><td>Dispute evidence + summary</td><td>1 for live summary</td><td>&lt;2s target</td><td>Uses deterministic evidence tools plus an LLM summary in judged live-agent mode.</td></tr>
         </tbody>
       </table>
 
@@ -824,10 +839,10 @@ npm run generate:baseline</code></pre>
             <td>Reviews line items, urgency flexibility, cheaper slot, and provider risk.</td>
           </tr>
           <tr>
-            <td>Dispute mock flow</td>
-            <td>0 LLM tokens currently</td>
-            <td>$0.0000</td>
-            <td>Current demo uses local evidence tools. A future LLM summary would add a small extra call.</td>
+            <td>Dispute evidence summary</td>
+            <td>1,000 input + 250 output</td>
+            <td>About $0.0019</td>
+            <td>Local evidence tools support the recommendation; OpenAI summarizes the dispute for the family in judged mode.</td>
           </tr>
         </tbody>
       </table>
@@ -957,7 +972,7 @@ npm run generate:baseline</code></pre>
           <tr>
             <td>Prototype</td>
             <td>Seeded local demo traffic</td>
-            <td>JSON data, Express server, local matching engine, optional live OpenAI key.</td>
+            <td>JSON data, Express server, local matching engine, and required live OpenAI key for judged demos.</td>
           </tr>
           <tr>
             <td>10x</td>
@@ -1026,7 +1041,7 @@ tool observations include:
         <li>Provider ratings, cancellation rates, disputes, and availability slots are seeded demo values.</li>
         <li>Area matching uses named service areas and approximate coordinates. Production would use verified addresses and a routing API.</li>
         <li>Payments, refunds, and dispatch notifications are simulated. No real money is moved.</li>
-        <li>OpenAI can be used when an API key is configured, but the app also supports deterministic mock mode for offline demos.</li>
+        <li>For judged demos, OpenAI must be configured and verified with <code>/api/agent/status</code>; the mock provider is only for tests and local development.</li>
         <li>Urdu and Roman Urdu handling are demonstrated through parser behavior, localization files, and robustness traces, but broad dialect coverage would require more testing.</li>
         <li>Provider identity, background checks, licenses, and insurance are represented by demo fields such as <code>verified</code>; real onboarding would require operational verification.</li>
         <li>The app is designed around family coordination for elder care, not emergency medical diagnosis or urgent clinical triage.</li>
@@ -1073,6 +1088,7 @@ tool observations include:
         <li>LLM parsing can be wrong for ambiguous, noisy, or mixed-language requests; low confidence should trigger clarification.</li>
         <li>The matching algorithm depends on seeded quality signals. Real deployments need continuous provider quality monitoring.</li>
         <li>The current dispute flow uses mock evidence such as simulated GPS and booking terms.</li>
+        <li>Live-agent judging depends on a reachable backend with valid OpenAI credentials; the app should not be presented in judged mode until <code>/api/agent/status</code> reports <code>live_agent_ready: true</code>.</li>
         <li>The pricing model is a transparent prototype, not a market-tested pricing engine.</li>
         <li>The app does not yet include production authentication, payment gateway integration, provider onboarding, insurance checks, or live notification delivery.</li>
         <li>Fairness controls are policy-level and code-level in the prototype. Production would need monitoring for disparate impact and user appeals.</li>
@@ -1106,6 +1122,7 @@ tool observations include:
           <tr><td><code>backend/src/services/matchingEngine.ts</code></td><td>Hard filters, category weights, scoring, and baseline function.</td></tr>
           <tr><td><code>backend/src/services/pricingEngine.ts</code></td><td>Quote logic and pricing breakdown behavior.</td></tr>
           <tr><td><code>backend/src/services/disputeEngine.ts</code></td><td>Evidence-based dispute recommendation flow.</td></tr>
+          <tr><td><code>GET /api/agent/status</code></td><td>Runtime proof that the judged demo backend is using live OpenAI agents.</td></tr>
           <tr><td><code>backend/scripts/agentic-flow-check.ts</code></td><td>Automated check covering parsing, agentic matching, pricing review, dispute action, and baseline comparison.</td></tr>
           <tr><td><code>.agents/baseline-comparison.csv</code></td><td>Generated comparison of distance-only baseline and agentic outcome across scenarios.</td></tr>
           <tr><td><code>.agents/multilingual-robustness-traces.json</code></td><td>Robustness traces for noisy Roman Urdu, code-switched, and ambiguous requests.</td></tr>

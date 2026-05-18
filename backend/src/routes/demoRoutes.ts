@@ -6,6 +6,7 @@ import {
   getActiveDemoScenario,
 } from '../services/demoScenarioState';
 import { runBaselineComparison } from '../services/baselineComparison';
+import { getLLMRuntimeStatus } from '../llm/llmFactory';
 
 export const demoRoutes = Router();
 
@@ -18,6 +19,15 @@ demoRoutes.get('/demo/scenarios', (_req, res) => {
 
 demoRoutes.get('/demo/baseline-comparison', (_req, res) => {
   success(res, runBaselineComparison());
+});
+
+demoRoutes.get('/agent/status', (_req, res) => {
+  success(res, {
+    ...getLLMRuntimeStatus(),
+    seeded_parse_enabled: process.env.DEMO_SEEDED_PARSE === 'true',
+    judged_demo_guidance:
+      'For judged demos, use provider=openai, live_agent_ready=true, and seeded_parse_enabled=false.',
+  });
 });
 
 demoRoutes.post('/demo/scenario/:id', async (req, res, next) => {

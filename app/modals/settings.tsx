@@ -7,17 +7,31 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Button } from '@/components/ui/Button';
 import { DEMO_MODE_KEY, ONBOARDING_KEY, USER_PROFILE_KEY } from '@/constants/StorageKeys';
 import { Ionicons } from '@expo/vector-icons';
+import { apiClient } from '@/services/apiClient';
+
+interface AgentStatus {
+  provider: string;
+  model: string;
+  live_agent_ready: boolean;
+  require_live_agents: boolean;
+  seeded_parse_enabled: boolean;
+}
 
 /** Settings Modal — built in Phase 7 */
 export default function SettingsModal() {
   const theme = useTheme();
   const router = useRouter();
   const [isDemoMode, setIsDemoMode] = useState(false);
+  const [agentStatus, setAgentStatus] = useState<AgentStatus | null>(null);
 
   useEffect(() => {
     AsyncStorage.getItem(DEMO_MODE_KEY).then((val) => {
       if (val === 'true') setIsDemoMode(true);
     });
+    apiClient
+      .get<AgentStatus>('/api/agent/status')
+      .then(setAgentStatus)
+      .catch(() => setAgentStatus(null));
   }, []);
 
   const toggleDemoMode = async (value: boolean) => {
@@ -98,6 +112,49 @@ export default function SettingsModal() {
           />
         </View>
 
+        <View style={[styles.agentCard, { borderColor: theme.colors.border }]}>
+          <View style={styles.agentHeader}>
+            <Ionicons
+              name={agentStatus?.live_agent_ready ? 'sparkles' : 'warning-outline'}
+              size={18}
+              color={agentStatus?.live_agent_ready ? theme.colors.accent : theme.colors.warning}
+            />
+            <Text
+              style={[
+                styles.agentTitle,
+                { color: theme.colors.textPrimary, fontFamily: theme.fontFamily.semiBold },
+              ]}
+            >
+              Agent Runtime
+            </Text>
+          </View>
+          <Text
+            style={[
+              styles.agentSub,
+              { color: theme.colors.textMuted, fontFamily: theme.fontFamily.regular },
+            ]}
+          >
+            {agentStatus
+              ? `${agentStatus.provider} / ${agentStatus.model}`
+              : 'Backend status unavailable'}
+          </Text>
+          {agentStatus && (
+            <Text
+              style={[
+                styles.agentStatus,
+                {
+                  color: agentStatus.live_agent_ready ? theme.colors.accent : theme.colors.warning,
+                  fontFamily: theme.fontFamily.medium,
+                },
+              ]}
+            >
+              {agentStatus.live_agent_ready
+                ? 'Live LLM calls enabled'
+                : 'Not ready for judged live-agent demo'}
+            </Text>
+          )}
+        </View>
+
         <View style={styles.actions}>
           <Button label="Reset Onboarding" variant="outline" fullWidth onPress={resetOnboarding} />
         </View>
@@ -131,5 +188,20 @@ const styles = StyleSheet.create({
   },
   settingLabel: { fontSize: 16, marginBottom: 4 },
   settingSub: { fontSize: 13 },
+  agentCard: {
+    borderWidth: 1,
+    borderRadius: 12,
+    padding: 14,
+    marginTop: 16,
+  },
+  agentHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    marginBottom: 6,
+  },
+  agentTitle: { fontSize: 15 },
+  agentSub: { fontSize: 13, marginBottom: 6 },
+  agentStatus: { fontSize: 13 },
   actions: { marginTop: 24 },
 });
