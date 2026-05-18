@@ -24,6 +24,11 @@ export function useMatchResults() {
       apiClient.post<MatchResponse>('/api/match', { parsedRequest }),
 
     onSuccess: (data) => {
+      console.info('[AgentDemo][Match] Agent decision:', data.agent_decision?.reasoning);
+      data.agent_trace?.forEach((step, index) => {
+        console.info(`[AgentDemo][Match] Tool ${index + 1}: ${step.tool}`, step.observation);
+      });
+      console.info('[AgentDemo][Match] Baseline comparison:', data.baseline_comparison);
       setMatchResponse(data);
     },
 

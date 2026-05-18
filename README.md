@@ -552,13 +552,13 @@ Categories:
 
 ### Location and Maps
 
-The app should support maps and distance-aware matching, but the prototype should not depend on production-grade live maps to work.
+The app now includes a lightweight Google Maps experience in the location picker. It shows the selected service area and nearby seeded provider pins, while matching still uses auditable seeded coordinates and Haversine distance so the demo does not depend on full route navigation.
 
 The location system has three levels.
 
-#### Level 1: Mock Coordinates for Demo
+#### Level 1: Seeded Coordinates for Demo
 
-For the hackathon prototype, providers will have realistic mock coordinates, service areas, and service radius values.
+For the hackathon prototype, providers have realistic seeded coordinates, service areas, and service radius values.
 
 Example user location:
 
@@ -612,16 +612,17 @@ Care buffer: 15 minutes
 Suggested arrival buffer: 39 minutes
 ```
 
-#### Level 2: User Location Capture
+#### Level 2: User Location Capture and Map Display
 
-The mobile app should support multiple ways to identify the user's location:
+The mobile app supports multiple ways to identify the user's location:
 
 - Device GPS permission
 - Manual location entry
 - Area selection
 - Saved home address
-- Map pin selection
+- Google map preview with selected-area and provider pins
 - Clarification question when location is ambiguous
+- Current-location clarification when the user says "qareeb", "near me", or similar
 
 Example flow:
 
@@ -642,11 +643,10 @@ Model Town near Bank Square
 Gulberg main market ke paas
 ```
 
-#### Level 3: Production Google Maps Integration
+#### Level 3: Production Google Maps Expansion
 
-The prototype can use mock coordinates, but the production architecture can integrate:
+The prototype already uses Google Maps for display. The production architecture can expand this into:
 
-- Google Maps SDK for map display
 - Google Places API for address autocomplete
 - Google Routes API or Distance Matrix API for route-aware ETA
 - Provider mobile app location sharing

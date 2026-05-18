@@ -430,13 +430,14 @@ type BookingStatus =
 
 **Prototype (Hackathon):**
 - Providers have mock `lat/lng` coordinates in JSON
-- Users select area from dropdown or type neighborhood name
+- Users select area, type neighborhood name, or use the location picker map
+- The location picker uses Google Maps through `react-native-maps` to show a selected-area pin and seeded provider pins
+- Current-location requests ask for phone permission before matching proceeds
 - OpenAI extracts area name from natural language
 - Backend applies Haversine distance using mock coordinates
 
 **Production Path:**
 - Google Places API for address autocomplete
-- Google Maps SDK for map display and pin selection
 - Google Routes API / Distance Matrix API for real ETAs
 - Provider app shares live location
 - Matching engine distance calculation unchanged (just fed real coords)

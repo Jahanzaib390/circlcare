@@ -139,6 +139,12 @@ export default function LocationPickerModal() {
     setIsLocating(true);
     setLocationError('');
     try {
+      const servicesEnabled = await Location.hasServicesEnabledAsync();
+      if (!servicesEnabled) {
+        setLocationError('Turn on Location Services on your phone, then try again.');
+        return;
+      }
+
       const permission = await Location.requestForegroundPermissionsAsync();
       if (permission.status !== Location.PermissionStatus.GRANTED) {
         setLocationError(
@@ -147,10 +153,29 @@ export default function LocationPickerModal() {
         return;
       }
 
-      const position = await Location.getCurrentPositionAsync({
-        accuracy: Location.Accuracy.Balanced,
-      });
-      const [address] = await Location.reverseGeocodeAsync(position.coords);
+      const providerStatus = await Location.getProviderStatusAsync();
+      if (!providerStatus.locationServicesEnabled) {
+        setLocationError('Turn on Location Services on your phone, then try again.');
+        return;
+      }
+
+      const position =
+        (await Location.getCurrentPositionAsync({
+          accuracy: Location.Accuracy.High,
+        }).catch(() => null)) ??
+        (await Location.getLastKnownPositionAsync({
+          maxAge: 5 * 60 * 1000,
+          requiredAccuracy: 2000,
+        }));
+
+      if (!position) {
+        setLocationError(
+          'Could not read your current location yet. Move near a window or choose an area manually.'
+        );
+        return;
+      }
+
+      const [address] = await Location.reverseGeocodeAsync(position.coords).catch(() => []);
       const parts = [address?.district, address?.subregion, address?.city, address?.region].filter(
         Boolean
       );
@@ -163,7 +188,7 @@ export default function LocationPickerModal() {
     } catch (error) {
       console.warn('[LocationPicker] Failed to get current location:', error);
       setLocationError(
-        'Could not read your current location. Please enter the Lahore area manually.'
+        'Could not read your current location. Please check phone permissions and try again.'
       );
     } finally {
       setIsLocating(false);

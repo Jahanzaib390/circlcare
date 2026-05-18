@@ -394,7 +394,13 @@ export default function HomeScreen() {
             {/* Input actions */}
             <View style={s.inputActions}>
               <View style={s.inputActionsLeft}>
-                <VoiceInputButton disabled={isPending} />
+                <VoiceInputButton
+                  disabled={isPending}
+                  onTranscript={(text) => {
+                    setRawRequest(text);
+                    if (isError) resetMutation();
+                  }}
+                />
               </View>
               <TouchableOpacity
                 style={[

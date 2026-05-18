@@ -389,8 +389,9 @@
         The prototype uses an Expo 54 / React Native mobile app, a Node.js / Express backend, JSON-backed seeded data, deterministic business logic, and an LLM provider abstraction that can use OpenAI or a mock provider depending on environment configuration.
       </p>
 
-      <div class="diagram" role="img" aria-label="Architecture diagram">Mobile App - Expo React Native
+<div class="diagram" role="img" aria-label="Architecture diagram">Mobile App - Expo React Native
   |-- Request capture, confirmation, match results, quote, booking status
+  |-- Google map in location picker with selected-area and provider pins
   |-- React Query hooks and small client-side stores
   |-- i18n strings for English and Urdu
   |
@@ -416,6 +417,7 @@ Business Logic Layer
   v
 Data and LLM Layer
   |-- data/providers.json, services.json, bookings.json, users.json
+  |-- Google Maps Platform keys for mobile map display and backend geocoding/places
   |-- OpenAIProvider or MockProvider through LLMProvider interface</div>
 
       <h3>Frontend</h3>
@@ -424,6 +426,7 @@ Data and LLM Layer
         <li>Reusable components in <code>components/ui/</code> for buttons, cards, chips, badges, empty states, skeleton states, voice input, and feedback UI.</li>
         <li>Hooks in <code>hooks/</code> wrap API calls and local state, including parse, match, quote, booking, and polling flows.</li>
         <li>Localization lives in <code>i18n/en.json</code> and <code>i18n/ur.json</code>.</li>
+        <li>The location picker uses <code>react-native-maps</code> with Google Maps to show the selected service area and seeded nearby provider pins.</li>
       </ul>
 
       <h3>Backend</h3>
@@ -462,8 +465,8 @@ Data and LLM Layer
           </tr>
           <tr>
             <td>Location</td>
-            <td>Area centroids and Haversine distance in prototype</td>
-            <td>Supports matching by city/area without requiring live maps billing in the demo.</td>
+            <td>Google map display plus seeded coordinates and Haversine distance</td>
+            <td>Shows selected area and nearby provider pins now; route-aware ETA remains isolated for a later Routes API upgrade.</td>
           </tr>
           <tr>
             <td>Failure handling</td>
@@ -738,8 +741,10 @@ npm run generate:baseline</code></pre>
       <ul>
         <li>Expo 54, React Native 0.81, React 19, Expo Router.</li>
         <li>TanStack React Query, Zustand, AsyncStorage.</li>
+        <li><code>react-native-maps</code> with Google Maps for the mobile location picker map.</li>
         <li>Express, TypeScript, Zod, Jest, Supertest.</li>
         <li>OpenAI SDK through an internal <code>LLMProvider</code> interface.</li>
+        <li>Google Maps Platform: mobile Maps SDK key for map rendering, plus backend server key for Geocoding API and Places API checks.</li>
         <li>Mock LLM provider for deterministic offline demos.</li>
       </ul>
     </section>
@@ -1037,6 +1042,7 @@ tool observations include:
       <h3>Prototype Privacy Behavior</h3>
       <ul>
         <li>Seeded JSON data is used for providers, users, bookings, services, and demo scenarios.</li>
+        <li>The map demo uses seeded provider coordinates and a public mobile Google Maps key. Current-location requests require explicit phone permission before matching proceeds.</li>
         <li>No real payment processing is performed.</li>
         <li>No real provider dispatch happens.</li>
         <li>No production database of patient data is included.</li>
@@ -1063,7 +1069,7 @@ tool observations include:
       <ul>
         <li>Provider data is mocked and not verified against real-world credentials.</li>
         <li>Availability and booking conflicts are simulated from local JSON data.</li>
-        <li>Location matching uses approximate coordinates and service radius, not live traffic-aware routing.</li>
+        <li>Map display is live through Google Maps, but matching still uses seeded provider coordinates and service radius rather than traffic-aware route navigation.</li>
         <li>LLM parsing can be wrong for ambiguous, noisy, or mixed-language requests; low confidence should trigger clarification.</li>
         <li>The matching algorithm depends on seeded quality signals. Real deployments need continuous provider quality monitoring.</li>
         <li>The current dispute flow uses mock evidence such as simulated GPS and booking terms.</li>

@@ -12,6 +12,28 @@ jest.mock('expo-haptics', () => ({
   ImpactFeedbackStyle: { Medium: 'medium' },
 }));
 
+jest.mock('expo-audio', () => ({
+  RecordingPresets: { LOW_QUALITY: {}, HIGH_QUALITY: {} },
+  requestRecordingPermissionsAsync: jest.fn().mockResolvedValue({ granted: true }),
+  setAudioModeAsync: jest.fn().mockResolvedValue(undefined),
+  useAudioRecorder: () => ({
+    prepareToRecordAsync: jest.fn().mockResolvedValue(undefined),
+    record: jest.fn(),
+    stop: jest.fn().mockResolvedValue(undefined),
+    uri: null,
+  }),
+  useAudioRecorderState: () => ({
+    isRecording: false,
+    durationMillis: 0,
+    url: null,
+  }),
+}));
+
+jest.mock('expo-file-system/legacy', () => ({
+  EncodingType: { Base64: 'base64' },
+  readAsStringAsync: jest.fn().mockResolvedValue(''),
+}));
+
 jest.mock('@expo/vector-icons', () => {
   const React = require('react');
   const { Text } = require('react-native');

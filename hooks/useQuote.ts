@@ -17,6 +17,11 @@ export function useQuote() {
     mutationFn: ({ provider, parsedRequest }) =>
       apiClient.post<PricingBreakdown>('/api/quote', { provider, parsedRequest }),
     onSuccess: (data) => {
+      console.info('[AgentDemo][Quote] Pricing decision:', data.pricing_agent?.decision);
+      console.info('[AgentDemo][Quote] Reasoning:', data.pricing_agent?.reasoning);
+      data.pricing_agent?.tool_trace.forEach((step, index) => {
+        console.info(`[AgentDemo][Quote] Tool ${index + 1}: ${step.tool}`, step.observation);
+      });
       setPricing(data);
     },
     onError: (err) => {
