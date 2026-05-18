@@ -104,6 +104,9 @@ Rules:
 - service_bundle must contain only valid category values.
 - If urgency is "emergency", set risk_level to "high" and confidence to 1.0.
 - If the request is ambiguous (missing service type, location, or time), set clarification_needed: true, confidence < 0.7, and provide a concise clarification_question.
+- Ask about only the missing field. If time is missing but service, location, and provider gender are known, ask only when the visit is needed.
+- Do not ask for patient age because this schema and app do not include an age field. Ask for the patient relationship/name only when that is needed for routing.
+- Never ask for a female/male provider preference when the request already states it; reflect it in provider_preferences.gender instead.
 - If a location name is city-ambiguous in Pakistan, do not assume the city. Mark clarification_needed: true, keep location_from as the ambiguous area, set confidence < 0.7, and ask which city. Ambiguous examples include "DHA", "Bahria Town", "Cantt", "Gulberg", and "Model Town" when no city is stated. Clear examples include "DHA Lahore", "DHA Karachi", "Bahria Town Lahore", "F-8 Islamabad", and "Clifton Karachi".
 - verified_only defaults to true for clinical services: home_nurse, lab_sample, physiotherapy.
 - If a female provider is explicitly requested, set gender to "female_required" as a hard constraint.

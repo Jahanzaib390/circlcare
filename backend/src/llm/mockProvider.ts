@@ -123,6 +123,10 @@ export class MockProvider implements LLMProvider {
 
     // ── Time extraction ─────────────────────────────────────────────────────
     const timeMap: [string, string][] = [
+      ['kal subah', 'tomorrow morning'],
+      ['kal dopahar', 'tomorrow afternoon'],
+      ['kal shaam', 'tomorrow evening'],
+      ['kal', 'tomorrow'],
       ['tomorrow morning', 'tomorrow morning'],
       ['tomorrow afternoon', 'tomorrow afternoon'],
       ['tomorrow evening', 'tomorrow evening'],
@@ -140,7 +144,7 @@ export class MockProvider implements LLMProvider {
       ['evening', 'evening'],
     ];
     const foundTime = timeMap.find(([k]) => lower.includes(k));
-    const timePreference = foundTime ? foundTime[1] : 'flexible';
+    const timePreference = foundTime ? foundTime[1] : 'not specified';
 
     // ── Patient extraction ────────────────────────────────────────────────────
     const patientMap: [string, string][] = [
@@ -165,7 +169,9 @@ export class MockProvider implements LLMProvider {
     // ── Confidence ────────────────────────────────────────────────────────────
     const needsLocationClarification =
       currentLocationRequested || Boolean(ambiguousLocation) || locationFrom === 'not specified';
-    const needsClarification = needsLocationClarification || services[0] === 'daily_support';
+    const needsTimeClarification = timePreference === 'not specified';
+    const needsClarification =
+      needsLocationClarification || needsTimeClarification || services[0] === 'daily_support';
     const confidence = needsClarification ? 0.55 : 0.88;
 
     return {
@@ -191,10 +197,12 @@ export class MockProvider implements LLMProvider {
         ? currentLocationRequested
           ? 'Should I use your current location to find nearby clinic support?'
           : ambiguousLocation
-          ? `Which city is ${ambiguousLocation[1]} in: Lahore, Karachi, or Islamabad/Rawalpindi?`
-          : locationFrom === 'not specified'
-          ? 'Could you share the location where care is needed?'
-          : 'Could you clarify what type of care or support is needed?'
+            ? `Which city is ${ambiguousLocation[1]} in: Lahore, Karachi, or Islamabad/Rawalpindi?`
+            : locationFrom === 'not specified'
+              ? 'Could you share the location where care is needed?'
+              : needsTimeClarification
+                ? 'When should we arrange this visit?'
+                : 'Could you clarify what type of care or support is needed?'
         : undefined,
       confidence,
     };

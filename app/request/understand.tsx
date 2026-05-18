@@ -289,6 +289,15 @@ const SERVICE_OPTIONS = [
 
 const MOBILITY_OPTIONS = ['wheelchair', 'stretcher', 'oxygen support'];
 
+function isMissingValue(value?: string | null): boolean {
+  const normalized = value?.trim().toLowerCase();
+  return !normalized || normalized === 'not specified' || normalized === 'flexible';
+}
+
+function displayValue(value: string | undefined, fallback: string): string {
+  return isMissingValue(value) ? fallback : (value ?? fallback);
+}
+
 function clarificationChoices(pr: ParsedRequest): string[] {
   if (pr.location_from === 'current_location_requested') {
     return ['Use my current location', 'DHA Lahore', 'Clifton Karachi'];
@@ -299,10 +308,22 @@ function clarificationChoices(pr: ParsedRequest): string[] {
   if (pr.service_bundle.length === 0 || pr.service_bundle.includes(ServiceCategory.DailySupport)) {
     return ['Home nurse', 'Caregiver', 'Physiotherapy'];
   }
-  if (pr.time_preference === 'flexible') {
+  if (isMissingValue(pr.time_preference)) {
     return ['Today evening', 'Tomorrow morning', 'This weekend'];
   }
-  return ['Yes, continue', 'Need female provider', 'Verified provider only'];
+
+  const choices: string[] = [];
+  if (
+    !pr.provider_preferences.gender ||
+    pr.provider_preferences.gender === 'any' ||
+    pr.provider_preferences.gender === 'female_preferred'
+  ) {
+    choices.push('Need female provider');
+  }
+  if (!pr.provider_preferences.verified_only) {
+    choices.push('Verified provider only');
+  }
+  return choices.length > 0 ? choices : ['Continue to matches'];
 }
 
 // ── Main screen ────────────────────────────────────────────────────────────────
@@ -343,6 +364,17 @@ export default function UnderstandScreen() {
       router.push('/modals/location-picker');
       return;
     }
+    if (choice === 'Continue to matches') {
+      if (parsedRequest) {
+        setParsedRequest({
+          ...parsedRequest,
+          clarification_needed: false,
+          clarification_question: undefined,
+          confidence: Math.max(parsedRequest.confidence, 0.72),
+        });
+      }
+      return;
+    }
     setClarificationText(choice);
     const combined = `${rawRequest} — ${choice}`;
     setRawRequest(combined);
@@ -359,7 +391,26 @@ export default function UnderstandScreen() {
   const handleFieldSave = useCallback(
     (field: keyof ParsedRequest, value: string) => {
       if (!parsedRequest) return;
-      setParsedRequest({ ...parsedRequest, [field]: value });
+      const next = { ...parsedRequest, [field]: value };
+      const missingLocation = isMissingValue(next.location_from);
+      const missingTime = isMissingValue(next.time_preference);
+      const missingService = next.service_bundle.length === 0;
+
+      setParsedRequest({
+        ...next,
+        clarification_needed: missingLocation || missingTime || missingService,
+        clarification_question: missingLocation
+          ? 'Could you share the location where care is needed?'
+          : missingTime
+            ? 'When should we arrange this visit?'
+            : missingService
+              ? 'Which care service should we arrange?'
+              : undefined,
+        confidence:
+          !missingLocation && !missingTime && !missingService
+            ? Math.max(parsedRequest.confidence, 0.72)
+            : parsedRequest.confidence,
+      });
       setEditingField(null);
     },
     [parsedRequest, setParsedRequest]
@@ -379,17 +430,22 @@ export default function UnderstandScreen() {
     const next = current.includes(service)
       ? current.filter((item) => item !== service)
       : [...current, service];
+    const missingLocation = isMissingValue(parsedRequest.location_from);
+    const missingTime = isMissingValue(parsedRequest.time_preference);
     updateParsed({
       service_bundle: next,
-      clarification_needed: parsedRequest.location_from === 'not specified' || next.length === 0,
-      clarification_question:
-        parsedRequest.location_from === 'not specified'
-          ? 'Could you share the location where care is needed?'
+      clarification_needed: missingLocation || missingTime || next.length === 0,
+      clarification_question: missingLocation
+        ? 'Could you share the location where care is needed?'
+        : missingTime
+          ? 'When should we arrange this visit?'
           : next.length === 0
             ? 'Which care service should we arrange?'
             : undefined,
       confidence:
-        next.length > 0 ? Math.max(parsedRequest.confidence, 0.72) : parsedRequest.confidence,
+        !missingLocation && !missingTime && next.length > 0
+          ? Math.max(parsedRequest.confidence, 0.72)
+          : parsedRequest.confidence,
     });
   };
 
@@ -681,20 +737,6 @@ export default function UnderstandScreen() {
             </View>
           )}
 
-          {/* ── Inline field edit overlay ────────────────────────── */}
-          {editingField &&
-            ['patient', 'time_preference', 'location_from'].includes(editingField) && (
-              <EditOverlay
-                label={editingField}
-                value={String(
-                  pr[editingField as 'patient' | 'time_preference' | 'location_from'] ?? ''
-                )}
-                onSave={(v) => handleFieldSave(editingField as keyof ParsedRequest, v)}
-                onDismiss={() => setEditingField(null)}
-                theme={theme}
-              />
-            )}
-
           {/* ── Services detected ────────────────────────────────── */}
           <Pressable
             style={[
@@ -783,16 +825,34 @@ export default function UnderstandScreen() {
             onEdit={() => setEditingField('patient')}
             theme={theme}
           />
+          {editingField === 'patient' && (
+            <EditOverlay
+              label="patient"
+              value={pr.patient ?? ''}
+              onSave={(v) => handleFieldSave('patient', v)}
+              onDismiss={() => setEditingField(null)}
+              theme={theme}
+            />
+          )}
 
           {/* ── Time ─────────────────────────────────────────────── */}
           <FieldCard
             icon="time"
             label="When"
-            value={pr.time_preference || 'Flexible'}
+            value={displayValue(pr.time_preference, 'Not specified')}
             editable
             onEdit={() => setEditingField('time_preference')}
             theme={theme}
           />
+          {editingField === 'time_preference' && (
+            <EditOverlay
+              label="when"
+              value={isMissingValue(pr.time_preference) ? '' : pr.time_preference}
+              onSave={(v) => handleFieldSave('time_preference', v)}
+              onDismiss={() => setEditingField(null)}
+              theme={theme}
+            />
+          )}
 
           {/* ── Location ─────────────────────────────────────────── */}
           <FieldCard
