@@ -6,9 +6,9 @@
 
 import { useState, useEffect, useCallback, useRef } from 'react';
 import Config from '@/constants/Config';
-import { apiClient } from '@/services/apiClient';
+import { ApiError, apiClient } from '@/services/apiClient';
 import { useBookingStore } from '@/hooks/useBookingStore';
-import type { BookingStatus } from '@/constants/BookingStatuses';
+import { BOOKING_TIMELINE_STEPS, type BookingStatus } from '@/constants/BookingStatuses';
 import type { Booking, BookingTimelineEvent } from '@/types/booking';
 import type { MatchResult } from '@/types/match';
 import type { PricingBreakdown } from '@/types/pricing';
@@ -53,6 +53,9 @@ export function useBookingStatus(
 ) {
   const { enablePolling = true } = options;
   const setBooking = useBookingStore((s) => s.setBooking);
+  const localBooking = useBookingStore((s) =>
+    bookingId ? s.bookings.find((booking) => booking.booking_id === bookingId) : undefined
+  );
 
   const [state, setState] = useState<BookingStatusState>({
     status: null,
@@ -87,13 +90,28 @@ export function useBookingStatus(
       }));
     } catch (e) {
       if (!isMounted.current) return;
+      if (e instanceof ApiError && e.statusCode === 404 && localBooking) {
+        setState((prev) => ({
+          ...prev,
+          status: localBooking.status,
+          timeline: localBooking.timeline ?? [],
+          provider_eta_minutes: localBooking.provider_eta_minutes,
+          family_notified: localBooking.family_notified ?? false,
+          delay_reason: localBooking.delay_reason,
+          cancellation_reason: localBooking.cancellation_reason,
+          compensation_discount: localBooking.compensation_discount,
+          isLoading: false,
+          error: null,
+        }));
+        return;
+      }
       setState((prev) => ({
         ...prev,
         isLoading: false,
         error: e instanceof Error ? e.message : 'Failed to fetch status',
       }));
     }
-  }, [bookingId]);
+  }, [bookingId, localBooking]);
 
   // Initial load
   useEffect(() => {
@@ -158,6 +176,22 @@ export function useBookingStatus(
         }));
       } catch (e) {
         if (!isMounted.current) return;
+        if (e instanceof ApiError && e.statusCode === 404 && localBooking) {
+          const booking = simulateLocalStep(localBooking, mode);
+          setBooking(booking);
+          setState((prev) => ({
+            ...prev,
+            status: booking.status,
+            timeline: booking.timeline ?? [],
+            provider_eta_minutes: booking.provider_eta_minutes,
+            family_notified: booking.family_notified ?? false,
+            delay_reason: booking.delay_reason,
+            cancellation_reason: booking.cancellation_reason,
+            compensation_discount: booking.compensation_discount,
+            error: null,
+          }));
+          return;
+        }
         setState((prev) => ({
           ...prev,
           error: e instanceof Error ? e.message : 'Simulate failed',
@@ -166,8 +200,74 @@ export function useBookingStatus(
         if (isMounted.current) setIsSimulating(false);
       }
     },
-    [bookingId, isSimulating, setBooking]
+    [bookingId, isSimulating, localBooking, setBooking]
   );
 
   return { ...state, isSimulating, simulateNextStep, refetch: fetchStatus };
 }
+
+function simulateLocalStep(
+  booking: Booking,
+  mode: 'advance' | 'delay' | 'cancel' = 'advance'
+): Booking {
+  const now = new Date().toISOString();
+  const next: Booking = {
+    ...booking,
+    timeline: [...(booking.timeline ?? [])],
+  };
+
+  if (mode === 'delay' && next.status === 'en_route') {
+    next.provider_eta_minutes = (next.provider_eta_minutes ?? 24) + 15;
+    next.delay_reason = 'Traffic delay near the service area';
+    next.timeline.push({
+      status: 'en_route',
+      timestamp: now,
+      note: `Provider delayed: ${next.delay_reason}`,
+    });
+    return next;
+  }
+
+  if (mode === 'cancel' && next.status === 'en_route') {
+    next.status = 'cancelled';
+    next.provider_eta_minutes = undefined;
+    next.cancellation_reason = 'Provider cancelled mid-transit. Replacement flow will be offered.';
+    next.compensation_discount = next.compensation_discount ?? 500;
+    next.timeline.push({
+      status: 'cancelled',
+      timestamp: now,
+      note: next.cancellation_reason,
+    });
+    return next;
+  }
+
+  const currentIndex = BOOKING_TIMELINE_STEPS.indexOf(next.status);
+  if (currentIndex === -1 || currentIndex >= BOOKING_TIMELINE_STEPS.length - 1) return next;
+
+  next.status = BOOKING_TIMELINE_STEPS[currentIndex + 1];
+  next.timeline.push({
+    status: next.status,
+    timestamp: now,
+    note: LOCAL_STEP_NOTES[next.status],
+  });
+
+  if (next.status === 'family_notified') {
+    next.family_notified = true;
+  } else if (next.status === 'en_route') {
+    next.provider_eta_minutes = 24;
+  } else if (next.status === 'in_progress' || next.status === 'completed') {
+    next.provider_eta_minutes = undefined;
+    next.delay_reason = undefined;
+  }
+
+  return next;
+}
+
+const LOCAL_STEP_NOTES: Partial<Record<BookingStatus, string>> = {
+  provider_assigned: 'Provider accepted the visit and confirmed availability',
+  family_notified: 'Family group received the care visit details',
+  en_route: 'Provider is on the way to the pickup location',
+  in_progress: 'Visit has started and care is in progress',
+  completed: 'Visit completed successfully',
+  proof_uploaded: 'Provider uploaded proof of service',
+  feedback_collected: 'Feedback requested from the family',
+};

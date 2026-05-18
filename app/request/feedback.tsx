@@ -66,7 +66,7 @@ interface ReputationResponse {
 export default function FeedbackScreen() {
   const theme = useTheme();
   const router = useRouter();
-  const { booking } = useBookingStore();
+  const { booking, setBooking } = useBookingStore();
   const { selectedMatch } = useMatchStore();
 
   const checklistItems = useMemo(() => {
@@ -105,26 +105,37 @@ export default function FeedbackScreen() {
   };
 
   const handleSubmit = async () => {
-    if (!booking || !selectedMatch) {
+    const providerId = selectedMatch?.provider.id ?? booking?.provider_id;
+    if (!booking || !providerId) {
       Alert.alert('Booking missing', 'Complete a booking before submitting feedback.');
       return;
     }
 
     setIsSubmitting(true);
     try {
-      await apiClient.post<ReputationResponse>(
-        `/api/providers/${selectedMatch.provider.id}/reputation`,
-        {
-          rating,
-          checklist: {
-            arrived_on_time: confirmedTasks[0] ?? false,
-            completed_tasks: confirmedTasks[1] ?? false,
-            professional_conduct: confirmedTasks[2] ?? false,
+      await apiClient.post<ReputationResponse>(`/api/providers/${providerId}/reputation`, {
+        rating,
+        checklist: {
+          arrived_on_time: confirmedTasks[0] ?? false,
+          completed_tasks: confirmedTasks[1] ?? false,
+          professional_conduct: confirmedTasks[2] ?? false,
+        },
+        complaint_reasons: complaints,
+        booking_id: booking.booking_id,
+      });
+
+      setBooking({
+        ...booking,
+        status: 'feedback_collected',
+        timeline: [
+          ...(booking.timeline ?? []),
+          {
+            status: 'feedback_collected',
+            timestamp: new Date().toISOString(),
+            note: 'Feedback submitted and provider reputation updated',
           },
-          complaint_reasons: complaints,
-          booking_id: booking.booking_id,
-        }
-      );
+        ],
+      });
 
       if (complaints.length > 0) {
         router.push({
@@ -132,7 +143,7 @@ export default function FeedbackScreen() {
           params: {
             type: complaints[0],
             bookingId: booking.booking_id,
-            providerId: selectedMatch.provider.id,
+            providerId,
             description: COMPLAINT_REASONS.filter((reason) => complaints.includes(reason.id))
               .map((reason) => reason.label)
               .join(', '),

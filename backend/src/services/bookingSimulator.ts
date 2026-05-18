@@ -24,6 +24,66 @@ const STEP_NOTES: Partial<Record<Booking['status'], string>> = {
   feedback_collected: 'Feedback requested from the family',
 };
 
+function resolveScheduledStart(request: ParsedRequest): string {
+  if (request.scheduled_datetime) return request.scheduled_datetime;
+
+  const preferred = request.time_preference.toLowerCase();
+  const scheduled = new Date();
+  const explicitClock = parseClockTime(preferred);
+
+  if (hasAny(preferred, ['tomorrow', 'kal'])) {
+    scheduled.setDate(scheduled.getDate() + 1);
+  } else if (!hasAny(preferred, ['today', 'aaj'])) {
+    scheduled.setDate(scheduled.getDate() + 1);
+  }
+
+  if (explicitClock) {
+    scheduled.setHours(explicitClock.hour, explicitClock.minute, 0, 0);
+  } else if (hasAny(preferred, ['early morning', 'subah jaldi', 'jaldi subah'])) {
+    scheduled.setHours(8, 0, 0, 0);
+  } else if (hasAny(preferred, ['morning', 'subah', 'savera'])) {
+    scheduled.setHours(10, 0, 0, 0);
+  } else if (hasAny(preferred, ['late afternoon', 'dopahar baad', 'dopehr baad'])) {
+    scheduled.setHours(15, 0, 0, 0);
+  } else if (hasAny(preferred, ['afternoon', 'dopahar', 'dopehr', 'dupehar'])) {
+    scheduled.setHours(13, 0, 0, 0);
+  } else if (hasAny(preferred, ['evening', 'shaam', 'sham'])) {
+    scheduled.setHours(17, 0, 0, 0);
+  } else if (hasAny(preferred, ['night', 'raat'])) {
+    scheduled.setHours(20, 0, 0, 0);
+  } else {
+    scheduled.setHours(10, 0, 0, 0);
+  }
+
+  if (scheduled.getTime() <= Date.now()) {
+    scheduled.setDate(scheduled.getDate() + 1);
+  }
+
+  return scheduled.toISOString();
+}
+
+function hasAny(text: string, needles: string[]): boolean {
+  return needles.some((needle) => text.includes(needle));
+}
+
+function parseClockTime(text: string): { hour: number; minute: number } | undefined {
+  const match = text.match(/\b(\d{1,2})(?::(\d{2}))?\s*(am|pm)?\b|\b(\d{1,2})\s*baje\b/);
+  if (!match) return undefined;
+
+  let hour = Number(match[1] ?? match[4]);
+  const minute = Number(match[2] ?? '0');
+  const suffix = match[3];
+
+  if (suffix === 'pm' && hour < 12) hour += 12;
+  if (suffix === 'am' && hour === 12) hour = 0;
+  if (!suffix && hour >= 1 && hour <= 7 && hasAny(text, ['shaam', 'sham', 'evening', 'raat'])) {
+    hour += 12;
+  }
+
+  if (hour > 23 || minute > 59) return undefined;
+  return { hour, minute };
+}
+
 export function getBooking(id: string): Booking | undefined {
   return bookings.get(id);
 }
@@ -39,7 +99,7 @@ export function createBooking(
   reminder_event: BookingNotificationPayload;
 } {
   const booking_id = randomUUID();
-  const scheduled_start = request.scheduled_datetime || new Date().toISOString();
+  const scheduled_start = resolveScheduledStart(request);
   const reminderDate = new Date(scheduled_start);
   reminderDate.setMinutes(reminderDate.getMinutes() - 60);
 
@@ -122,7 +182,10 @@ export function simulateNextStep(id: string, mode: BookingSimulationMode = 'adva
       throw new Error('Mid-transit cancellation can only be simulated while provider is en route');
     }
 
-    const { booking: cancelledBooking } = cancelBooking(id, 'Provider cancelled mid-transit. Replacement flow will be offered.');
+    const { booking: cancelledBooking } = cancelBooking(
+      id,
+      'Provider cancelled mid-transit. Replacement flow will be offered.'
+    );
     return cancelledBooking;
   }
 

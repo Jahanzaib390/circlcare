@@ -9,9 +9,6 @@ import { Colors, Radius, Spacing, FontSize } from '@/constants/theme';
 import { BookingStatusLabels, BookingStatusColors } from '@/constants/BookingStatuses';
 import { ServiceDisplayNames, type ServiceCategory } from '@/constants/ServiceCategories';
 import type { Booking } from '@/types/booking';
-import bookingsJson from '@/data/bookings.json';
-
-const MOCK_BOOKINGS: Booking[] = bookingsJson as Booking[];
 
 const ACTIVE_STATUSES = [
   'pending',
@@ -209,17 +206,18 @@ export default function BookingsScreen() {
   const theme = useTheme();
   const router = useRouter();
   const setBooking = useBookingStore((s) => s.setBooking);
+  const bookings = useBookingStore((s) => s.bookings);
   const [tab, setTab] = useState<Tab>('active');
 
   const { activeBookings, pastBookings } = useMemo(() => {
     const active: Booking[] = [];
     const past: Booking[] = [];
-    for (const b of MOCK_BOOKINGS) {
+    for (const b of bookings) {
       if (isActive(b.status)) active.push(b);
       else past.push(b);
     }
     return { activeBookings: active, pastBookings: past };
-  }, []);
+  }, [bookings]);
 
   const displayed = tab === 'active' ? activeBookings : pastBookings;
 

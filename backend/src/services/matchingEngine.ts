@@ -255,23 +255,47 @@ function parseRequestedSlot(
     sun: 'sun',
     sunday: 'sun',
   };
-  const clockMatch = text.match(/\b(\d{1,2})(?::(\d{2}))?\s*(am|pm)?\b/);
-  if (!dayMatch && !clockMatch) return undefined;
+  const clockMatch = text.match(/\b(\d{1,2})(?::(\d{2}))?\s*(am|pm)?\b|\b(\d{1,2})\s*baje\b/);
+  const hasTimePhrase =
+    includesAny(text, [
+      'morning',
+      'subah',
+      'savera',
+      'afternoon',
+      'dopahar',
+      'dopehr',
+      'dupehar',
+      'evening',
+      'shaam',
+      'sham',
+      'night',
+      'raat',
+    ]);
+  if (!dayMatch && !clockMatch && !hasTimePhrase) return undefined;
 
-  let startMinutes = 9 * 60;
+  let startMinutes = 10 * 60;
   if (clockMatch) {
-    let hour = Number(clockMatch[1]);
+    let hour = Number(clockMatch[1] ?? clockMatch[4]);
     const minute = Number(clockMatch[2] ?? '0');
     const suffix = clockMatch[3];
     if (suffix === 'pm' && hour < 12) hour += 12;
     if (suffix === 'am' && hour === 12) hour = 0;
+    if (!suffix && hour >= 1 && hour <= 7 && includesAny(text, ['shaam', 'sham', 'evening', 'raat'])) {
+      hour += 12;
+    }
     startMinutes = hour * 60 + minute;
-  } else if (text.includes('morning')) {
-    startMinutes = 9 * 60;
-  } else if (text.includes('afternoon')) {
-    startMinutes = 14 * 60;
-  } else if (text.includes('evening')) {
-    startMinutes = 18 * 60;
+  } else if (includesAny(text, ['early morning', 'subah jaldi', 'jaldi subah'])) {
+    startMinutes = 8 * 60;
+  } else if (includesAny(text, ['morning', 'subah', 'savera'])) {
+    startMinutes = 10 * 60;
+  } else if (includesAny(text, ['late afternoon', 'dopahar baad', 'dopehr baad'])) {
+    startMinutes = 15 * 60;
+  } else if (includesAny(text, ['afternoon', 'dopahar', 'dopehr', 'dupehar'])) {
+    startMinutes = 13 * 60;
+  } else if (includesAny(text, ['evening', 'shaam', 'sham'])) {
+    startMinutes = 17 * 60;
+  } else if (includesAny(text, ['night', 'raat'])) {
+    startMinutes = 20 * 60;
   }
 
   return {
@@ -280,6 +304,10 @@ function parseRequestedSlot(
     endMinutes: startMinutes + BOOKING_BLOCK_MINUTES,
     label: request.time_preference,
   };
+}
+
+function includesAny(text: string, needles: string[]): boolean {
+  return needles.some((needle) => text.includes(needle));
 }
 
 function hasAvailabilitySlot(

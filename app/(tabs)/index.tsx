@@ -14,7 +14,7 @@ import {
   View,
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { useFocusEffect, useRouter } from 'expo-router';
+import { useFocusEffect } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '@/hooks/useTheme';
@@ -77,7 +77,6 @@ function getTimeGreeting(): { emoji: string; text: string } {
 
 export default function HomeScreen() {
   const theme = useTheme();
-  const router = useRouter();
   const {
     rawRequest,
     isEmergency,
@@ -190,27 +189,6 @@ export default function HomeScreen() {
     });
   };
 
-  const handleRunJudgeDemo = () => {
-    const scenario =
-      demoScenarios.find((item) => item.id === 'E') ??
-      demoScenarios.find((item) => item.expected_action.includes('agentic')) ??
-      demoScenarios[0];
-    if (!scenario) return;
-
-    setRawRequest(scenario.request_text);
-    const parsed = scenario.expected_outputs?.parsed_request;
-    if (parsed) {
-      setParsedRequest(parsed);
-      apiClient.post(`/api/demo/scenario/${scenario.id}`, {}).catch(() => {
-        // The bundled scenario keeps the demo path usable in Expo Go.
-      });
-      router.push('/request/understand');
-      return;
-    }
-
-    parseRequest({ text: scenario.request_text, isEmergency: true });
-  };
-
   const emergencyBorderColor = emergencyPulse.interpolate({
     inputRange: [0, 1],
     outputRange: [Colors.danger, '#FF6B6B'],
@@ -316,38 +294,6 @@ export default function HomeScreen() {
               ]}
             />
           )}
-
-          <TouchableOpacity
-            style={[
-              s.judgeDemoBtn,
-              {
-                backgroundColor: Colors.accent + '14',
-                borderColor: Colors.accent + '35',
-              },
-            ]}
-            onPress={handleRunJudgeDemo}
-            activeOpacity={0.78}
-            accessibilityRole="button"
-            accessibilityLabel="Run judge demo"
-          >
-            <View style={[s.judgeDemoIcon, { backgroundColor: Colors.accent + '18' }]}>
-              <Ionicons name="play-circle" size={18} color={Colors.accent} />
-            </View>
-            <View style={{ flex: 1 }}>
-              <Text
-                style={[
-                  s.judgeDemoTitle,
-                  { color: Colors.accent, fontFamily: theme.fontFamily.bold },
-                ]}
-              >
-                Run Judge Demo
-              </Text>
-              <Text style={[s.judgeDemoSub, { color: theme.colors.textSecondary }]}>
-                Cancellation recovery with backup provider and family notification
-              </Text>
-            </View>
-            <Ionicons name="chevron-forward" size={18} color={Colors.accent} />
-          </TouchableOpacity>
 
           {/* ── Input Card ───────────────────────────────────────────────── */}
           <Animated.View
@@ -764,25 +710,6 @@ const s = StyleSheet.create({
     justifyContent: 'center',
   },
   aiTagText: { fontSize: 12, letterSpacing: 0.2 },
-  judgeDemoBtn: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 10,
-    borderRadius: 14,
-    borderWidth: 1,
-    padding: 12,
-    marginBottom: 16,
-  },
-  judgeDemoIcon: {
-    width: 34,
-    height: 34,
-    borderRadius: 17,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  judgeDemoTitle: { fontSize: 14, marginBottom: 2 },
-  judgeDemoSub: { fontSize: 12, lineHeight: 16 },
-
   // ── Input Card ──
   inputCard: {
     borderRadius: 20,
