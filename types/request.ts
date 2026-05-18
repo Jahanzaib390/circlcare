@@ -16,6 +16,7 @@ export interface ProviderPreferences {
 }
 
 export interface ParsedRequest {
+  input_source?: 'llm' | 'quick_select' | 'demo';
   service_bundle: ServiceCategory[];
   patient: string;
   location_from: string;

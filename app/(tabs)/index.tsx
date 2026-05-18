@@ -14,7 +14,7 @@ import {
   View,
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { useFocusEffect } from 'expo-router';
+import { useFocusEffect, useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '@/hooks/useTheme';
@@ -25,6 +25,7 @@ import { CareAgentToast } from '@/components/ui/CareAgentToast';
 import { ServiceCategory, ServiceDisplayNames, ServiceIcons } from '@/constants/ServiceCategories';
 import { Colors } from '@/constants/theme';
 import { apiClient } from '@/services/apiClient';
+import { buildPredefinedServiceRequest } from '@/services/predefinedRequest';
 import demoScenariosJson from '@/data/demo-scenarios.json';
 import type { ParsedRequest } from '@/types/request';
 import { DEMO_MODE_KEY } from '@/constants/StorageKeys';
@@ -77,6 +78,7 @@ function getTimeGreeting(): { emoji: string; text: string } {
 
 export default function HomeScreen() {
   const theme = useTheme();
+  const router = useRouter();
   const {
     rawRequest,
     isEmergency,
@@ -84,6 +86,7 @@ export default function HomeScreen() {
     setRawRequest,
     setParsedRequest,
     setIsEmergency,
+    addRecentRequest,
   } = useRequestStore();
   const { mutate: parseRequest, isPending, isError, reset: resetMutation } = useParseRequest();
 
@@ -172,9 +175,16 @@ export default function HomeScreen() {
   const handleCategoryTap = (cat: ServiceCategory) => {
     const label = ServiceDisplayNames[cat];
     const text = `I need ${label.toLowerCase()} service for my family member`;
+    const parsed = buildPredefinedServiceRequest(cat, isEmergency);
     setRawRequest(text);
-    setParsedRequest(null);
-    parseRequest({ text, isEmergency });
+    setParsedRequest(parsed);
+    addRecentRequest({
+      id: Date.now().toString(),
+      text,
+      timestamp: new Date().toISOString(),
+      serviceBundle: parsed.service_bundle,
+    });
+    router.push('/request/understand');
   };
 
   const handleRecentTap = (item: RecentRequest) => {

@@ -326,6 +326,36 @@ function clarificationChoices(pr: ParsedRequest): string[] {
   return choices.length > 0 ? choices : ['Continue to matches'];
 }
 
+function serviceCategoryFromText(value: string): ServiceCategory | undefined {
+  const normalized = value.trim().toLowerCase();
+  return SERVICE_OPTIONS.find((service) => {
+    const label = ServiceDisplayNames[service].toLowerCase();
+    return normalized === label || normalized === service.replace(/_/g, ' ');
+  });
+}
+
+function withClarificationState(pr: ParsedRequest): ParsedRequest {
+  const missingLocation = isMissingValue(pr.location_from);
+  const missingTime = isMissingValue(pr.time_preference);
+  const missingService = pr.service_bundle.length === 0;
+
+  return {
+    ...pr,
+    clarification_needed: missingLocation || missingTime || missingService,
+    clarification_question: missingLocation
+      ? 'Could you share the location where care is needed?'
+      : missingTime
+        ? 'When should we arrange this visit?'
+        : missingService
+          ? 'Which care service should we arrange?'
+          : undefined,
+    confidence:
+      !missingLocation && !missingTime && !missingService
+        ? Math.max(pr.confidence, 0.9)
+        : pr.confidence,
+  };
+}
+
 // ── Main screen ────────────────────────────────────────────────────────────────
 export default function UnderstandScreen() {
   const theme = useTheme();
@@ -345,8 +375,48 @@ export default function UnderstandScreen() {
     router.back();
   };
 
+  const applyQuickSelectClarification = useCallback(
+    (answer: string) => {
+      if (!parsedRequest) return false;
+
+      const trimmedAnswer = answer.trim();
+      if (parsedRequest.input_source !== 'quick_select' || !trimmedAnswer) return false;
+
+      const combined = `${rawRequest} - ${trimmedAnswer}`;
+      const lowerAnswer = trimmedAnswer.toLowerCase();
+      const service = serviceCategoryFromText(trimmedAnswer);
+      let next: ParsedRequest = { ...parsedRequest };
+
+      if (service) {
+        next.service_bundle = [service];
+      } else if (lowerAnswer.includes('female provider')) {
+        next.provider_preferences = {
+          ...next.provider_preferences,
+          gender: 'female_required',
+        };
+      } else if (lowerAnswer.includes('verified provider')) {
+        next.provider_preferences = {
+          ...next.provider_preferences,
+          verified_only: true,
+        };
+      } else if (isMissingValue(next.location_from)) {
+        next.location_from = trimmedAnswer;
+      } else {
+        next.time_preference = trimmedAnswer;
+      }
+
+      setRawRequest(combined);
+      setParsedRequest(withClarificationState(next));
+      setClarificationText('');
+      return true;
+    },
+    [parsedRequest, rawRequest, setParsedRequest, setRawRequest]
+  );
+
   const handleAnswerClarification = () => {
     if (!clarificationText.trim()) return;
+    if (applyQuickSelectClarification(clarificationText)) return;
+
     const combined = `${rawRequest} — ${clarificationText.trim()}`;
     setRawRequest(combined);
     setIsAnswering(true);
@@ -376,6 +446,8 @@ export default function UnderstandScreen() {
       return;
     }
     setClarificationText(choice);
+    if (applyQuickSelectClarification(choice)) return;
+
     const combined = `${rawRequest} — ${choice}`;
     setRawRequest(combined);
     setIsAnswering(true);

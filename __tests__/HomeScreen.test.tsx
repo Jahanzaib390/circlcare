@@ -4,6 +4,7 @@ import HomeScreen from '@/app/(tabs)/index';
 
 const mockParseRequest = jest.fn();
 const mockResetMutation = jest.fn();
+const mockRouterPush = jest.fn();
 const mockSetRawRequest = jest.fn((text: string) => {
   mockRawRequest = text;
 });
@@ -11,6 +12,7 @@ const mockSetParsedRequest = jest.fn();
 const mockSetIsEmergency = jest.fn((value: boolean) => {
   mockIsEmergency = value;
 });
+const mockAddRecentRequest = jest.fn();
 
 let mockRawRequest = '';
 let mockIsEmergency = false;
@@ -18,7 +20,7 @@ let mockIsEmergency = false;
 jest.mock('expo-router', () => ({
   useFocusEffect: (cb: () => void) => cb(),
   useRouter: () => ({
-    push: jest.fn(),
+    push: mockRouterPush,
   }),
 }));
 
@@ -62,6 +64,7 @@ jest.mock('@/hooks/useRequestStore', () => ({
     setRawRequest: mockSetRawRequest,
     setParsedRequest: mockSetParsedRequest,
     setIsEmergency: mockSetIsEmergency,
+    addRecentRequest: mockAddRecentRequest,
   }),
 }));
 
@@ -114,10 +117,20 @@ describe('HomeScreen', () => {
     expect(mockSetRawRequest).toHaveBeenCalledWith(
       'I need home nurse service for my family member'
     );
-    expect(mockParseRequest).toHaveBeenCalledWith({
-      text: 'I need home nurse service for my family member',
-      isEmergency: false,
-    });
+    expect(mockParseRequest).not.toHaveBeenCalled();
+    expect(mockSetParsedRequest).toHaveBeenCalledWith(
+      expect.objectContaining({
+        input_source: 'quick_select',
+        service_bundle: ['home_nurse'],
+      })
+    );
+    expect(mockAddRecentRequest).toHaveBeenCalledWith(
+      expect.objectContaining({
+        text: 'I need home nurse service for my family member',
+        serviceBundle: ['home_nurse'],
+      })
+    );
+    expect(mockRouterPush).toHaveBeenCalledWith('/request/understand');
 
     fireEvent.press(screen.getByLabelText('Reuse request: Need a nurse tomorrow'));
     expect(mockSetRawRequest).toHaveBeenCalledWith('Need a nurse tomorrow');
