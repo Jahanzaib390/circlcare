@@ -30,7 +30,7 @@ const STEP_NOTES: Partial<Record<Booking['status'], string>> = {
 };
 
 function resolveScheduledStart(request: ParsedRequest): string {
-  if (request.scheduled_datetime) {
+  if (request.scheduled_datetime && !Number.isNaN(new Date(request.scheduled_datetime).getTime())) {
     return reconcileScheduledDatetimeWithPreference(
       request.scheduled_datetime,
       request.time_preference
@@ -38,38 +38,62 @@ function resolveScheduledStart(request: ParsedRequest): string {
   }
 
   const preferred = request.time_preference.toLowerCase();
-  const scheduled = new Date();
+  const pkDate = getPakistanDateParts();
   const explicitClock = parseClockTime(preferred);
+  let dayOffset = 1;
 
   if (hasAny(preferred, ['tomorrow', 'kal'])) {
-    scheduled.setDate(scheduled.getDate() + 1);
-  } else if (!hasAny(preferred, ['today', 'aaj'])) {
-    scheduled.setDate(scheduled.getDate() + 1);
+    dayOffset = 1;
+  } else if (hasAny(preferred, ['today', 'aaj'])) {
+    dayOffset = 0;
   }
 
+  let hour = 10;
+  let minute = 0;
   if (explicitClock) {
-    scheduled.setHours(explicitClock.hour, explicitClock.minute, 0, 0);
+    hour = explicitClock.hour;
+    minute = explicitClock.minute;
   } else if (hasAny(preferred, ['early morning', 'subah jaldi', 'jaldi subah'])) {
-    scheduled.setHours(8, 0, 0, 0);
+    hour = 8;
   } else if (hasAny(preferred, ['morning', 'subah', 'savera'])) {
-    scheduled.setHours(10, 0, 0, 0);
+    hour = 10;
   } else if (hasAny(preferred, ['late afternoon', 'dopahar baad', 'dopehr baad'])) {
-    scheduled.setHours(15, 0, 0, 0);
+    hour = 15;
   } else if (hasAny(preferred, ['afternoon', 'dopahar', 'dopehr', 'dupehar'])) {
-    scheduled.setHours(13, 0, 0, 0);
+    hour = 13;
   } else if (hasAny(preferred, ['evening', 'shaam', 'sham'])) {
-    scheduled.setHours(17, 0, 0, 0);
+    hour = 17;
   } else if (hasAny(preferred, ['night', 'raat'])) {
-    scheduled.setHours(20, 0, 0, 0);
-  } else {
-    scheduled.setHours(10, 0, 0, 0);
+    hour = 20;
   }
 
+  let scheduled = pakistanWallTimeToDate(pkDate.year, pkDate.month, pkDate.day + dayOffset, hour, minute);
   if (scheduled.getTime() <= Date.now()) {
-    scheduled.setDate(scheduled.getDate() + 1);
+    scheduled = pakistanWallTimeToDate(pkDate.year, pkDate.month, pkDate.day + dayOffset + 1, hour, minute);
   }
 
   return scheduled.toISOString();
+}
+
+function getPakistanDateParts(now = new Date()): { year: number; month: number; day: number } {
+  const parts = new Intl.DateTimeFormat('en-CA', {
+    timeZone: 'Asia/Karachi',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+  }).formatToParts(now);
+  const value = (type: string) => Number(parts.find((part) => part.type === type)?.value);
+  return { year: value('year'), month: value('month'), day: value('day') };
+}
+
+function pakistanWallTimeToDate(
+  year: number,
+  month: number,
+  day: number,
+  hour: number,
+  minute: number
+): Date {
+  return new Date(Date.UTC(year, month - 1, day, hour - 5, minute, 0, 0));
 }
 
 export function getBooking(id: string): Booking | undefined {

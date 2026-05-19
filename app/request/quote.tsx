@@ -68,21 +68,86 @@ function LineItem({
 function formatRequestedSlot(request: ParsedRequest | null): string {
   if (!request) return 'Not specified';
 
+  const scheduledDate = request.scheduled_datetime
+    ? new Date(request.scheduled_datetime)
+    : undefined;
+  if (scheduledDate && !Number.isNaN(scheduledDate.getTime())) {
+    return scheduledDate.toLocaleString(undefined, {
+      weekday: 'short',
+      month: 'short',
+      day: 'numeric',
+      hour: 'numeric',
+      minute: '2-digit',
+    });
+  }
+
+  const naturalSlot = resolveNaturalSlotLabel(request.time_preference);
+  if (naturalSlot) return naturalSlot;
+
   const preference = request.time_preference?.trim();
   const hasUsefulPreference =
     preference &&
     !['not specified', 'flexible'].includes(preference.toLowerCase());
 
   if (hasUsefulPreference) return preference;
-  if (!request.scheduled_datetime) return 'Not specified';
+  return 'Not specified';
+}
 
-  return new Date(request.scheduled_datetime).toLocaleString(undefined, {
+function resolveNaturalSlotLabel(timePreference?: string | null): string | undefined {
+  const text = timePreference?.trim().toLowerCase();
+  if (!text || ['not specified', 'flexible'].includes(text)) return undefined;
+
+  const explicitClock = parseClockTime(text);
+  let hour = explicitClock?.hour;
+  let minute = explicitClock?.minute ?? 0;
+
+  if (hour == null) {
+    if (hasAny(text, ['early morning', 'subah jaldi', 'jaldi subah'])) hour = 8;
+    else if (hasAny(text, ['morning', 'subah', 'savera'])) hour = 10;
+    else if (hasAny(text, ['late afternoon', 'dopahar baad', 'dopehr baad'])) hour = 15;
+    else if (hasAny(text, ['afternoon', 'dopahar', 'dopehr', 'dupehar'])) hour = 13;
+    else if (hasAny(text, ['evening', 'shaam', 'sham'])) hour = 17;
+    else if (hasAny(text, ['night', 'raat'])) hour = 20;
+  }
+  if (hour == null) return undefined;
+
+  const date = new Date();
+  if (hasAny(text, ['tomorrow', 'kal'])) {
+    date.setDate(date.getDate() + 1);
+  } else if (!hasAny(text, ['today', 'aaj'])) {
+    date.setDate(date.getDate() + 1);
+  }
+  date.setHours(hour, minute, 0, 0);
+
+  return date.toLocaleString(undefined, {
     weekday: 'short',
     month: 'short',
     day: 'numeric',
     hour: 'numeric',
     minute: '2-digit',
   });
+}
+
+function parseClockTime(text: string): { hour: number; minute: number } | undefined {
+  const match = text.match(/\b(\d{1,2})(?::(\d{2}))?\s*(am|pm)?\b|\b(\d{1,2})\s*baje\b/);
+  if (!match) return undefined;
+
+  let hour = Number(match[1] ?? match[4]);
+  const minute = Number(match[2] ?? '0');
+  const suffix = match[3];
+
+  if (suffix === 'pm' && hour < 12) hour += 12;
+  if (suffix === 'am' && hour === 12) hour = 0;
+  if (!suffix && hour >= 1 && hour <= 7 && hasAny(text, ['shaam', 'sham', 'evening', 'raat'])) {
+    hour += 12;
+  }
+
+  if (hour > 23 || minute > 59) return undefined;
+  return { hour, minute };
+}
+
+function hasAny(text: string, needles: string[]): boolean {
+  return needles.some((needle) => text.includes(needle));
 }
 
 export default function QuoteScreen() {

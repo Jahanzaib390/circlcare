@@ -131,6 +131,26 @@ describe('pricing and booking simulator', () => {
     expect(reminder_event.scheduled_for).toBe('2026-05-15T09:00:00.000Z');
   });
 
+  it('falls back to natural language preference when scheduled_datetime is not an ISO date', () => {
+    jest.useFakeTimers().setSystemTime(new Date('2026-05-19T08:00:00.000Z'));
+    const requestWithNaturalTimestamp: ParsedRequest = {
+      ...request,
+      time_preference: 'kal subah 10 baje',
+      scheduled_datetime: 'kal subah 10 baje',
+    };
+    const quote = calculateQuote(provider, requestWithNaturalTimestamp);
+    const { booking, reminder_event } = createBooking(
+      requestWithNaturalTimestamp,
+      provider,
+      quote,
+      'user-test-natural-time'
+    );
+
+    expect(booking.scheduled_start).toBe('2026-05-20T05:00:00.000Z');
+    expect(reminder_event.scheduled_for).toBe('2026-05-20T04:00:00.000Z');
+    jest.useRealTimers();
+  });
+
   it('advances the live lifecycle and handles transit delay/cancellation simulations', () => {
     const quote = calculateQuote(provider, request);
     const { booking } = createBooking(request, provider, quote, 'user-test-2');
