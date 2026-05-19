@@ -1,7 +1,4 @@
-const appJson = require('./app.json');
-
-module.exports = () => {
-  const config = appJson.expo;
+module.exports = ({ config }) => {
   const googleMapsApiKey = process.env.EXPO_PUBLIC_GOOGLE_MAPS_API_KEY;
 
   return {
