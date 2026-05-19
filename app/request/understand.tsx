@@ -299,14 +299,14 @@ function displayValue(value: string | undefined, fallback: string): string {
 }
 
 function clarificationChoices(pr: ParsedRequest): string[] {
+  if (pr.service_bundle.length === 0 || pr.service_bundle.includes(ServiceCategory.DailySupport)) {
+    return ['Home nurse', 'Caregiver', 'Physiotherapy'];
+  }
   if (pr.location_from === 'current_location_requested') {
     return ['Use my current location', 'DHA Lahore', 'Clifton Karachi'];
   }
   if (pr.location_from === 'not specified') {
     return ['DHA Lahore', 'Model Town Lahore', 'Gulberg Lahore'];
-  }
-  if (pr.service_bundle.length === 0 || pr.service_bundle.includes(ServiceCategory.DailySupport)) {
-    return ['Home nurse', 'Caregiver', 'Physiotherapy'];
   }
   if (isMissingValue(pr.time_preference)) {
     return ['Today evening', 'Tomorrow morning', 'This weekend'];
@@ -342,12 +342,12 @@ function withClarificationState(pr: ParsedRequest): ParsedRequest {
   return {
     ...pr,
     clarification_needed: missingLocation || missingTime || missingService,
-    clarification_question: missingLocation
-      ? 'Could you share the location where care is needed?'
-      : missingTime
-        ? 'When should we arrange this visit?'
-        : missingService
-          ? 'Which care service should we arrange?'
+    clarification_question: missingService
+      ? 'Which care service should we arrange?'
+      : missingLocation
+        ? 'Could you share the location where care is needed?'
+        : missingTime
+          ? 'When should we arrange this visit?'
           : undefined,
     confidence:
       !missingLocation && !missingTime && !missingService
@@ -421,7 +421,7 @@ export default function UnderstandScreen() {
     setRawRequest(combined);
     setIsAnswering(true);
     reparse(
-      { text: combined },
+      { text: combined, saveToRecent: false },
       {
         onSettled: () => setIsAnswering(false),
         onSuccess: () => setClarificationText(''),
@@ -452,7 +452,7 @@ export default function UnderstandScreen() {
     setRawRequest(combined);
     setIsAnswering(true);
     reparse(
-      { text: combined },
+      { text: combined, saveToRecent: false },
       {
         onSettled: () => setIsAnswering(false),
         onSuccess: () => setClarificationText(''),
@@ -463,7 +463,11 @@ export default function UnderstandScreen() {
   const handleFieldSave = useCallback(
     (field: keyof ParsedRequest, value: string) => {
       if (!parsedRequest) return;
-      const next = { ...parsedRequest, [field]: value };
+      const next = {
+        ...parsedRequest,
+        [field]: value,
+        ...(field === 'time_preference' ? { scheduled_datetime: undefined } : null),
+      };
       const missingLocation = isMissingValue(next.location_from);
       const missingTime = isMissingValue(next.time_preference);
       const missingService = next.service_bundle.length === 0;

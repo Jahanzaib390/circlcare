@@ -113,6 +113,24 @@ describe('pricing and booking simulator', () => {
     );
   });
 
+  it('honors an explicit requested time over a stale generated timestamp', () => {
+    const requestWithStaleTimestamp: ParsedRequest = {
+      ...request,
+      time_preference: 'tomorrow morning 10 am',
+      scheduled_datetime: '2026-05-15T15:00:00.000Z',
+    };
+    const quote = calculateQuote(provider, requestWithStaleTimestamp);
+    const { booking, reminder_event } = createBooking(
+      requestWithStaleTimestamp,
+      provider,
+      quote,
+      'user-test-slot'
+    );
+
+    expect(booking.scheduled_start).toBe('2026-05-15T10:00:00.000Z');
+    expect(reminder_event.scheduled_for).toBe('2026-05-15T09:00:00.000Z');
+  });
+
   it('advances the live lifecycle and handles transit delay/cancellation simulations', () => {
     const quote = calculateQuote(provider, request);
     const { booking } = createBooking(request, provider, quote, 'user-test-2');

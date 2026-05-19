@@ -11,6 +11,7 @@ import type { Provider } from '../types/provider';
 import type { ParsedRequest, ServiceCategory } from '../types/parsedRequest';
 import type { MatchResult, MatchScore, MatchResponse } from '../types/match';
 import { haversineKm, estimateTravelTime } from '../utils/haversine';
+import { BOOKING_BLOCK_MINUTES, hasAny, resolvePreferredStartMinutes } from '../utils/timePreference';
 
 interface ExistingBooking {
   provider_id: string;
@@ -186,8 +187,6 @@ interface HardFilterOutcome {
 }
 
 const HIGH_RISK_SERVICES: ServiceCategory[] = ['home_nurse', 'physiotherapy', 'lab_sample'];
-const BOOKING_BLOCK_MINUTES = 120;
-
 function minutesFromHHMM(value: string): number {
   const [hour = '0', minute = '0'] = value.split(':');
   return Number(hour) * 60 + Number(minute);
@@ -225,12 +224,13 @@ function parseRequestedSlot(
     const match = iso.match(/^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})/);
     if (match) {
       const [, y, m, d, hh, mm] = match;
-      const startMinutes = Number(hh) * 60 + Number(mm);
+      const preferredStart = resolvePreferredStartMinutes(request.time_preference);
+      const startMinutes = preferredStart ?? Number(hh) * 60 + Number(mm);
       return {
         day: dayKeyFromDateParts(Number(y), Number(m), Number(d)),
         startMinutes,
         endMinutes: startMinutes + BOOKING_BLOCK_MINUTES,
-        label: `${hh}:${mm}`,
+        label: preferredStart == null ? `${hh}:${mm}` : request.time_preference,
       };
     }
   }
@@ -257,7 +257,7 @@ function parseRequestedSlot(
   };
   const clockMatch = text.match(/\b(\d{1,2})(?::(\d{2}))?\s*(am|pm)?\b|\b(\d{1,2})\s*baje\b/);
   const hasTimePhrase =
-    includesAny(text, [
+    hasAny(text, [
       'morning',
       'subah',
       'savera',
@@ -280,21 +280,21 @@ function parseRequestedSlot(
     const suffix = clockMatch[3];
     if (suffix === 'pm' && hour < 12) hour += 12;
     if (suffix === 'am' && hour === 12) hour = 0;
-    if (!suffix && hour >= 1 && hour <= 7 && includesAny(text, ['shaam', 'sham', 'evening', 'raat'])) {
+    if (!suffix && hour >= 1 && hour <= 7 && hasAny(text, ['shaam', 'sham', 'evening', 'raat'])) {
       hour += 12;
     }
     startMinutes = hour * 60 + minute;
-  } else if (includesAny(text, ['early morning', 'subah jaldi', 'jaldi subah'])) {
+  } else if (hasAny(text, ['early morning', 'subah jaldi', 'jaldi subah'])) {
     startMinutes = 8 * 60;
-  } else if (includesAny(text, ['morning', 'subah', 'savera'])) {
+  } else if (hasAny(text, ['morning', 'subah', 'savera'])) {
     startMinutes = 10 * 60;
-  } else if (includesAny(text, ['late afternoon', 'dopahar baad', 'dopehr baad'])) {
+  } else if (hasAny(text, ['late afternoon', 'dopahar baad', 'dopehr baad'])) {
     startMinutes = 15 * 60;
-  } else if (includesAny(text, ['afternoon', 'dopahar', 'dopehr', 'dupehar'])) {
+  } else if (hasAny(text, ['afternoon', 'dopahar', 'dopehr', 'dupehar'])) {
     startMinutes = 13 * 60;
-  } else if (includesAny(text, ['evening', 'shaam', 'sham'])) {
+  } else if (hasAny(text, ['evening', 'shaam', 'sham'])) {
     startMinutes = 17 * 60;
-  } else if (includesAny(text, ['night', 'raat'])) {
+  } else if (hasAny(text, ['night', 'raat'])) {
     startMinutes = 20 * 60;
   }
 
@@ -304,10 +304,6 @@ function parseRequestedSlot(
     endMinutes: startMinutes + BOOKING_BLOCK_MINUTES,
     label: request.time_preference,
   };
-}
-
-function includesAny(text: string, needles: string[]): boolean {
-  return needles.some((needle) => text.includes(needle));
 }
 
 function hasAvailabilitySlot(

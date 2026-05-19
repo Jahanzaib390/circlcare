@@ -22,6 +22,7 @@ import { Button } from '@/components/ui/Button';
 import { CareAgentToast } from '@/components/ui/CareAgentToast';
 import { Colors } from '@/constants/theme';
 import type { PricingBreakdown, QuoteLineItem } from '@/types/pricing';
+import type { ParsedRequest } from '@/types/request';
 
 function LineItem({
   item,
@@ -62,6 +63,26 @@ function LineItem({
       </Text>
     </Animated.View>
   );
+}
+
+function formatRequestedSlot(request: ParsedRequest | null): string {
+  if (!request) return 'Not specified';
+
+  const preference = request.time_preference?.trim();
+  const hasUsefulPreference =
+    preference &&
+    !['not specified', 'flexible'].includes(preference.toLowerCase());
+
+  if (hasUsefulPreference) return preference;
+  if (!request.scheduled_datetime) return 'Not specified';
+
+  return new Date(request.scheduled_datetime).toLocaleString(undefined, {
+    weekday: 'short',
+    month: 'short',
+    day: 'numeric',
+    hour: 'numeric',
+    minute: '2-digit',
+  });
 }
 
 export default function QuoteScreen() {
@@ -255,6 +276,44 @@ export default function QuoteScreen() {
           </View>
         )}
 
+        {/* ── Visit Slot ── */}
+        {pricingForDisplay && (
+          <View
+            style={[
+              styles.card,
+              styles.slotCard,
+              { backgroundColor: theme.colors.surface, borderColor: theme.colors.border },
+            ]}
+          >
+            <View style={styles.slotRow}>
+              <View style={[styles.slotIcon, { backgroundColor: theme.colors.primary + '12' }]}>
+                <Ionicons name="time-outline" size={18} color={theme.colors.primary} />
+              </View>
+              <View style={{ flex: 1 }}>
+                <Text style={[styles.slotLabel, { color: theme.colors.textSecondary }]}>
+                  Visit Slot
+                </Text>
+                <Text
+                  style={[
+                    styles.slotValue,
+                    { color: theme.colors.textPrimary, fontFamily: theme.fontFamily.semiBold },
+                  ]}
+                >
+                  {formatRequestedSlot(
+                    isAlternateSlotSelected && pricing?.cheaper_slot_suggestion
+                      ? {
+                          ...parsedRequest!,
+                          scheduled_datetime: pricing.cheaper_slot_suggestion.datetime,
+                          time_preference: 'Tomorrow morning',
+                        }
+                      : parsedRequest
+                  )}
+                </Text>
+              </View>
+            </View>
+          </View>
+        )}
+
         {/* ── Quote Breakdown ── */}
         {pricingForDisplay && (
           <View
@@ -433,6 +492,20 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
     marginBottom: 24,
   },
+  slotCard: {
+    padding: 16,
+    marginBottom: 12,
+  },
+  slotRow: { flexDirection: 'row', alignItems: 'center', gap: 12 },
+  slotIcon: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  slotLabel: { fontSize: 13, marginBottom: 2 },
+  slotValue: { fontSize: 16, textTransform: 'capitalize' },
   cardHeader: {
     flexDirection: 'row',
     alignItems: 'center',

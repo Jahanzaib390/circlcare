@@ -10,6 +10,11 @@ import type { ParsedRequest } from '../types/parsedRequest';
 import type { Provider } from '../types/provider';
 import type { PricingBreakdown } from '../types/pricing';
 import { BOOKING_TIMELINE_STEPS } from '../constants/bookingStatuses';
+import {
+  hasAny,
+  parseClockTime,
+  reconcileScheduledDatetimeWithPreference,
+} from '../utils/timePreference';
 
 // In-memory "database"
 const bookings = new Map<string, Booking>();
@@ -25,7 +30,12 @@ const STEP_NOTES: Partial<Record<Booking['status'], string>> = {
 };
 
 function resolveScheduledStart(request: ParsedRequest): string {
-  if (request.scheduled_datetime) return request.scheduled_datetime;
+  if (request.scheduled_datetime) {
+    return reconcileScheduledDatetimeWithPreference(
+      request.scheduled_datetime,
+      request.time_preference
+    );
+  }
 
   const preferred = request.time_preference.toLowerCase();
   const scheduled = new Date();
@@ -60,28 +70,6 @@ function resolveScheduledStart(request: ParsedRequest): string {
   }
 
   return scheduled.toISOString();
-}
-
-function hasAny(text: string, needles: string[]): boolean {
-  return needles.some((needle) => text.includes(needle));
-}
-
-function parseClockTime(text: string): { hour: number; minute: number } | undefined {
-  const match = text.match(/\b(\d{1,2})(?::(\d{2}))?\s*(am|pm)?\b|\b(\d{1,2})\s*baje\b/);
-  if (!match) return undefined;
-
-  let hour = Number(match[1] ?? match[4]);
-  const minute = Number(match[2] ?? '0');
-  const suffix = match[3];
-
-  if (suffix === 'pm' && hour < 12) hour += 12;
-  if (suffix === 'am' && hour === 12) hour = 0;
-  if (!suffix && hour >= 1 && hour <= 7 && hasAny(text, ['shaam', 'sham', 'evening', 'raat'])) {
-    hour += 12;
-  }
-
-  if (hour > 23 || minute > 59) return undefined;
-  return { hour, minute };
 }
 
 export function getBooking(id: string): Booking | undefined {

@@ -102,6 +102,7 @@ Parse a natural language care request from a family member into the requested JS
 
 Rules:
 - service_bundle must contain only valid category values.
+- If the input is not an elder-care, patient-care, mobility, medicine, meal, lab, clinic, or family support request, return service_bundle: [], clarification_needed: true, confidence < 0.7, and ask what care service is needed. Do not force random errands into Daily Support, Caregiver, or Elder Companion.
 - If urgency is "emergency", set risk_level to "high" and confidence to 1.0.
 - If the request is ambiguous (missing service type, location, or time), set clarification_needed: true, confidence < 0.7, and provide a concise clarification_question.
 - Ask about only the missing field. If time is missing but service, location, and provider gender are known, ask only when the visit is needed.

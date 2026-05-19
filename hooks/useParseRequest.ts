@@ -25,6 +25,7 @@ interface ParseResponse {
 interface ParseVariables {
   text: string;
   isEmergency?: boolean;
+  saveToRecent?: boolean;
 }
 
 /**
@@ -61,13 +62,14 @@ export function useParseRequest() {
       // Store parsed result in global state
       setParsedRequest(data as ParsedRequest);
 
-      // Save to recent requests history
-      addRecentRequest({
-        id: Date.now().toString(),
-        text: variables.text,
-        timestamp: new Date().toISOString(),
-        serviceBundle: data.service_bundle,
-      });
+      if (variables.saveToRecent !== false) {
+        addRecentRequest({
+          id: Date.now().toString(),
+          text: variables.text,
+          timestamp: new Date().toISOString(),
+          serviceBundle: data.service_bundle,
+        });
+      }
 
       // Navigate to understanding screen
       if (pathname === '/request/understand') {

@@ -38,4 +38,14 @@ describe('MockProvider.parseRequest location clarification', () => {
     expect(parsed.confidence).toBeLessThan(0.7);
     expect(parsed.clarification_question).toContain('current location');
   });
+
+  it('does not force out-of-scope errands into a care category', async () => {
+    const provider = new MockProvider();
+
+    const parsed = await provider.parseRequest('Mujhe kal market jana hai');
+
+    expect(parsed.service_bundle).toEqual([]);
+    expect(parsed.clarification_needed).toBe(true);
+    expect(parsed.clarification_question).toContain('care');
+  });
 });

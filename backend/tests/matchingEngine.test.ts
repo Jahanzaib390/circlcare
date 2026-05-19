@@ -124,6 +124,20 @@ describe('matchProviders hard filters', () => {
     expect(result.filtered_out[0].reason).toContain('Not available');
   });
 
+  it('uses explicit time preference when scheduled_datetime disagrees', () => {
+    const morningOnlyProvider = makeProvider({
+      availability: [{ day: 'fri', start_time: '08:00', end_time: '12:00' }],
+    });
+    const request = makeRequest({
+      time_preference: 'Friday morning 10 am',
+      scheduled_datetime: '2026-05-15T15:00:00+05:00',
+    });
+
+    const result = matchProviders(request, [morningOnlyProvider]);
+
+    expect(result.top_matches).toHaveLength(1);
+  });
+
   it('hard rejects providers with an active overlapping booking', () => {
     const result = matchProviders(
       baseRequest,

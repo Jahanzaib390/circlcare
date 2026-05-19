@@ -29,7 +29,20 @@ export class MockProvider implements LLMProvider {
     if (lower.includes('meal') || lower.includes('food') || lower.includes('diet'))
       services.push('meal_plan');
     if (lower.includes('companion') || lower.includes('company')) services.push('elder_companion');
-    if (services.length === 0) services.push('daily_support');
+    const hasCareContext =
+      lower.includes('care') ||
+      lower.includes('support') ||
+      lower.includes('help') ||
+      lower.includes('elder') ||
+      lower.includes('patient') ||
+      lower.includes('ammi') ||
+      lower.includes('abu') ||
+      lower.includes('mother') ||
+      lower.includes('father') ||
+      lower.includes('grandmother') ||
+      lower.includes('grandfather') ||
+      lower.includes('parent');
+    if (services.length === 0 && hasCareContext) services.push('daily_support');
 
     // ── Emergency / urgency detection ─────────────────────────────────────────
     const isEmergency =
@@ -191,8 +204,9 @@ export class MockProvider implements LLMProvider {
     const needsLocationClarification =
       currentLocationRequested || Boolean(ambiguousLocation) || locationFrom === 'not specified';
     const needsTimeClarification = timePreference === 'not specified';
+    const needsServiceClarification = services.length === 0 || services[0] === 'daily_support';
     const needsClarification =
-      needsLocationClarification || needsTimeClarification || services[0] === 'daily_support';
+      needsLocationClarification || needsTimeClarification || needsServiceClarification;
     const confidence = needsClarification ? 0.55 : 0.88;
 
     return {
@@ -215,7 +229,9 @@ export class MockProvider implements LLMProvider {
       risk_level: isEmergency ? 'high' : services.includes('home_nurse') ? 'medium' : 'low',
       clarification_needed: needsClarification,
       clarification_question: needsClarification
-        ? currentLocationRequested
+        ? needsServiceClarification
+          ? 'Could you clarify what type of care or support is needed?'
+          : currentLocationRequested
           ? 'Should I use your current location to find nearby clinic support?'
           : ambiguousLocation
             ? `Which city is ${ambiguousLocation[1]} in: Lahore, Karachi, or Islamabad/Rawalpindi?`
@@ -223,7 +239,7 @@ export class MockProvider implements LLMProvider {
               ? 'Could you share the location where care is needed?'
               : needsTimeClarification
                 ? 'When should we arrange this visit?'
-                : 'Could you clarify what type of care or support is needed?'
+                : undefined
         : undefined,
       confidence,
     };

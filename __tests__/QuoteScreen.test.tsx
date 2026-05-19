@@ -80,6 +80,8 @@ describe('QuoteScreen', () => {
   it('renders the itemized quote and total', () => {
     const screen = render(<QuoteScreen />);
 
+    expect(screen.getByText('Visit Slot')).toBeTruthy();
+    expect(screen.getByText('Friday 10:00')).toBeTruthy();
     expect(screen.getByText('Pricing Breakdown')).toBeTruthy();
     expect(screen.getByText('Base Visit Fee')).toBeTruthy();
     expect(screen.getByText('+1,200 PKR')).toBeTruthy();
