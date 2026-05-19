@@ -1,0 +1,3 @@
+- [x] Update `app.json` with `android.package`
+- [x] Create `eas.json` with APK build profile
+- [x] Provide instructions to the user
